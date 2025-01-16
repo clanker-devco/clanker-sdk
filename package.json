@@ -25,7 +25,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/clanker-devco/sdk"
+    "url": "https://github.com/clanker-devco/clanker-sdk.git"
+  },
+  "homepage": "https://github.com/clanker-devco/clanker-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/clanker-devco/clanker-sdk/issues"
   },
   "keywords": [
     "clanker",
