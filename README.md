@@ -11,7 +11,11 @@ npm install clanker-sdk
 ## Getting Started
 
 ### 1. Request API Access
-Visit [clanker.world](https://clanker.world) to request platform access. Once approved, you'll receive your API key through our secure channel.
+Currently, API access is granted on a case-by-case basis to interested platforms. To request access, please contact:
+- Telegram: `btayengco`
+- Warpcast: `btayengco`
+
+We'll evaluate each request individually as we carefully scale our platform access.
 
 ### 2. Environment Setup
 Create a `.env` file in your project root:
@@ -94,4 +98,4 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 
 ## License
 
-ISC © Clanker Team 
+ISC © Clanker Team
