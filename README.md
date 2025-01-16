@@ -1,6 +1,6 @@
 # Clanker SDK
 
-A lightweight TypeScript SDK for interacting with the Clanker API. This SDK provides a simple interface for token deployment, fee estimation, and reward tracking.
+A lightweight TypeScript SDK for interacting with the Clanker API. Deploy tokens, manage splits, and track rewards with ease.
 
 ## Installation
 
@@ -8,144 +8,90 @@ A lightweight TypeScript SDK for interacting with the Clanker API. This SDK prov
 npm install clanker-sdk
 ```
 
-## Quick Start
+## Getting Started
+
+### 1. Request API Access
+Visit [clanker.world](https://clanker.world) to request platform access. Once approved, you'll receive your API key through our secure channel.
+
+### 2. Environment Setup
+Create a `.env` file in your project root:
+
+```bash
+CLANKER_API_KEY=your_api_key_here
+```
+
+Copy the `.env.example` file to get started:
+
+```bash
+cp .env.example .env
+```
+
+Make sure to add your API key to the `.env` file and never commit it to version control.
+
+### 3. Basic Usage
 
 ```typescript
+import * as dotenv from 'dotenv';
 import { ClankerSDK } from 'clanker-sdk';
 
-// Initialize the SDK with your API key
-const clanker = new ClankerSDK('your_api_key_here');
+// Load environment variables
+dotenv.config();
 
-// Deploy a new token
-const newToken = await clanker.deployToken({
-  name: "My Token",
-  symbol: "MTK",
-  image: "https://example.com/token-image.png",
-  requestorAddress: "0x1234567890abcdef1234567890abcdef12345678",
+// Validate API key
+const API_KEY = process.env.CLANKER_API_KEY;
+if (!API_KEY) {
+  throw new Error('Missing CLANKER_API_KEY in environment variables');
+}
+
+// Initialize SDK
+const clanker = new ClankerSDK(API_KEY);
+
+// Deploy a token
+const token = await clanker.deployToken({
+  name: "Community Token",
+  symbol: "CMTY",
+  image: "https://example.com/token.png",
+  requestorAddress: "0x1234567890123456789012345678901234567890"
 });
 ```
 
 ## Features
 
-- 🚀 Deploy tokens with ease
-- 💰 Track uncollected fees and rewards
-- 🔄 Manage token splits
-- 📊 Query deployed tokens and pool information
+- 🚀 Token Deployment
+- 💰 Split Management
+- 📊 Rewards Tracking
+- 🔒 Type-safe API
+- 📝 Full TypeScript Support
 
 ## Examples
 
-The SDK comes with several example scripts demonstrating common use cases:
+Check out the `examples/` directory for more usage examples:
 
-### Token Deployment
+- Token Deployment (`examples/token-deployment.ts`)
+- Rewards and Fees (`examples/rewards-and-fees.ts`)
+
+Run examples using:
+
 ```bash
-# Run the token deployment example
-npm run example:deploy
-```
-
-### Rewards and Fees
-```bash
-# Run the rewards and fees example
-npm run example:rewards
-```
-
-Check out the `examples` directory for the complete source code of these examples.
-
-## API Reference
-
-### `deployToken(options)`
-Deploy a new token with basic configuration.
-
-```typescript
-const token = await clanker.deployToken({
-  name: "Community Token",
-  symbol: "CMTY",
-  image: "https://example.com/token.png",
-  requestorAddress: "0x...",
-});
-```
-
-### `deployTokenWithSplits(options)`
-Deploy a token with custom split configuration.
-
-```typescript
-const token = await clanker.deployTokenWithSplits({
-  name: "Creator Token",
-  symbol: "CRTR",
-  image: "https://example.com/token.png",
-  requestorAddress: "0x...",
-  splitAddress: "0x...",
-});
-```
-
-### `getEstimatedUncollectedFees(contractAddress)`
-Get estimated uncollected fees for a contract.
-
-```typescript
-const fees = await clanker.getEstimatedUncollectedFees("0x...");
-```
-
-### `fetchDeployedByAddress(address, page?)`
-Fetch all tokens deployed by a specific address.
-
-```typescript
-const tokens = await clanker.fetchDeployedByAddress("0x...");
-```
-
-### `getEstimatedRewardsByPoolAddress(poolAddress)`
-Get estimated rewards for a specific pool.
-
-```typescript
-const rewards = await clanker.getEstimatedRewardsByPoolAddress("0x...");
-```
-
-### `getClankerByAddress(address)`
-Fetch details about a specific Clanker by contract address.
-
-```typescript
-const clanker = await clanker.getClankerByAddress("0x...");
+npm run example:deploy    # Run token deployment example
+npm run example:rewards   # Run rewards tracking example
+npm run example          # Run all examples
 ```
 
 ## Development
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Build the SDK:
-   ```bash
-   npm run build
-   ```
-4. Run tests:
-   ```bash
-   npm test
-   ```
-5. Run examples:
-   ```bash
-   # Set your API key
-   export CLANKER_API_KEY=your_api_key_here
-   
-   # Run examples
-   npm run example:deploy
-   npm run example:rewards
-   ```
-
-## Error Handling
-
-The SDK includes built-in error handling and validation:
-
-```typescript
-try {
-  await clanker.deployToken({...});
-} catch (error) {
-  if (error instanceof ClankerError) {
-    console.error('API Error:', error.message);
-    console.error('Status:', error.status);
-    console.error('Code:', error.code);
-  }
-}
+```bash
+npm install        # Install dependencies
+npm run build     # Build the SDK
+npm test          # Run tests
+npm run lint      # Run linter
+npm run format    # Format code
 ```
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 ## License
 
-ISC 
+ISC © Clanker Team 

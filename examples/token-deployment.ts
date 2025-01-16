@@ -1,8 +1,17 @@
+import * as dotenv from 'dotenv';
 import { ClankerSDK } from '../src';
+
+// Load environment variables from .env file
+dotenv.config();
+
+const API_KEY = process.env.CLANKER_API_KEY;
+if (!API_KEY) {
+  throw new Error('Missing CLANKER_API_KEY in environment variables. Please check your .env file.');
+}
 
 async function deployTokenExample(): Promise<void> {
   // Initialize the SDK with your API key
-  const clanker = new ClankerSDK(process.env.CLANKER_API_KEY || 'your_api_key_here');
+  const clanker = new ClankerSDK(API_KEY);
 
   try {
     // Basic token deployment
