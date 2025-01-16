@@ -1,0 +1,102 @@
+# Clanker API & SDK Video Walkthrough
+Total Duration: 5:30
+
+## SCENE 1: INTRODUCTION [0:00-0:30]
+[VISUAL: Start with terminal open, split screen with VS Code]
+"Hey developers! Today we're diving into Clanker - your gateway to token deployment and management. I'll show you how to deploy tokens, manage splits, and track rewards using both our API directly and our new TypeScript SDK, which is now available on npm!"
+
+## SCENE 2: CORE CONCEPTS & API [0:30-2:30]
+[VISUAL: Terminal in focus]
+"Let's start with the basics. First, you'll need an API key from our team. Let me show you two ways to interact with Clanker:"
+
+[VISUAL: Split screen - Terminal on left, VS Code on right]
+"On the left, I'll show you the raw API calls. On the right, I'll show you how much easier it is with our SDK."
+
+[VISUAL: Terminal side]
+```bash
+# First API call - deploy a token
+curl -X POST 'https://www.clanker.world/api/tokens/deploy' \
+-H 'Content-Type: application/json' \
+-H 'x-api-key: your_api_key' \
+-d '{
+  "name": "Community Token",
+  "symbol": "CMTY",
+  "image": "https://example.com/token.png",
+  "requestorAddress": "0x1234..."
+}'
+```
+
+[VISUAL: VS Code side]
+```typescript
+// First, install our SDK
+npm install clanker-sdk
+
+// Then in your code
+import { ClankerSDK } from 'clanker-sdk';
+const clanker = new ClankerSDK('your_api_key');
+```
+
+## SCENE 3: SDK SHOWCASE [2:30-4:30]
+[VISUAL: VS Code in focus]
+"Let's see how easy token deployment becomes with our SDK. First, install it:"
+
+[VISUAL: Terminal]
+```bash
+npm install clanker-sdk
+```
+
+[VISUAL: Create new file in VS Code, type while explaining]
+```typescript
+import { ClankerSDK } from 'clanker-sdk';
+
+// Initialize with your API key
+const clanker = new ClankerSDK('your_api_key');
+
+// Deploy a token
+const token = await clanker.deployToken({
+  name: "Community Token",
+  symbol: "CMTY",
+  image: "https://example.com/token.png",
+  requestorAddress: "0x1234..."
+});
+```
+
+[VISUAL: Hover over methods to show TypeScript hints]
+"See those TypeScript hints? That's full type safety in action! No more guessing at API parameters."
+
+## SCENE 4: ADVANCED FEATURES [4:30-5:15]
+[VISUAL: VS Code, new file]
+"Here's where it gets interesting - token splits and rewards tracking:"
+
+[VISUAL: Type while explaining]
+```typescript
+// Deploy with splits
+const splitToken = await clanker.deployTokenWithSplits({
+  name: "Creator Token",
+  symbol: "CRTR",
+  image: "https://example.com/token.png",
+  requestorAddress: "0x1234...",
+  splitAddress: "0x935Ce0B6..."
+});
+
+// Check rewards
+const rewards = await clanker.getEstimatedRewardsByPoolAddress(poolAddress);
+```
+
+## SCENE 5: CLOSING [5:15-5:30]
+[VISUAL: Show npm package page]
+"The SDK is available now on npm as 'clanker-sdk'. Just npm install and you're ready to go!"
+
+[VISUAL: Show GitHub repo]
+"Check out our GitHub repo for more examples and documentation. Don't forget to star us if this helped!"
+
+## PRODUCTION NOTES:
+- Keep terminal font size large and readable (suggest size 16)
+- Use dark theme in VS Code for better visibility
+- Have all commands ready in a separate file for quick copy-paste
+- Show real responses from API calls
+- Highlight TypeScript autocompletion features
+- Use zoom/highlight effects when explaining important parts
+- Keep transitions smooth between terminal and VS Code
+- Add captions for accessibility
+- Show npm install command completion in real-time 

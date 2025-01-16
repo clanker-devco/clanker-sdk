@@ -1,0 +1,75 @@
+# API Commands
+
+## Token Deployment
+curl -X POST 'https://www.clanker.world/api/tokens/deploy' \
+-H 'Content-Type: application/json' \
+-H 'x-api-key: your_api_key' \
+-d '{
+  "name": "Community Token",
+  "symbol": "CMTY",
+  "image": "https://example.com/token.png",
+  "requestorAddress": "0x1234567890123456789012345678901234567890"
+}'
+
+## Check Uncollected Fees
+curl -X GET 'https://www.clanker.world/api/get-estimated-uncollected-fees/0x618A9840691334eE8d24445a4AdA4284Bf42417D' \
+-H 'x-api-key: your_api_key'
+
+## Deploy Token with Splits
+curl -X POST 'https://www.clanker.world/api/tokens/deploy/with-splits' \
+-H 'Content-Type: application/json' \
+-H 'x-api-key: your_api_key' \
+-d '{
+  "name": "Creator Token",
+  "symbol": "CRTR",
+  "image": "https://example.com/token.png",
+  "requestorAddress": "0x1234567890123456789012345678901234567890",
+  "splitAddress": "0x935Ce0B6bBE179B45061BD5477A4BBA304fc3FFe"
+}'
+
+# SDK Code Snippets
+
+## Basic Setup
+import { ClankerSDK } from 'clanker-sdk';
+
+const clanker = new ClankerSDK('your_api_key');
+
+## Deploy Token
+const token = await clanker.deployToken({
+  name: "Community Token",
+  symbol: "CMTY",
+  image: "https://example.com/token.png",
+  requestorAddress: "0x1234567890123456789012345678901234567890"
+});
+
+console.log('Token deployed:', token);
+
+## Check Fees
+const fees = await clanker.getEstimatedUncollectedFees(
+  "0x618A9840691334eE8d24445a4AdA4284Bf42417D"
+);
+
+console.log('Uncollected fees:', {
+  token0Symbol: fees.token0.symbol,
+  token0Rewards: fees.token0UncollectedRewards,
+  token1Symbol: fees.token1.symbol,
+  token1Rewards: fees.token1UncollectedRewards
+});
+
+## Deploy with Splits
+const splitToken = await clanker.deployTokenWithSplits({
+  name: "Creator Token",
+  symbol: "CRTR",
+  image: "https://example.com/token.png",
+  requestorAddress: "0x1234567890123456789012345678901234567890",
+  splitAddress: "0x935Ce0B6bBE179B45061BD5477A4BBA304fc3FFe"
+});
+
+console.log('Split token deployed:', splitToken);
+
+## Check Rewards
+const rewards = await clanker.getEstimatedRewardsByPoolAddress(
+  "0x5D95E4c674d4d7169874D2d549CC26f727EB388f"
+);
+
+console.log('Estimated rewards:', rewards); 
