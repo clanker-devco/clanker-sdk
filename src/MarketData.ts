@@ -12,12 +12,14 @@ export interface ClankerMarketData {
 
 export class MarketDataClient {
   private readonly dune: DuneClient;
+  private readonly apiKey: string;
   private readonly DICTIONARY_QUERY_ID = 4405741;  // Your materialized view query ID
 
   constructor(duneApiKey: string) {
     if (!duneApiKey) {
       throw new ClankerError('Dune API key is required for market data');
     }
+    this.apiKey = duneApiKey;
     this.dune = new DuneClient(duneApiKey);
   }
 
@@ -49,7 +51,7 @@ export class MarketDataClient {
     const options = {
       method: 'GET',
       headers: {
-        'X-Dune-Api-Key': this.dune.apiKey
+        'X-Dune-Api-Key': this.apiKey
       }
     };
 
