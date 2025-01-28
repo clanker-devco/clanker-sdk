@@ -1,6 +1,6 @@
 {
   "name": "clanker-sdk",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "A lightweight TypeScript SDK for interacting with the Clanker API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
