@@ -17,7 +17,8 @@
     "prepare": "npm run build",
     "example:deploy": "ts-node examples/token-deployment.ts",
     "example:rewards": "ts-node examples/rewards-and-fees.ts",
-    "example": "npm run example:deploy && npm run example:rewards"
+    "example:market": "ts-node examples/market-data.ts",
+    "example": "npm run example:deploy && npm run example:rewards && npm run example:market"
   },
   "publishConfig": {
     "access": "public",
@@ -43,6 +44,7 @@
   "author": "Clanker Team",
   "license": "ISC",
   "dependencies": {
+    "@duneanalytics/client-sdk": "^0.2.5",
     "axios": "^1.6.7"
   },
   "devDependencies": {
