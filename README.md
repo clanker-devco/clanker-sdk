@@ -24,11 +24,14 @@ Create a `.env` file in your project root:
 # Clanker API Key (required for token operations)
 CLANKER_API_KEY=your_api_key_here
 
-# Dune Analytics API Key (required for market data)
+# Dune Analytics API Key (optional)
 DUNE_API_KEY=your_dune_api_key_here
 
-# The Graph API Key (optional, for Uniswap data)
+# The Graph API Key (optional)
 GRAPH_API_KEY=your_graph_api_key_here
+
+# CoinGecko Pro API Key (optional)
+COINGECKO_API_KEY=your_coingecko_api_key_here
 ```
 
 Copy the `.env.example` file to get started:
@@ -41,7 +44,10 @@ Make sure to add your API keys to the `.env` file and never commit it to version
 
 ### 3. Getting Your API Keys
 
-#### Dune Analytics API Key
+#### Clanker API Key
+Contact `btayengco` on Telegram or Warpcast to request access.
+
+#### Dune Analytics API Key (Optional)
 To access market data features:
 1. Visit [dune.xyz](https://dune.xyz) and sign up for an account
 2. Go to your [API Keys page](https://dune.com/settings/api)
@@ -57,6 +63,15 @@ To access Uniswap data:
 3. Create an API key
 4. Add the key to your `.env` file as `GRAPH_API_KEY`
 
+#### CoinGecko Pro API Key (Optional)
+To access CoinGecko's comprehensive market data:
+1. Visit [CoinGecko](https://www.coingecko.com) and create an account
+2. Go to your [Developer Dashboard](https://www.coingecko.com/en/api/pricing)
+3. Choose a subscription plan and create an API key
+4. Add the key to your `.env` file as `COINGECKO_API_KEY`
+
+For detailed instructions on setting up your CoinGecko API key, visit their [official documentation](https://docs.coingecko.com/reference/setting-up-your-api-key).
+
 ### 4. Basic Usage
 
 ```typescript
@@ -69,10 +84,11 @@ dotenv.config();
 // Initialize SDK for token operations
 const clanker = new ClankerSDK(process.env.CLANKER_API_KEY);
 
-// Initialize market data client with both Dune and Graph API keys
+// Initialize market data client with desired API keys
 const marketData = new MarketDataClient(
-  process.env.DUNE_API_KEY,
-  process.env.GRAPH_API_KEY
+  process.env.DUNE_API_KEY,      // Optional: For Dune Analytics data
+  process.env.GRAPH_API_KEY,     // Optional: For Uniswap data
+  process.env.COINGECKO_API_KEY  // Optional: For CoinGecko data
 );
 
 // Deploy a token
@@ -83,8 +99,20 @@ const token = await clanker.deployToken({
   requestorAddress: "0x1234567890123456789012345678901234567890", // Address receiving 40% creator rewards
 });
 
-// Get market data for your tokens
-const marketStats = await marketData.getClankerDictionary();
+// Get market data from different sources
+const marketStats = await Promise.all([
+  // Get CoinGecko market data
+  marketData.getGeckoTokenData(['bitcoin', 'ethereum']),
+  
+  // Get Clanker dictionary data
+  marketData.getClankerDictionary(),
+  
+  // Get DEX pair stats
+  marketData.getDexPairStats('ethereum', token.contractAddress),
+  
+  // Get Uniswap data
+  marketData.getUniswapData([token.contractAddress])
+]);
 ```
 
 ## Features
@@ -99,6 +127,18 @@ const marketStats = await marketData.getClankerDictionary();
 ## Market Data Features
 
 The SDK provides access to comprehensive market data through multiple sources:
+
+### CoinGecko Market Data
+Get detailed token information from CoinGecko:
+```typescript
+const geckoData = await marketData.getGeckoTokenData(['bitcoin', 'ethereum']);
+// Returns: Detailed market data including:
+// - Current price in USD
+// - Market cap
+// - 24h trading volume
+// - 24h price change
+// - Last updated timestamp
+```
 
 ### Clanker Dictionary
 Get detailed information about all Clanker tokens:

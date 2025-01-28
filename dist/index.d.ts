@@ -75,29 +75,69 @@ interface ClankerMarketData {
     volume7d?: number;
     liquidity?: number;
 }
+interface DexPairStats {
+    token_a_address: string;
+    token_a_symbol: string;
+    token_b_address: string;
+    token_b_symbol: string;
+    volume_24h: number;
+    volume_7d: number;
+    volume_30d: number;
+    liquidity: number;
+    volume_to_liquidity_ratio: number;
+}
+interface GraphToken {
+    contractAddress: string;
+    decimals: number;
+    transactionCount: number;
+    volumeUSD: number;
+    priceWETH: number;
+}
+interface CoinGeckoTokenData {
+    price: number;
+    marketCap: number;
+    volume24h: number;
+    priceChange24h: number;
+    lastUpdated: Date;
+}
 declare class MarketDataClient {
-    private readonly dune;
-    private readonly apiKey;
+    private readonly dune?;
+    private readonly duneApiKey?;
+    private readonly graphApiKey?;
+    private readonly geckoApiKey?;
     private readonly DICTIONARY_QUERY_ID;
-    constructor(duneApiKey: string);
+    private readonly GRAPH_API_ENDPOINT;
+    private readonly UNISWAP_SUBGRAPH_ID;
+    private readonly COINGECKO_API_ENDPOINT;
+    constructor(duneApiKey?: string, graphApiKey?: string, geckoApiKey?: string);
     /**
-     * Get market data from the materialized view
+     * Get market data from CoinGecko (requires CoinGecko API key)
+     * @param tokenIds Array of CoinGecko token IDs
+     */
+    getGeckoTokenData(tokenIds: string[]): Promise<Record<string, CoinGeckoTokenData>>;
+    /**
+     * Get market data from the materialized view (requires Dune API key)
      */
     getClankerDictionary(): Promise<ClankerMarketData[]>;
     /**
-     * Get DEX pair stats for a specific chain
+     * Get DEX pair stats for a specific chain (requires Dune API key)
      * @param chain - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
      * @param tokenAddress - Optional token address to filter by
      */
-    getDexPairStats(chain: string, tokenAddress?: string): Promise<any>;
+    getDexPairStats(chain: string, tokenAddress?: string): Promise<DexPairStats[]>;
     /**
-     * Transform raw dictionary data into a standardized format
+     * Fetch Uniswap data for multiple tokens using The Graph (requires Graph API key)
+     * @param contractAddresses Array of token contract addresses
+     * @param blockNumber Optional block number for historical data
      */
-    private transformDictionaryData;
+    getUniswapData(contractAddresses: string[], blockNumber?: number): Promise<GraphToken[]>;
     /**
      * Filter DEX pairs by token address
      */
     private filterPairsByToken;
+    private buildUniswapQuery;
+    private transformUniswapData;
+    private calculatePrice;
 }
 
-export { ClankerError, type ClankerMarketData, ClankerSDK, type DeployTokenOptions, type DeployTokenWithSplitsOptions, type DeployedToken, type DeployedTokensResponse, type EstimatedRewardsResponse, MarketDataClient, type Token, type UncollectedFeesResponse, ClankerSDK as default };
+export { ClankerError, type ClankerMarketData, ClankerSDK, type CoinGeckoTokenData, type DeployTokenOptions, type DeployTokenWithSplitsOptions, type DeployedToken, type DeployedTokensResponse, type DexPairStats, type EstimatedRewardsResponse, type GraphToken, MarketDataClient, type Token, type UncollectedFeesResponse, ClankerSDK as default };
