@@ -37,6 +37,7 @@ Make sure to add your API key to the `.env` file and never commit it to version 
 ```typescript
 import * as dotenv from 'dotenv';
 import { ClankerSDK } from 'clanker-sdk';
+import { randomBytes } from 'crypto';  // Node.js built-in crypto module
 
 // Load environment variables
 dotenv.config();
@@ -47,17 +48,29 @@ if (!API_KEY) {
   throw new Error('Missing CLANKER_API_KEY in environment variables');
 }
 
+// Generate a unique 32-character request key for idempotency
+function generateRequestKey(): string {
+  return randomBytes(16).toString('hex');  // Generates a 32-character hex string
+}
+
 // Initialize SDK
 const clanker = new ClankerSDK(API_KEY);
 
-// Deploy a token
-const token = await clanker.deployToken({
+// Deploy a token with custom splits (requires requestKey)
+const token = await clanker.deployTokenWithSplits({
   name: "Community Token",
   symbol: "CMTY",
   image: "https://example.com/token.png",
-  requestorAddress: "0x1234567890123456789012345678901234567890"
+  requestorAddress: "0x1234567890123456789012345678901234567890", // Address receiving 40% creator rewards
+  requestKey: generateRequestKey(), // Required for preventing duplicate deployments
+  splitAddress: "0x935Ce0B6bBE179B45061BD5477A4BBA304fc3FFe"
 });
 ```
+
+## Important Notes
+
+- **requestKey**: A unique 32-character string required for custom deployments (like splits) to prevent duplicate tokens (idempotency check)
+- **requestorAddress**: The address where 40% of creator rewards will be sent
 
 ## Features
 

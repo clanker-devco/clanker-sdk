@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { randomBytes } from 'crypto';
 import {
   DeployTokenOptions,
   DeployTokenWithSplitsOptions,
@@ -62,11 +63,7 @@ export class ClankerSDK {
   async deployToken(options: DeployTokenOptions): Promise<DeployedToken> {
     this.validateDeployOptions(options);
     
-    const requestKey = options.requestKey || this.generateRequestKey();
-    const response = await this.api.post('/tokens/deploy', {
-      ...options,
-      requestKey,
-    });
+    const response = await this.api.post('/tokens/deploy', options);
     return response.data;
   }
 
@@ -77,11 +74,7 @@ export class ClankerSDK {
       throw new ClankerError('Invalid split address format');
     }
 
-    const requestKey = options.requestKey || this.generateRequestKey();
-    const response = await this.api.post('/tokens/deploy/with-splits', {
-      ...options,
-      requestKey,
-    });
+    const response = await this.api.post('/tokens/deploy/with-splits', options);
     return response.data;
   }
 
@@ -126,9 +119,7 @@ export class ClankerSDK {
 
   // Utility function to generate request key
   private generateRequestKey(): string {
-    return Array.from(crypto.getRandomValues(new Uint8Array(16)))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    return randomBytes(16).toString('hex');
   }
 
   // Validation utilities
@@ -146,8 +137,14 @@ export class ClankerSDK {
     if (!this.isValidAddress(options.requestorAddress)) {
       throw new ClankerError('Invalid requestor address format');
     }
-    if (options.requestKey && options.requestKey.length !== 32) {
-      throw new ClankerError('Request key must be 32 characters long');
+    // Only validate requestKey if it's provided (it's optional)
+    if (options.requestKey !== undefined) {
+      if (options.requestKey.length !== 32) {
+        throw new ClankerError('When provided, requestKey must be exactly 32 characters long');
+      }
+      if (!/^[a-zA-Z0-9]+$/.test(options.requestKey)) {
+        throw new ClankerError('requestKey must contain only alphanumeric characters');
+      }
     }
   }
 } 
