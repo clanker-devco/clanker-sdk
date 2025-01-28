@@ -26,6 +26,9 @@ CLANKER_API_KEY=your_api_key_here
 
 # Dune Analytics API Key (required for market data)
 DUNE_API_KEY=your_dune_api_key_here
+
+# The Graph API Key (optional, for Uniswap data)
+GRAPH_API_KEY=your_graph_api_key_here
 ```
 
 Copy the `.env.example` file to get started:
@@ -36,16 +39,23 @@ cp .env.example .env
 
 Make sure to add your API keys to the `.env` file and never commit it to version control.
 
-### 3. Getting Your Dune API Key
+### 3. Getting Your API Keys
 
-To access market data features, you'll need a Dune Analytics API key:
-
+#### Dune Analytics API Key
+To access market data features:
 1. Visit [dune.xyz](https://dune.xyz) and sign up for an account
 2. Go to your [API Keys page](https://dune.com/settings/api)
 3. Create a new API key
 4. Add the key to your `.env` file as `DUNE_API_KEY`
 
 Note: Dune API access requires a paid subscription. Check their [pricing page](https://dune.com/pricing) for more details.
+
+#### The Graph API Key (Optional)
+To access Uniswap data:
+1. Visit [thegraph.com](https://thegraph.com) and create an account
+2. Go to your billing settings
+3. Create an API key
+4. Add the key to your `.env` file as `GRAPH_API_KEY`
 
 ### 4. Basic Usage
 
@@ -59,8 +69,11 @@ dotenv.config();
 // Initialize SDK for token operations
 const clanker = new ClankerSDK(process.env.CLANKER_API_KEY);
 
-// Initialize market data client for analytics
-const marketData = new MarketDataClient(process.env.DUNE_API_KEY);
+// Initialize market data client with both Dune and Graph API keys
+const marketData = new MarketDataClient(
+  process.env.DUNE_API_KEY,
+  process.env.GRAPH_API_KEY
+);
 
 // Deploy a token
 const token = await clanker.deployToken({
@@ -85,7 +98,7 @@ const marketStats = await marketData.getClankerDictionary();
 
 ## Market Data Features
 
-The SDK provides access to comprehensive market data through Dune Analytics integration:
+The SDK provides access to comprehensive market data through multiple sources:
 
 ### Clanker Dictionary
 Get detailed information about all Clanker tokens:
@@ -105,6 +118,20 @@ const dexStats = await marketData.getDexPairStats(
 // - Trading volumes (24h, 7d, 30d)
 // - Liquidity
 // - Volume/Liquidity ratios
+```
+
+### Uniswap Data
+Get detailed Uniswap pool data for tokens (requires Graph API key):
+```typescript
+const uniswapData = await marketData.getUniswapData(
+  ['0x1234...', '0x5678...'],  // Array of token addresses
+  15_000_000  // Optional: Block number for historical data
+);
+// Returns: Array of tokens with:
+// - WETH price
+// - Transaction count
+// - Volume in USD
+// - Decimals
 ```
 
 Supported chains for DEX stats:

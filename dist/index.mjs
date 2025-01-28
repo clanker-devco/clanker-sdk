@@ -136,6 +136,7 @@ var MarketDataClient = class {
     if (!duneApiKey) {
       throw new ClankerError("Dune API key is required for market data");
     }
+    this.apiKey = duneApiKey;
     this.dune = new DuneClient(duneApiKey);
   }
   /**
@@ -165,7 +166,7 @@ var MarketDataClient = class {
     const options = {
       method: "GET",
       headers: {
-        "X-Dune-Api-Key": this.dune.apiKey
+        "X-Dune-Api-Key": this.apiKey
       }
     };
     try {

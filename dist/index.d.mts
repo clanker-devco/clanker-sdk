@@ -67,4 +67,37 @@ declare class ClankerSDK {
     private validateDeployOptions;
 }
 
-export { ClankerError, ClankerSDK, type DeployTokenOptions, type DeployTokenWithSplitsOptions, type DeployedToken, type DeployedTokensResponse, type EstimatedRewardsResponse, type Token, type UncollectedFeesResponse, ClankerSDK as default };
+interface ClankerMarketData {
+    name: string;
+    symbol: string;
+    marketCap?: number;
+    volume24h?: number;
+    volume7d?: number;
+    liquidity?: number;
+}
+declare class MarketDataClient {
+    private readonly dune;
+    private readonly apiKey;
+    private readonly DICTIONARY_QUERY_ID;
+    constructor(duneApiKey: string);
+    /**
+     * Get market data from the materialized view
+     */
+    getClankerDictionary(): Promise<ClankerMarketData[]>;
+    /**
+     * Get DEX pair stats for a specific chain
+     * @param chain - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
+     * @param tokenAddress - Optional token address to filter by
+     */
+    getDexPairStats(chain: string, tokenAddress?: string): Promise<any>;
+    /**
+     * Transform raw dictionary data into a standardized format
+     */
+    private transformDictionaryData;
+    /**
+     * Filter DEX pairs by token address
+     */
+    private filterPairsByToken;
+}
+
+export { ClankerError, type ClankerMarketData, ClankerSDK, type DeployTokenOptions, type DeployTokenWithSplitsOptions, type DeployedToken, type DeployedTokensResponse, type EstimatedRewardsResponse, MarketDataClient, type Token, type UncollectedFeesResponse, ClankerSDK as default };
