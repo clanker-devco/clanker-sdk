@@ -81,36 +81,53 @@ import { ClankerSDK, MarketDataClient } from 'clanker-sdk';
 // Load environment variables
 dotenv.config();
 
-// Initialize SDK for token operations
-const clanker = new ClankerSDK(process.env.CLANKER_API_KEY);
-
-// Initialize market data client with desired API keys
+// Initialize market data client (CoinGecko API key required for token prices)
 const marketData = new MarketDataClient(
   process.env.DUNE_API_KEY,      // Optional: For Dune Analytics data
   process.env.GRAPH_API_KEY,     // Optional: For Uniswap data
-  process.env.COINGECKO_API_KEY  // Optional: For CoinGecko data
+  process.env.COINGECKO_API_KEY  // Required for token price lookups
 );
+
+// Example 1: Get price for your token on Base/Ethereum
+const tokenAddress = '0x1234567890123456789012345678901234567890'; // Your token address
+
+// Direct CoinGecko API usage
+const url = 'https://pro-api.coingecko.com/api/v3/simple/token_price/id';
+const options = {
+  method: 'GET',
+  headers: {
+    'accept': 'application/json',
+    'x-cg-pro-api-key': process.env.COINGECKO_API_KEY
+  }
+};
+
+// You can use the API directly
+fetch(url, options)
+  .then(res => res.json())
+  .then(json => console.log('Token price:', json))
+  .catch(err => console.error('Error:', err));
+
+// Or use our SDK wrapper for easier handling
+const tokenPrices = await marketData.getGeckoTokenPrice({
+  'ethereum': [tokenAddress]  // For tokens on Base/Ethereum
+});
+console.log('Token prices:', tokenPrices);
+
+// Example 2: Other SDK features (optional)
+const clanker = new ClankerSDK(process.env.CLANKER_API_KEY);
 
 // Deploy a token
 const token = await clanker.deployToken({
   name: "Community Token",
   symbol: "CMTY",
   image: "https://example.com/token.png",
-  requestorAddress: "0x1234567890123456789012345678901234567890", // Address receiving 40% creator rewards
+  requestorAddress: "0x1234567890123456789012345678901234567890"
 });
 
-// Get market data from different sources
-const marketStats = await Promise.all([
-  // Get CoinGecko market data
-  marketData.getGeckoTokenData(['bitcoin', 'ethereum']),
-  
-  // Get Clanker dictionary data
+// Get additional market data
+const additionalData = await Promise.all([
   marketData.getClankerDictionary(),
-  
-  // Get DEX pair stats
   marketData.getDexPairStats('ethereum', token.contractAddress),
-  
-  // Get Uniswap data
   marketData.getUniswapData([token.contractAddress])
 ]);
 ```
@@ -129,16 +146,37 @@ const marketStats = await Promise.all([
 The SDK provides access to comprehensive market data through multiple sources:
 
 ### CoinGecko Market Data
-Get detailed token information from CoinGecko:
+Get token prices by contract address on Base/Ethereum:
+
 ```typescript
-const geckoData = await marketData.getGeckoTokenData(['bitcoin', 'ethereum']);
-// Returns: Detailed market data including:
-// - Current price in USD
-// - Market cap
-// - 24h trading volume
-// - 24h price change
-// - Last updated timestamp
+// Example 1: Get price for your token (RECOMMENDED)
+const tokenAddress = '0x1234567890123456789012345678901234567890'; // Your token address
+
+// The SDK uses this CoinGecko endpoint under the hood:
+// GET https://pro-api.coingecko.com/api/v3/simple/token_price/id
+// You can also use it directly:
+const url = 'https://pro-api.coingecko.com/api/v3/simple/token_price/id';
+const options = {
+  method: 'GET',
+  headers: {
+    'accept': 'application/json',
+    'x-cg-pro-api-key': process.env.COINGECKO_API_KEY
+  }
+};
+
+// Direct API usage
+fetch(url, options)
+  .then(res => res.json())
+  .then(json => console.log(json))
+  .catch(err => console.error(err));
+
+// Or use our SDK wrapper (handles authentication and error handling)
+const tokenPrices = await marketData.getGeckoTokenPrice({
+  'ethereum': [tokenAddress]  // For tokens on Base/Ethereum
+});
 ```
+
+This endpoint is specifically designed for getting token prices on Base/Ethereum. For other data sources or chains, see below.
 
 ### Clanker Dictionary
 Get detailed information about all Clanker tokens:
