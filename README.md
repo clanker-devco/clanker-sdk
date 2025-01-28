@@ -145,6 +145,21 @@ const additionalData = await Promise.all([
 
 The SDK provides access to comprehensive market data through multiple sources:
 
+### Clanker Top Performers View
+Access our curated list of top-performing Clanker tokens using our materialized view:
+
+```sql
+-- Query our materialized view for top Clankers on Base & Farcaster
+-- Filtered for high-quality tokens meeting these criteria:
+-- - Market Cap > $100,000
+-- - 24hr Volume > $10,000
+-- - 3-day Volume > $50,000
+SELECT *
+FROM dune.clanker_protection_team.result_clnkr_100_k_mkt_share_2_0
+```
+
+This view provides real-time insights into the best-performing tokens deployed through Clanker on Base & Farcaster.
+
 ### CoinGecko Market Data
 Get token prices by contract address on Base/Ethereum:
 
