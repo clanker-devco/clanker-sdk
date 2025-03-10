@@ -108,10 +108,10 @@ fetch(url, options)
   .catch(err => console.error('Error:', err));
 
 // Or use our SDK wrapper for easier handling
-const tokenPrices = await marketData.getGeckoTokenPrice({
+const tokenData = await marketData.getGeckoTokenData({
   'ethereum': [tokenAddress]  // For tokens on Base/Ethereum
 });
-console.log('Token prices:', tokenPrices);
+console.log('Token data:', tokenData);
 
 // Example 2: Other SDK features (optional)
 const clanker = new ClankerSDK(process.env.CLANKER_API_KEY);
@@ -186,92 +186,87 @@ fetch(url, options)
   .catch(err => console.error(err));
 
 // Or use our SDK wrapper (handles authentication and error handling)
-const tokenPrices = await marketData.getGeckoTokenPrice({
+const tokenData = await marketData.getGeckoTokenData({
   'ethereum': [tokenAddress]  // For tokens on Base/Ethereum
 });
 ```
 
-This endpoint is specifically designed for getting token prices on Base/Ethereum. For other data sources or chains, see below.
+## API Endpoints
 
-### Clanker Dictionary
-Get detailed information about all Clanker tokens:
+### Public Endpoints
+
+#### Get Paginated List of Tokens
 ```typescript
-const dictionary = await marketData.getClankerDictionary();
-// Returns: Array of tokens with market cap, volume, and liquidity data
+// Get a paginated list of tokens with optional filtering
+const tokens = await clanker.getTokens({
+  sort: 'desc',  // Sort order: 'asc' or 'desc'
+  page: 1,       // Page number for pagination
+  pair: 'WETH'   // Filter by pair: 'WETH', 'ANON', 'HIGHER', 'DEGEN', or 'CLANKER'
+});
+console.log(`Found ${tokens.total} tokens`);
 ```
 
-### DEX Pair Statistics
-Get detailed DEX pair statistics for any token:
+#### Search for Tokens
 ```typescript
-const dexStats = await marketData.getDexPairStats(
-  'ethereum',  // Chain name (ethereum, arbitrum, etc.)
-  '0x1234...'  // Optional: Token address to filter by
-);
-// Returns: Detailed DEX pair statistics including:
-// - Trading volumes (24h, 7d, 30d)
-// - Liquidity
-// - Volume/Liquidity ratios
+// Search for tokens by name, symbol, or FIDs
+const searchResults = await clanker.searchTokens({
+  q: 'clanker',  // Search query for token name or symbol
+  type: 'clanker_v2', // Optional filter by token type
+  fids: '1234,5678',  // Optional comma-separated list of Farcaster IDs
+  page: 1              // Page number for pagination
+});
+console.log(`Found ${searchResults.total} matching tokens`);
 ```
 
-### Uniswap Data
-Get detailed Uniswap pool data for tokens (requires Graph API key):
+### Token Information
+
+#### Get Token by Address
 ```typescript
-const uniswapData = await marketData.getUniswapData(
-  ['0x1234...', '0x5678...'],  // Array of token addresses
-  15_000_000  // Optional: Block number for historical data
-);
-// Returns: Array of tokens with:
-// - WETH price
-// - Transaction count
-// - Volume in USD
-// - Decimals
+// Get detailed information about a token by its contract address
+const tokenInfo = await clanker.getClankerByAddress('0x1234567890123456789012345678901234567890');
+console.log('Token info:', tokenInfo.data);
 ```
 
-Supported chains for DEX stats:
-- ethereum
-- arbitrum
-- base
-- bnb
-- celo
-- fantom
-- gnosis
-- optimism
-- polygon
-- scroll
-- zk_sync
-- solana
-
-## Examples
-
-Check out the `examples/` directory for more usage examples:
-
-- Token Deployment (`examples/token-deployment.ts`)
-- Rewards and Fees (`examples/rewards-and-fees.ts`)
-- Market Data (`examples/market-data.ts`)
-
-Run examples using:
-
-```bash
-npm run example:deploy    # Run token deployment example
-npm run example:rewards   # Run rewards tracking example
-npm run example:market   # Run market data example
-npm run example          # Run all examples
+#### Get Tokens Deployed by Address
+```typescript
+// Get all tokens deployed by a specific address
+const deployedTokens = await clanker.fetchDeployedByAddress('0x1234567890123456789012345678901234567890');
+console.log(`Found ${deployedTokens.total} tokens deployed by this address`);
 ```
 
-## Development
+### Presale Operations
 
-```bash
-npm install        # Install dependencies
-npm run build     # Build the SDK
-npm test          # Run tests
-npm run lint      # Run linter
-npm run format    # Format code
+#### Deploy a Presale Token
+```typescript
+// Deploy a new token with presale configuration
+const presaleToken = await clanker.deployPresaleToken({
+  name: "Presale Token",
+  symbol: "PRSLE",
+  requestorAddress: "0x1234567890123456789012345678901234567890",
+  requestKey: "unique_request_identifier"  // Optional, generates one if not provided
+});
+console.log('Deployed presale token:', presaleToken);
 ```
 
-## Contributing
+#### Get Presale Information
+```typescript
+// Get detailed information about a presale
+const presaleInfo = await clanker.getPresaleByAddress('0x1234567890123456789012345678901234567890');
+console.log('Presale details:', presaleInfo);
+```
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details.
+### Rewards and Fees
 
-## License
+#### Get Estimated Rewards
+```typescript
+// Get estimated rewards in USD for a token pool
+const rewards = await clanker.getEstimatedRewardsByPoolAddress('0x1234567890123456789012345678901234567890');
+console.log(`Estimated rewards: $${rewards.userRewards}`);
+```
 
-ISC © Clanker Team
+#### Get Estimated Uncollected Fees
+```typescript
+// Get estimated uncollected fees for a token
+const fees = await clanker.getEstimatedUncollectedFees('0x1234567890123456789012345678901234567890');
+console.log('Uncollected fees:', fees);
+```

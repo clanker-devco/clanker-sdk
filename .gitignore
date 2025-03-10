@@ -29,4 +29,7 @@ video_script.txt
 video_commands.txt
 *.mp4
 *.mov
-*.avi 
+*.avi
+
+# GitBook documentation
+gitbookDocs.md 

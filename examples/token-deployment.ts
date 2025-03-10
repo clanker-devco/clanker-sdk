@@ -12,14 +12,13 @@ if (!API_KEY) {
 
 // Utility function to generate a random 32-character string for requestKey
 function generateRequestKey(): string {
-  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+  return crypto.randomBytes(16)
+    .toString('hex');
 }
 
 async function deployTokenExample(): Promise<void> {
   // Initialize the SDK with your API key
-  const clanker = new ClankerSDK(API_KEY);
+  const clanker = new ClankerSDK(API_KEY as string);
 
   try {
     // Generate unique requestKey for idempotency
@@ -60,5 +59,8 @@ async function deployTokenExample(): Promise<void> {
   }
 }
 
-// Run the example
-deployTokenExample(); 
+// Run the example with proper promise handling
+deployTokenExample().catch(error => {
+  console.error('Unhandled error:', error);
+  process.exit(1);
+}); 

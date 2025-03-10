@@ -63,7 +63,11 @@ export class ClankerSDK {
   async deployToken(options: DeployTokenOptions): Promise<DeployedToken> {
     this.validateDeployOptions(options);
     
-    const response = await this.api.post('/tokens/deploy', options);
+    const requestKey = options.requestKey || this.generateRequestKey();
+    const response = await this.api.post('/tokens/deploy', {
+      ...options,
+      requestKey,
+    });
     return response.data;
   }
 
@@ -74,7 +78,11 @@ export class ClankerSDK {
       throw new ClankerError('Invalid split address format');
     }
 
-    const response = await this.api.post('/tokens/deploy/with-splits', options);
+    const requestKey = options.requestKey || this.generateRequestKey();
+    const response = await this.api.post('/tokens/deploy/with-splits', {
+      ...options,
+      requestKey,
+    });
     return response.data;
   }
 

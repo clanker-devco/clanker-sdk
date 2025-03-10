@@ -191,29 +191,32 @@ export class MarketDataClient {
    * @param tokenAddress - Optional token address to filter by
    */
   async getDexPairStats(chain: string, tokenAddress?: string): Promise<DexPairStats[]> {
-    if (!this.duneApiKey) {
+    if (!this.dune || !this.duneApiKey) {
       throw new ClankerError('Dune API key is required for getDexPairStats');
     }
 
-    const url = `https://api.dune.com/api/v1/dex/pairs/${chain}`;
-    const options = {
-      method: 'GET',
-      headers: {
-        'X-Dune-Api-Key': this.duneApiKey
-      }
-    };
-
     try {
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Query ID for DEX pair stats - you'll need to replace this with the actual query ID
+      const DEX_PAIRS_QUERY_ID = 4405742; // Example ID, replace with actual query ID
+      
+      // Execute the query with parameters
+      const result = await this.dune.getLatestResult({ 
+        queryId: DEX_PAIRS_QUERY_ID,
+        parameters: { 
+          chain: chain 
+        }
+      });
+      
+      if (!result?.result?.rows) {
+        throw new ClankerError('No data returned from Dune');
       }
-      const data = await response.json() as { result: { rows: DexPairStats[] } };
+      
+      const rows = result.result.rows as DexPairStats[];
       
       if (tokenAddress) {
-        return this.filterPairsByToken(data.result.rows, tokenAddress);
+        return this.filterPairsByToken(rows, tokenAddress);
       }
-      return data.result.rows;
+      return rows;
     } catch (error) {
       if (error instanceof Error) {
         throw new ClankerError(`Failed to fetch DEX pair stats: ${error.message}`);
