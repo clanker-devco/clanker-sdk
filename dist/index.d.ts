@@ -106,6 +106,7 @@ declare class MarketDataClient {
     private readonly graphApiKey?;
     private readonly geckoApiKey?;
     private readonly DICTIONARY_QUERY_ID;
+    private readonly DEX_PAIR_STATS_QUERY_ID;
     private readonly GRAPH_API_ENDPOINT;
     private readonly UNISWAP_SUBGRAPH_ID;
     private readonly COINGECKO_API_ENDPOINT;
@@ -121,10 +122,10 @@ declare class MarketDataClient {
     getClankerDictionary(): Promise<ClankerMarketData[]>;
     /**
      * Get DEX pair stats for a specific chain (requires Dune API key)
-     * @param chain - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
+     * @param network - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
      * @param tokenAddress - Optional token address to filter by
      */
-    getDexPairStats(chain: string, tokenAddress?: string): Promise<DexPairStats[]>;
+    getDexPairStats(network: string, tokenAddress: string): Promise<DexPairStats[]>;
     /**
      * Fetch Uniswap data for multiple tokens using The Graph (requires Graph API key)
      * @param contractAddresses Array of token contract addresses

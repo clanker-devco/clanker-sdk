@@ -1,3 +1,22 @@
+var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -78,7 +97,10 @@ var ClankerSDK = class {
   deployToken(options) {
     return __async(this, null, function* () {
       this.validateDeployOptions(options);
-      const response = yield this.api.post("/tokens/deploy", options);
+      const requestKey = options.requestKey || this.generateRequestKey();
+      const response = yield this.api.post("/tokens/deploy", __spreadProps(__spreadValues({}, options), {
+        requestKey
+      }));
       return response.data;
     });
   }
@@ -89,7 +111,10 @@ var ClankerSDK = class {
       if (!this.isValidAddress(options.splitAddress)) {
         throw new ClankerError("Invalid split address format");
       }
-      const response = yield this.api.post("/tokens/deploy/with-splits", options);
+      const requestKey = options.requestKey || this.generateRequestKey();
+      const response = yield this.api.post("/tokens/deploy/with-splits", __spreadProps(__spreadValues({}, options), {
+        requestKey
+      }));
       return response.data;
     });
   }
@@ -163,10 +188,12 @@ var ClankerSDK = class {
 
 // src/MarketData.ts
 import { DuneClient } from "@duneanalytics/client-sdk";
+import { QueryParameter, ParameterType } from "@duneanalytics/client-sdk";
 import axios2 from "axios";
 var MarketDataClient = class {
   constructor(duneApiKey, graphApiKey, geckoApiKey) {
     this.DICTIONARY_QUERY_ID = 4405741;
+    this.DEX_PAIR_STATS_QUERY_ID = 4405742;
     this.GRAPH_API_ENDPOINT = "https://gateway.thegraph.com/api";
     this.UNISWAP_SUBGRAPH_ID = "GqzP4Xaehti8KSfQmv3ZctFSjnSUYZ4En5NRsiTbvZpz";
     this.COINGECKO_API_ENDPOINT = "https://pro-api.coingecko.com/api/v3";
@@ -261,36 +288,48 @@ var MarketDataClient = class {
   }
   /**
    * Get DEX pair stats for a specific chain (requires Dune API key)
-   * @param chain - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
+   * @param network - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
    * @param tokenAddress - Optional token address to filter by
    */
-  getDexPairStats(chain, tokenAddress) {
+  getDexPairStats(network, tokenAddress) {
     return __async(this, null, function* () {
+      var _a;
       if (!this.duneApiKey) {
-        throw new ClankerError("Dune API key is required for getDexPairStats");
+        console.warn("Dune API key not provided. Cannot retrieve DEX pair stats.");
+        return [];
       }
-      const url = `https://api.dune.com/api/v1/dex/pairs/${chain}`;
-      const options = {
-        method: "GET",
-        headers: {
-          "X-Dune-Api-Key": this.duneApiKey
-        }
-      };
       try {
-        const response = yield fetch(url, options);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (!this.dune) {
+          console.warn("Dune client not initialized. Cannot retrieve DEX pair stats.");
+          return [];
         }
-        const data = yield response.json();
-        if (tokenAddress) {
-          return this.filterPairsByToken(data.result.rows, tokenAddress);
+        const response = yield this.dune.runQuery({
+          queryId: this.DEX_PAIR_STATS_QUERY_ID,
+          query_parameters: [
+            new QueryParameter(ParameterType.TEXT, "blockchain", network),
+            new QueryParameter(ParameterType.TEXT, "token_address", tokenAddress)
+          ]
+        });
+        if (!((_a = response == null ? void 0 : response.result) == null ? void 0 : _a.rows)) {
+          return [];
         }
-        return data.result.rows;
+        return response.result.rows.map((record) => {
+          return {
+            token_a_address: String(record.token_a_address || ""),
+            token_a_symbol: String(record.token_a_symbol || ""),
+            token_b_address: String(record.token_b_address || ""),
+            token_b_symbol: String(record.token_b_symbol || ""),
+            pair_address: String(record.pair_address || ""),
+            volume_24h: Number(record.volume_usd_24h || 0),
+            volume_7d: Number(record.volume_usd_7d || 0),
+            volume_30d: Number(record.volume_usd_30d || 0),
+            liquidity: Number(record.reserve_usd || 0),
+            volume_to_liquidity_ratio: Number(record.volume_usd_24h || 0) / (Number(record.reserve_usd || 1) || 1)
+          };
+        });
       } catch (error) {
-        if (error instanceof Error) {
-          throw new ClankerError(`Failed to fetch DEX pair stats: ${error.message}`);
-        }
-        throw new ClankerError("Failed to fetch DEX pair stats");
+        console.error("Error fetching DEX pair stats:", error);
+        return [];
       }
     });
   }

@@ -1,4 +1,5 @@
 import { DuneClient } from "@duneanalytics/client-sdk";
+import { QueryParameter, ParameterType } from "@duneanalytics/client-sdk";
 import axios from "axios";
 import { ClankerError } from "./types";
 
@@ -77,6 +78,7 @@ export class MarketDataClient {
   private readonly graphApiKey?: string;
   private readonly geckoApiKey?: string;
   private readonly DICTIONARY_QUERY_ID = 4405741;
+  private readonly DEX_PAIR_STATS_QUERY_ID = 4405742;
   private readonly GRAPH_API_ENDPOINT = 'https://gateway.thegraph.com/api';
   private readonly UNISWAP_SUBGRAPH_ID = 'GqzP4Xaehti8KSfQmv3ZctFSjnSUYZ4En5NRsiTbvZpz';
   private readonly COINGECKO_API_ENDPOINT = 'https://pro-api.coingecko.com/api/v3';
@@ -187,41 +189,50 @@ export class MarketDataClient {
 
   /**
    * Get DEX pair stats for a specific chain (requires Dune API key)
-   * @param chain - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
+   * @param network - The blockchain to query (e.g., 'ethereum', 'arbitrum', etc.)
    * @param tokenAddress - Optional token address to filter by
    */
-  async getDexPairStats(chain: string, tokenAddress?: string): Promise<DexPairStats[]> {
-    if (!this.dune || !this.duneApiKey) {
-      throw new ClankerError('Dune API key is required for getDexPairStats');
+  async getDexPairStats(network: string, tokenAddress: string): Promise<DexPairStats[]> {
+    if (!this.duneApiKey) {
+      console.warn('Dune API key not provided. Cannot retrieve DEX pair stats.');
+      return [];
     }
 
     try {
-      // Query ID for DEX pair stats - you'll need to replace this with the actual query ID
-      const DEX_PAIRS_QUERY_ID = 4405742; // Example ID, replace with actual query ID
-      
-      // Execute the query with parameters
-      const result = await this.dune.getLatestResult({ 
-        queryId: DEX_PAIRS_QUERY_ID,
-        parameters: { 
-          chain: chain 
-        }
+      if (!this.dune) {
+        console.warn('Dune client not initialized. Cannot retrieve DEX pair stats.');
+        return [];
+      }
+
+      const response = await this.dune.runQuery({
+        queryId: this.DEX_PAIR_STATS_QUERY_ID,
+        query_parameters: [
+          new QueryParameter(ParameterType.TEXT, "blockchain", network),
+          new QueryParameter(ParameterType.TEXT, "token_address", tokenAddress)
+        ]
       });
-      
-      if (!result?.result?.rows) {
-        throw new ClankerError('No data returned from Dune');
+
+      if (!response?.result?.rows) {
+        return [];
       }
-      
-      const rows = result.result.rows as DexPairStats[];
-      
-      if (tokenAddress) {
-        return this.filterPairsByToken(rows, tokenAddress);
-      }
-      return rows;
+
+      return response.result.rows.map(record => {
+        return {
+          token_a_address: String(record.token_a_address || ''),
+          token_a_symbol: String(record.token_a_symbol || ''),
+          token_b_address: String(record.token_b_address || ''),
+          token_b_symbol: String(record.token_b_symbol || ''),
+          pair_address: String(record.pair_address || ''),
+          volume_24h: Number(record.volume_usd_24h || 0),
+          volume_7d: Number(record.volume_usd_7d || 0),
+          volume_30d: Number(record.volume_usd_30d || 0),
+          liquidity: Number(record.reserve_usd || 0),
+          volume_to_liquidity_ratio: Number(record.volume_usd_24h || 0) / (Number(record.reserve_usd || 1) || 1)
+        };
+      });
     } catch (error) {
-      if (error instanceof Error) {
-        throw new ClankerError(`Failed to fetch DEX pair stats: ${error.message}`);
-      }
-      throw new ClankerError('Failed to fetch DEX pair stats');
+      console.error('Error fetching DEX pair stats:', error);
+      return [];
     }
   }
 
