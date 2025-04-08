@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "ES2024",
     "module": "commonjs",
     "declaration": true,
     "declarationMap": true,
@@ -11,13 +11,6 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*",
-    "examples/**/*",
-    "test/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
-} 
+  "include": ["src/**/*", "examples/**/*", "test/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
