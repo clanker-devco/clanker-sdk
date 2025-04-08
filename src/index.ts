@@ -16,6 +16,7 @@ import type {
   SimpleTokenConfig,
   RewardsConfig
 } from './types';
+import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants';
 
 const ERC20_ABI = parseAbi([
   'function decimals() view returns (uint8)'
@@ -33,7 +34,7 @@ export class Clanker {
 
   constructor(config: ClankerConfig) {
     this.wallet = config.wallet;
-    this.factoryAddress = config.factoryAddress;
+    this.factoryAddress = CLANKER_FACTORY_V3_1;
     this.chainId = config.chainId;
     this.publicClient = createPublicClient({
       chain: this.wallet.chain,
@@ -112,12 +113,6 @@ export class Clanker {
     }
   }
 
-  private generateSalt(): `0x${string}` {
-    const array = new Uint8Array(32);
-    globalThis.crypto.getRandomValues(array);
-    const hexString = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
-    return `0x${hexString}`;
-  }
 
   private handleError(error: unknown): never {
     const message = error instanceof Error ? error.message : String(error);
@@ -213,7 +208,15 @@ export class Clanker {
         }] as const,
         functionName: 'deployToken',
         args: [[
-          deploymentData.tokenConfig,
+          [
+            deploymentData.tokenConfig[0],
+            deploymentData.tokenConfig[1],
+            deploymentData.tokenConfig[2],
+            deploymentData.tokenConfig[3],
+            JSON.stringify(deploymentData.tokenConfig[4]) as string,
+            JSON.stringify(deploymentData.tokenConfig[5]) as string,
+            deploymentData.tokenConfig[6],
+          ],
           deploymentData.vaultConfig,
           deploymentData.poolConfig,
           deploymentData.initialBuyConfig,
@@ -253,8 +256,7 @@ export class Clanker {
     // Store the address to avoid undefined checks
     const deployerAddress = this.wallet.account.address;
 
-    // Generate random salt
-    const salt = this.generateSalt();
+    const salt = '0x0000000000000000000000000000000000000000000000000000000000000000';
     
     // Convert to internal config format
     const deploymentConfig: DeploymentConfig = {
@@ -263,12 +265,21 @@ export class Clanker {
         symbol: config.symbol,
         salt,
         image: config.image || 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-        metadata: config.metadata || 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-        context: config.context || `Token deployed via Clanker SDK`,
+        metadata: config.metadata || {
+          description: 'Clanker Token',
+          socialMediaUrls: [],
+          auditUrls: []
+        },
+        context: config.context || {
+          interface: 'Clanker SDK',
+          platform: 'Clanker',
+          messageId: 'Clanker SDK',
+          id: 'Clanker SDK'
+        },
         originatingChainId: BigInt(this.chainId)
       },
       poolConfig: {
-        pairedToken: '0x4200000000000000000000000000000000000006', // WETH on Base
+        pairedToken: WETH_ADDRESS, // WETH on Base
         initialMarketCapInPairedToken: config.initialMarketCap
       },
       vaultConfig: config.vault ? {

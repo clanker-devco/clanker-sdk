@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createPublicClient, http, createWalletClient } from 'viem';
+import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { Clanker } from '../src';

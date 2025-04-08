@@ -5,8 +5,8 @@ export interface TokenConfig {
   symbol: string;
   salt: `0x${string}`; // bytes32
   image: string;
-  metadata: string;
-  context: string;
+  metadata: IClankerMetadata;
+  context: IClankerSocialContext;
   originatingChainId: bigint;
 }
 
@@ -54,13 +54,13 @@ export interface SimpleTokenConfig {
   initialMarketCap: bigint;  // in WETH
   initialBuy: bigint;        // in WETH
   vault?: {
-    percentage: number;      // 0-100
-    durationInDays: number;  // e.g., 30, 60, 90
+    percentage: number;      // 0-30
+    durationInDays: number;  // e.g., 31, 60, 90
   };
   // Optional metadata
   image?: string;
-  metadata?: string;
-  context?: string;
+  metadata?: IClankerMetadata;
+  context?: IClankerSocialContext;
 }
 
 // Internal full configuration (keeping pool fee at 1%)
@@ -70,8 +70,8 @@ export interface DeploymentConfig {
     symbol: string;
     salt: `0x${string}`;
     image: string;
-    metadata: string;
-    context: string;
+    metadata: IClankerMetadata;
+    context: IClankerSocialContext;
     originatingChainId: bigint;
   };
   poolConfig: {
@@ -94,3 +94,16 @@ export interface DeploymentConfig {
     interfaceRewardRecipient: Address;
   };
 } 
+
+export interface IClankerMetadata {
+  description?: string;
+  socialMediaUrls?: Array<{ platform: string; url: string }>;
+  auditUrls?: string[];
+}
+
+export interface IClankerSocialContext {
+  interface: string;
+  platform?: string;
+  messageId?: string;
+  id?: string;
+}

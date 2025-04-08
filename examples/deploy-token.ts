@@ -45,13 +45,22 @@ async function main(): Promise<void> {
         symbol: 'TEST',
         salt: `0x${randomBytes(32).toString('hex')}`,
         image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-        metadata: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-        context: 'Testing Clanker SDK',
+        metadata: {
+          description: 'Testing Clanker SDK',
+          socialMediaUrls: [],
+          auditUrls: []
+        },
+        context: {
+          interface: 'INSERT_INTERFACE',
+          platform: 'INSERT_PLATFORM',
+          messageId: 'INSERT_MESSAGE_ID',
+          id: 'INSERT_ID'
+        },
         originatingChainId: BigInt(8453) // Base chain ID
       },
       poolConfig: {
         pairedToken: '0x4200000000000000000000000000000000000006' as `0x${string}`,
-        initialMarketCapInPairedToken: parseEther('5') // 5 WETH initial mcap
+        initialMarketCapInPairedToken: parseEther('10') // 5 WETH initial mcap
       },
       vaultConfig: {
         vaultPercentage: 30, // 30% vault
