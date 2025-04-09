@@ -1,11 +1,15 @@
 # Clanker SDK
 
-The official TypeScript SDK for deploying tokens using Clanker v3.1.9.
+The official TypeScript SDK for deploying tokens using Clanker.
 
 ## Installation
 
 ```bash
 npm install clanker-sdk viem
+# or
+yarn add clanker-sdk viem
+# or
+pnpm add clanker-sdk viem
 ```
 
 ## Quick Start
@@ -17,29 +21,35 @@ PRIVATE_KEY=your_private_key_here
 
 2. Create a deployment script:
 ```typescript
-  // Initialize wallet with private key
-  const account = privateKeyToAccount(PRIVATE_KEY);
+import { Clanker } from 'clanker-sdk';
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { base } from 'viem/chains';
 
-  // Create transport with optional custom RPC
-  const transport = http();
+// Initialize wallet with private key
+const account = privateKeyToAccount('0x' + process.env.PRIVATE_KEY);
 
-  const publicClient = createPublicClient({
-    chain: base,
-    transport,
-  });
+// Create transport with optional custom RPC
+const transport = http();
 
-  const wallet = createWalletClient({
-    account,
-    chain: base,
-    transport,
-  });
+const publicClient = createPublicClient({
+  chain: base,
+  transport,
+});
 
-  // Initialize Clanker SDK
-  const clanker = new Clanker({
-    wallet,
-    publicClient,
-  });
+const wallet = createWalletClient({
+  account,
+  chain: base,
+  transport,
+});
 
+// Initialize Clanker SDK
+const clanker = new Clanker({
+  wallet,
+  publicClient,
+});
+
+async function deployToken() {
   console.log("Starting token deployment...");
 
   // Deploy the token
@@ -51,6 +61,9 @@ PRIVATE_KEY=your_private_key_here
 
   console.log("Token deployed successfully!");
   console.log("Token address:", tokenAddress);
+}
+
+deployToken().catch(console.error);
 ```
 
 ## Configuration Options
@@ -68,7 +81,6 @@ PRIVATE_KEY=your_private_key_here
 - Pool fee tier is fixed at 1% 
 - Initial market cap in WETH (e.g., 10 WETH)
 - Paired with WETH on Base (`0x4200000000000000000000000000000000000006`)
-
 
 ## Examples
 
