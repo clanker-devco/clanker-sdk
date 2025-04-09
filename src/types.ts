@@ -1,4 +1,4 @@
-import type { Address, WalletClient } from 'viem';
+import type { Address, PublicClient, WalletClient } from "viem";
 
 export interface TokenConfig {
   name: string;
@@ -43,22 +43,21 @@ export interface DeploymentConfig {
 
 export interface ClankerConfig {
   wallet: WalletClient;
-  factoryAddress: Address;
-  chainId: number;
+  publicClient: PublicClient;
+  factoryAddress?: Address;
 }
 
 // Simplified user-facing interface
 export interface SimpleTokenConfig {
   name: string;
   symbol: string;
-  initialMarketCap: bigint;  // in WETH
-  initialBuy: bigint;        // in WETH
+  image?: string;
+  salt?: `0x${string}`;
   vault?: {
-    percentage: number;      // 0-30
-    durationInDays: number;  // e.g., 31, 60, 90
+    percentage: number; // 0-30
+    durationInDays: number; // e.g., 31, 60, 90
   };
   // Optional metadata
-  image?: string;
   metadata?: IClankerMetadata;
   context?: IClankerSocialContext;
 }
@@ -83,7 +82,7 @@ export interface DeploymentConfig {
     vaultDuration: bigint;
   };
   initialBuyConfig?: {
-    pairedTokenPoolFee: 10000;  // Fixed at 1%
+    pairedTokenPoolFee: 10000; // Fixed at 1%
     pairedTokenSwapAmountOutMinimum: bigint;
   };
   rewardsConfig: {
@@ -93,11 +92,11 @@ export interface DeploymentConfig {
     interfaceAdmin: Address;
     interfaceRewardRecipient: Address;
   };
-} 
+}
 
 export interface IClankerMetadata {
   description?: string;
-  socialMediaUrls?: Array<{ platform: string; url: string }>;
+  socialMediaUrls?: { platform: string; url: string }[];
   auditUrls?: string[];
 }
 
