@@ -6,7 +6,11 @@ import {
   parseEther,
   stringify,
   erc20Abi,
+  toEventHash,
+  getAbiItem,
+  parseEventLogs,
 } from "viem";
+import { simulateContract, writeContract } from "viem/actions";
 import type {
   ClankerConfig,
   DeploymentConfig,
@@ -158,7 +162,7 @@ export class Clanker {
         },
       } as const;
 
-      const { request } = await this.publicClient.simulateContract({
+      const { request } = await simulateContract(this.publicClient, {
         address: this.factoryAddress,
         abi: Clanker_v3_1_abi,
         functionName: "deployToken",
@@ -170,21 +174,24 @@ export class Clanker {
       });
 
       // Deploy token
-      const hash = await this.wallet.writeContract(request);
+      const hash = await writeContract(this.wallet, request);
 
       // Wait for transaction receipt
       const receipt = await this.publicClient.waitForTransactionReceipt({
         hash,
       });
 
-      // Find token address from logs
-      const deployEvent = receipt.logs[0];
-      if (!deployEvent?.topics[1]) {
+      const [log] = parseEventLogs({
+        abi: Clanker_v3_1_abi,
+        eventName: "TokenCreated",
+        logs: receipt.logs,
+      });
+
+      if (!log) {
         throw new Error("No deployment event found");
       }
 
-      const tokenAddress = `0x${deployEvent.topics[1].slice(-40)}` as const;
-      return tokenAddress;
+      return log.args.tokenAddress;
     } catch (error) {
       this.handleError(error);
     }
