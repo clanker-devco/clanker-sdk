@@ -6,8 +6,6 @@ import {
   parseEther,
   stringify,
   erc20Abi,
-  toEventHash,
-  getAbiItem,
   parseEventLogs,
 } from "viem";
 import { simulateContract, writeContract } from "viem/actions";
