@@ -8,6 +8,14 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clanker-devco/clanker-sdk.git"
+  },
+  "homepage": "https://github.com/clanker-devco/clanker-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/clanker-devco/clanker-sdk/issues"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "format": "prettier --write \"src/**/*.ts\""
