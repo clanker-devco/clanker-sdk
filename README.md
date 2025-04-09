@@ -1,11 +1,11 @@
 # Clanker SDK
 
-The official TypeScript SDK for deploying tokens using Clanker v3.1.4.
+The official TypeScript SDK for deploying tokens using Clanker v3.1.9.
 
 ## Installation
 
 ```bash
-npm install clanker-sdk viem dotenv
+npm install clanker-sdk viem
 ```
 
 ## Quick Start
@@ -13,99 +13,44 @@ npm install clanker-sdk viem dotenv
 1. Create a `.env` file with your configuration:
 ```env
 PRIVATE_KEY=your_private_key_here
-FACTORY_ADDRESS=clanker_factory_address_here
-RPC_URL=your_rpc_url_here  # Optional
 ```
 
 2. Create a deployment script:
 ```typescript
-import { createWalletClient, http, parseEther } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
-import { Clanker } from 'clanker-sdk';
-import * as dotenv from 'dotenv';
-import { randomBytes } from 'crypto';
+  // Initialize wallet with private key
+  const account = privateKeyToAccount(PRIVATE_KEY);
 
-// Load environment variables
-dotenv.config();
+  // Create transport with optional custom RPC
+  const transport = http();
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS;
-const RPC_URL = process.env.RPC_URL;
+  const publicClient = createPublicClient({
+    chain: base,
+    transport,
+  });
 
-if (!PRIVATE_KEY || !FACTORY_ADDRESS) {
-  throw new Error('Missing required environment variables');
-}
-
-async function main(): Promise<void> {
-  // Initialize wallet
-  const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
-  const transport = RPC_URL ? http(RPC_URL) : http();
   const wallet = createWalletClient({
     account,
     chain: base,
-    transport
+    transport,
   });
 
   // Initialize Clanker SDK
   const clanker = new Clanker({
     wallet,
-    factoryAddress: FACTORY_ADDRESS as `0x${string}`,
-    chainId: base.id
+    publicClient,
   });
 
-  try {
-    const deployConfig = {
-      tokenConfig: {
-        name: 'Test Token',
-        symbol: 'TEST',
-        salt: `0x${randomBytes(32).toString('hex')}`,
-        image: 'ipfs://your_image_hash',
-        metadata: 'ipfs://your_metadata_hash',
-        context: 'Your deployment context',
-        originatingChainId: BigInt(8453) // Base chain ID
-      },
-      poolConfig: {
-        pairedToken: '0x4200000000000000000000000000000000000006' as `0x${string}`, // WETH on Base
-        initialMarketCapInPairedToken: parseEther('5') // 5 WETH initial mcap
-      },
-      vaultConfig: {
-        vaultPercentage: 30, // 30% vault
-        vaultDuration: BigInt(60 * 24 * 60 * 60) // 60 days vault duration
-      },
-      initialBuyConfig: {
-        pairedTokenPoolFee: 10000, // 1% fee tier (fixed)
-        pairedTokenSwapAmountOutMinimum: parseEther('0.001') // 0.001 WETH initial buy
-      },
-      rewardsConfig: {
-        creatorReward: BigInt(40), // 40% creator reward
-        creatorAdmin: account.address,
-        creatorRewardRecipient: account.address,
-        interfaceAdmin: account.address,
-        interfaceRewardRecipient: account.address
-      }
-    } as const;
+  console.log("Starting token deployment...");
 
-    const tokenAddress = await clanker.deploy(deployConfig);
-    console.log('Token deployed successfully at:', tokenAddress);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Deployment failed:', error.message);
-    } else {
-      console.error('Deployment failed with unknown error');
-    }
-    process.exit(1);
-  }
-}
+  // Deploy the token
+  const tokenAddress = await clanker.deployToken({
+    name: "Clanker Test Token",
+    symbol: "TEST",
+    image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+  });
 
-main().catch((error) => {
-  if (error instanceof Error) {
-    console.error('Deployment failed:', error.message);
-  } else {
-    console.error('Deployment failed with unknown error');
-  }
-  process.exit(1);
-});
+  console.log("Token deployed successfully!");
+  console.log("Token address:", tokenAddress);
 ```
 
 ## Configuration Options
@@ -120,29 +65,10 @@ main().catch((error) => {
 - `originatingChainId`: Chain ID where token is deployed (8453 for Base)
 
 ### Pool Configuration
-- Pool fee tier is fixed at 1% (10000) for optimal performance
-- Initial market cap in WETH (e.g., 5 WETH)
+- Pool fee tier is fixed at 1% 
+- Initial market cap in WETH (e.g., 10 WETH)
 - Paired with WETH on Base (`0x4200000000000000000000000000000000000006`)
 
-### Vault Configuration (Optional)
-- `vaultPercentage`: Percentage of tokens to lock (0-100)
-- `vaultDuration`: Duration of the lock in seconds (e.g., 60 days = 5184000 seconds)
-
-### Initial Buy Configuration
-- Pool fee tier is fixed at 1% (10000)
-- Initial buy amount in WETH (e.g., 0.001 WETH)
-
-### Rewards Configuration
-- `creatorReward`: Percentage of rewards for creator (e.g., 40)
-- Creator and interface admin/recipient addresses
-
-## Important Notes
-
-1. The pool fee tier is fixed at 1% (10000) for optimal performance
-2. Initial market cap and buy amounts should be specified using `parseEther()`
-3. Vault duration should be specified in seconds
-4. All addresses should be properly formatted as `0x${string}`
-5. Error handling is included for better debugging
 
 ## Examples
 
