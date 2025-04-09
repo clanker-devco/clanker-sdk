@@ -15,6 +15,8 @@ import type {
 } from "./types";
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from "./constants";
 import { Clanker_v3_1_abi } from "./abis/Clanker_V3_1";
+import { simulateContract } from "viem/_types/actions/public/simulateContract";
+import { writeContract } from "viem/_types/actions/wallet/writeContract";
 
 export class Clanker {
   private readonly wallet: WalletClient;
@@ -158,8 +160,7 @@ export class Clanker {
         },
       } as const;
 
-      // Deploy token
-      const hash = await this.wallet.writeContract({
+      const { request } = await simulateContract(this.wallet, {
         address: this.factoryAddress,
         abi: Clanker_v3_1_abi,
         functionName: "deployToken",
@@ -169,6 +170,9 @@ export class Clanker {
         chain: this.publicClient.chain,
         account: this.wallet.account,
       });
+
+      // Deploy token
+      const hash = await writeContract(this.wallet, request);
 
       // Wait for transaction receipt
       const receipt = await this.publicClient.waitForTransactionReceipt({
