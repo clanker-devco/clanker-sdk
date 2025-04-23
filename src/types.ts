@@ -18,6 +18,7 @@ export interface VaultConfig {
 export interface PoolConfig {
   pairedToken: Address;
   initialMarketCapInPairedToken: bigint; // Used to calculate tickIfToken0IsNewToken
+  initialMarketCap?: string; // Optional: Initial market cap in quote token as string (e.g. "20" for 20 ETH)
 }
 
 export interface InitialBuyConfig {
@@ -57,41 +58,13 @@ export interface SimpleTokenConfig {
     percentage: number; // 0-30
     durationInDays: number; // e.g., 31, 60, 90
   };
+  pool?: {
+    quoteToken?: Address; // Optional: Address of quote token (defaults to WETH)
+    initialMarketCap?: string; // Optional: Initial market cap in quote token (e.g. "20" for 20 ETH)
+  };
   // Optional metadata
   metadata?: IClankerMetadata;
   context?: IClankerSocialContext;
-}
-
-// Internal full configuration (keeping pool fee at 1%)
-export interface DeploymentConfig {
-  tokenConfig: {
-    name: string;
-    symbol: string;
-    salt: `0x${string}`;
-    image: string;
-    metadata: IClankerMetadata;
-    context: IClankerSocialContext;
-    originatingChainId: bigint;
-  };
-  poolConfig: {
-    pairedToken: Address;
-    initialMarketCapInPairedToken: bigint;
-  };
-  vaultConfig?: {
-    vaultPercentage: number;
-    vaultDuration: bigint;
-  };
-  initialBuyConfig?: {
-    pairedTokenPoolFee: 10000; // Fixed at 1%
-    pairedTokenSwapAmountOutMinimum: bigint;
-  };
-  rewardsConfig: {
-    creatorReward: bigint;
-    creatorAdmin: Address;
-    creatorRewardRecipient: Address;
-    interfaceAdmin: Address;
-    interfaceRewardRecipient: Address;
-  };
 }
 
 export interface IClankerMetadata {

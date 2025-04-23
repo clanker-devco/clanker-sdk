@@ -33,3 +33,10 @@ video_commands.txt
 
 # GitBook documentation
 gitbookDocs.md 
+
+# Development files
+examples/updated-sdk.ts
+llm.txt 
+
+#package lock
+package-lock.json
