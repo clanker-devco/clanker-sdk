@@ -13,6 +13,7 @@ import type {
   DeploymentConfig,
   SimpleTokenConfig,
   RewardsConfig,
+  InitialBuyConfig,
 } from './types';
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants';
 import { Clanker_v3_1_abi } from './abis/Clanker_V3_1';
@@ -27,6 +28,53 @@ const ERC20_DECIMALS_ABI = [
     type: "function"
   }
 ] as const;
+
+// Uniswap V3 Factory ABI for getting pools
+const UNIV3_FACTORY_ABI = [
+  {
+    inputs: [
+      { internalType: 'address', name: 'tokenA', type: 'address' },
+      { internalType: 'address', name: 'tokenB', type: 'address' },
+      { internalType: 'uint24', name: 'fee', type: 'uint24' }
+    ],
+    name: 'getPool',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function'
+  }
+] as const;
+
+// Uniswap V3 Pool ABI for getting liquidity
+const UNIV3_POOL_ABI = [
+  {
+    inputs: [],
+    name: 'liquidity',
+    outputs: [{ internalType: 'uint128', name: '', type: 'uint128' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'slot0',
+    outputs: [
+      { internalType: 'uint160', name: 'sqrtPriceX96', type: 'uint160' },
+      { internalType: 'int24', name: 'tick', type: 'int24' },
+      { internalType: 'uint16', name: 'observationIndex', type: 'uint16' },
+      { internalType: 'uint16', name: 'observationCardinality', type: 'uint16' },
+      { internalType: 'uint16', name: 'observationCardinalityNext', type: 'uint16' },
+      { internalType: 'uint8', name: 'feeProtocol', type: 'uint8' },
+      { internalType: 'bool', name: 'unlocked', type: 'bool' }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  }
+] as const;
+
+// Base Uniswap V3 Factory address
+const UNIV3_FACTORY = '0x33128a8fC17869897dcE68Ed026d694621f6FDfD' as const;
+
+// Available fee tiers
+const FEE_TIERS = [100, 500, 3000, 10000] as const;
 
 export class Clanker {
   private readonly wallet: WalletClient;
@@ -52,6 +100,87 @@ export class Clanker {
       console.warn(`Failed to fetch decimals for quote token ${quoteToken}, defaulting to 18:`, error);
       return 18;
     }
+  }
+
+  // Find the most liquid pool between WETH and quote token
+  private async findMostLiquidPool(quoteToken: Address): Promise<{ fee: number; sqrtPriceX96: bigint }> {
+    const pools = await Promise.all(
+      FEE_TIERS.map(async (fee) => {
+        try {
+          // Get pool address
+          const poolAddress = await readContract(this.publicClient, {
+            address: UNIV3_FACTORY,
+            abi: UNIV3_FACTORY_ABI,
+            functionName: 'getPool',
+            args: [WETH_ADDRESS, quoteToken, fee],
+          });
+
+          if (poolAddress === '0x0000000000000000000000000000000000000000') {
+            return { fee, liquidity: 0n, sqrtPriceX96: 0n };
+          }
+
+          // Get pool liquidity and price
+          const [liquidity, slot0] = await Promise.all([
+            readContract(this.publicClient, {
+              address: poolAddress,
+              abi: UNIV3_POOL_ABI,
+              functionName: 'liquidity',
+            }),
+            readContract(this.publicClient, {
+              address: poolAddress,
+              abi: UNIV3_POOL_ABI,
+              functionName: 'slot0',
+            }),
+          ]);
+
+          return { fee, liquidity, sqrtPriceX96: slot0[0] };
+        } catch (error) {
+          console.warn(`Failed to get pool info for fee tier ${fee}:`, error);
+          return { fee, liquidity: 0n, sqrtPriceX96: 0n };
+        }
+      })
+    );
+
+    // Find pool with highest liquidity
+    const mostLiquidPool = pools.reduce((max, current) => 
+      current.liquidity > max.liquidity ? current : max
+    );
+
+    if (mostLiquidPool.liquidity === 0n) {
+      // If no liquid pool found, default to 1% fee tier
+      console.warn('No liquid pool found, defaulting to 1% fee tier');
+      return { fee: 10000, sqrtPriceX96: 0n };
+    }
+
+    return { fee: mostLiquidPool.fee, sqrtPriceX96: mostLiquidPool.sqrtPriceX96 };
+  }
+
+  // Calculate minimum output amount for WETH -> quote token swap
+  private calculateMinimumOutput(
+    ethAmount: bigint,
+    sqrtPriceX96: bigint,
+    quoteDecimals: number,
+    slippagePercent: number
+  ): bigint {
+    if (sqrtPriceX96 === 0n) {
+      // If we couldn't get the price, return 0 (no minimum)
+      return 0n;
+    }
+
+    // Calculate price from sqrtPriceX96
+    const Q96 = BigInt('79228162514264337593543950336'); // 2^96
+    const price = (Number(sqrtPriceX96) / Number(Q96)) ** 2;
+
+    // Calculate expected output in quote token
+    const ethDecimals = 18;
+    const ethAmountInEth = Number(ethAmount) / 10 ** ethDecimals;
+    const expectedOutput = ethAmountInEth * price;
+
+    // Apply slippage tolerance
+    const minimumOutput = expectedOutput * (1 - slippagePercent / 100);
+
+    // Convert to quote token base units
+    return BigInt(Math.floor(minimumOutput * 10 ** quoteDecimals));
   }
 
   // Calculate tick based on quote token and token ordering
@@ -153,8 +282,7 @@ export class Clanker {
           pairedTokenPoolFee:
             config.initialBuyConfig?.pairedTokenPoolFee ?? 10000,
           pairedTokenSwapAmountOutMinimum:
-            config.initialBuyConfig?.pairedTokenSwapAmountOutMinimum ??
-            BigInt(0),
+            config.initialBuyConfig?.pairedTokenSwapAmountOutMinimum ?? BigInt(0),
         },
         rewardsConfig: {
           creatorReward: rewardsConfig.creatorReward,
@@ -170,7 +298,7 @@ export class Clanker {
         abi: Clanker_v3_1_abi,
         functionName: 'deployToken',
         args: [deploymentData],
-        value: BigInt(0),
+        value: config.initialBuyConfig?.ethAmount ?? BigInt(0),
         chain: this.publicClient.chain,
         account: this.wallet.account,
       });
@@ -217,6 +345,36 @@ export class Clanker {
     const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
     console.log('Quote token decimals:', quoteDecimals);
 
+    // If dev buy is enabled, find the most liquid pool and calculate minimum output
+    let initialBuyConfig: InitialBuyConfig = {
+      pairedTokenPoolFee: 10000, // Default to 1%
+      pairedTokenSwapAmountOutMinimum: BigInt(0),
+      ethAmount: undefined,
+    };
+    
+    if (config.devBuy) {
+      const ethAmount = parseEther(config.devBuy.ethAmount);
+      const { fee, sqrtPriceX96 } = await this.findMostLiquidPool(quoteToken);
+      const minOutput = this.calculateMinimumOutput(
+        ethAmount,
+        sqrtPriceX96,
+        quoteDecimals,
+        config.devBuy.maxSlippage ?? 5
+      );
+      
+      initialBuyConfig = {
+        pairedTokenPoolFee: fee,
+        pairedTokenSwapAmountOutMinimum: minOutput,
+        ethAmount,
+      };
+
+      console.log('Dev buy configuration:', {
+        ethAmount: config.devBuy.ethAmount,
+        fee,
+        minOutput: minOutput.toString(),
+      });
+    }
+
     // Convert to internal config format
     const deploymentConfig: DeploymentConfig = {
       tokenConfig: {
@@ -243,19 +401,18 @@ export class Clanker {
       },
       poolConfig: {
         pairedToken: quoteToken,
-        initialMarketCapInPairedToken: parseUnits(config.pool?.initialMarketCap ?? '10', quoteDecimals),
-        tickIfToken0IsNewToken: 0, // Will be calculated in deploy() based on quote token
+        initialMarketCapInPairedToken: parseUnits(
+          config.pool?.initialMarketCap ?? '100',
+          quoteDecimals
+        ),
       },
       vaultConfig: config.vault
         ? {
             vaultPercentage: config.vault.percentage,
-            vaultDuration: BigInt(config.vault.durationInDays * 24 * 60 * 60), // Convert days to seconds
+            vaultDuration: BigInt(config.vault.durationInDays * 24 * 60 * 60),
           }
         : undefined,
-      initialBuyConfig: {
-        pairedTokenPoolFee: 10000, // Fixed at 1%
-        pairedTokenSwapAmountOutMinimum: 0n,
-      },
+      initialBuyConfig,
       rewardsConfig: {
         creatorReward: BigInt(40), // Default to 40% creator reward
         creatorAdmin: deployerAddress,

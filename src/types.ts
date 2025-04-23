@@ -19,12 +19,13 @@ export interface PoolConfig {
   pairedToken: Address;
   initialMarketCapInPairedToken: bigint;
   initialMarketCap?: string;
-  tickIfToken0IsNewToken: number;
+  tickIfToken0IsNewToken?: number;
 }
 
 export interface InitialBuyConfig {
-  pairedTokenPoolFee: 10000; // Fixed at 1%
+  pairedTokenPoolFee: number;
   pairedTokenSwapAmountOutMinimum: bigint;
+  ethAmount?: bigint; // Amount of ETH to send with deployment
 }
 
 export interface RewardsConfig {
@@ -53,19 +54,22 @@ export interface ClankerConfig {
 export interface SimpleTokenConfig {
   name: string;
   symbol: string;
-  image?: string;
   salt?: `0x${string}`;
-  vault?: {
-    percentage: number; // 0-30
-    durationInDays: number; // e.g., 31, 60, 90
-  };
-  pool?: {
-    quoteToken?: Address; // Optional: Address of quote token (defaults to WETH)
-    initialMarketCap?: string; // Optional: Initial market cap in quote token (e.g. "20" for 20 ETH)
-  };
-  // Optional metadata
+  image?: string;
   metadata?: IClankerMetadata;
   context?: IClankerSocialContext;
+  pool?: {
+    quoteToken?: Address;
+    initialMarketCap?: string;
+  };
+  vault?: {
+    percentage: number;
+    durationInDays: number;
+  };
+  devBuy?: {
+    ethAmount: string; // Amount of ETH to send with deployment
+    maxSlippage?: number; // Max slippage percentage, defaults to 5%
+  };
 }
 
 export interface IClankerMetadata {
