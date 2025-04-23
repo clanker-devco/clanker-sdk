@@ -3,9 +3,9 @@ import {
   type PublicClient,
   type WalletClient,
   parseEther,
+  parseUnits,
   stringify,
   parseEventLogs,
-  formatUnits,
 } from 'viem';
 import { simulateContract, writeContract, readContract } from 'viem/actions';
 import type {
@@ -14,8 +14,19 @@ import type {
   SimpleTokenConfig,
   RewardsConfig,
 } from './types';
-import { CLANKER_FACTORY_V3_1, WETH_ADDRESS, ERC20_DECIMALS_ABI, DEFAULT_BASE_RPC } from './constants';
+import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants';
 import { Clanker_v3_1_abi } from './abis/Clanker_V3_1';
+
+// ERC20 decimals ABI
+const ERC20_DECIMALS_ABI = [
+  {
+    inputs: [],
+    name: "decimals",
+    outputs: [{ type: "uint8", name: "" }],
+    stateMutability: "view",
+    type: "function"
+  }
+] as const;
 
 export class Clanker {
   private readonly wallet: WalletClient;
@@ -28,48 +39,74 @@ export class Clanker {
     this.factoryAddress = config.factoryAddress ?? CLANKER_FACTORY_V3_1;
   }
 
-  // Fetch token decimals from contract
-  private async getTokenDecimals(tokenAddress: Address): Promise<number> {
+  // Get quote token decimals
+  private async getQuoteTokenDecimals(quoteToken: Address): Promise<number> {
     try {
       const decimals = await readContract(this.publicClient, {
-        address: tokenAddress,
+        address: quoteToken,
         abi: ERC20_DECIMALS_ABI,
         functionName: 'decimals',
       });
       return decimals;
     } catch (error) {
-      console.warn(`Failed to fetch decimals for token ${tokenAddress}, defaulting to 18:`, error);
+      console.warn(`Failed to fetch decimals for quote token ${quoteToken}, defaulting to 18:`, error);
       return 18;
     }
   }
 
-  // Fallback tick calculation with default price
-  private calculateTick(): number {
-    const desiredPrice = 0.0000000001;
-    const logBase = 1.0001;
-    const tickSpacing = 200;
-    const rawTick = Math.log(desiredPrice) / Math.log(logBase);
-    const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
-    return initialTick;
-  }
+  // Calculate tick based on quote token and token ordering
+  private async calculateTickForQuoteToken(quoteToken: Address, marketCap: bigint): Promise<number> {
+    // Get quote token decimals
+    const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
+    console.log('Quote token decimals:', quoteDecimals);
 
-  // Calculate tick based on desired market cap and token decimals
-  private async calculateTickFromMarketCap(marketCap: string, quoteToken: Address): Promise<number> {
-    const quoteDecimals = await this.getTokenDecimals(quoteToken);
-    const marketCapBigInt = parseEther(marketCap); // Convert to wei
-    const adjustedMarketCap = Number(formatUnits(marketCapBigInt, quoteDecimals));
+    // Our token always has 18 decimals and total supply is 100B
+    const tokenDecimals = 18;
+    const totalSupply = BigInt(100_000_000_000) * BigInt(10) ** BigInt(tokenDecimals);
     
-    // Calculate initial price (1 token = marketCap/totalSupply)
-    // We use a fixed total supply of 1,000,000 tokens
-    const totalSupply = 1_000_000;
-    const desiredPrice = adjustedMarketCap / totalSupply;
-    
-    // Calculate tick using UniswapV3 formula
+    // Calculate price in quote token per token
+    // If we want market cap of 100 USDC to show as 100 USDC on Dexscreener:
+    // price = marketCap / totalSupply
+    // Note: marketCap is already in quote token base units (e.g. 100 * 10^6 for USDC)
+    const priceInQuoteToken = Number(marketCap) / Number(totalSupply);
+    console.log('Price in quote token:', priceInQuoteToken);
+    console.log('Market cap in quote token units:', Number(marketCap) / 10 ** quoteDecimals);
+
+    // Calculate tick using the 1.0001 base formula
+    // tick = log_1.0001(price)
     const logBase = 1.0001;
     const tickSpacing = 200; // Fixed for 1% fee tier
-    const rawTick = Math.log(desiredPrice) / Math.log(logBase);
+
+    // In Uniswap V3, token0 is the token with the lower address
+    // If our new token's address will be higher than the quote token,
+    // we need to invert the price for the tick calculation
+    const dummyTokenAddress = '0xffffffffffffffffffffffffffffffffffffffff'; // Max possible address
+    const isToken0 = dummyTokenAddress.toLowerCase() < quoteToken.toLowerCase();
+    console.log('Is new token token0?', isToken0);
+
+    // Calculate raw tick using log base formula
+    // If we're not token0, we need to invert the price and negate the tick
+    const priceForTick = isToken0 ? priceInQuoteToken : 1 / priceInQuoteToken;
+    let rawTick = Math.floor(Math.log(priceForTick) / Math.log(logBase));
+    if (!isToken0) {
+      rawTick = -rawTick; // Negate the tick for token1
+    }
+    console.log('Raw tick (before spacing):', rawTick);
+
+    // Round to valid tick spacing
     const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
+    console.log('Final tick (rounded to spacing):', initialTick);
+
+    // Verify the price calculation
+    const actualPrice = Math.pow(logBase, isToken0 ? initialTick : -initialTick);
+    console.log('Actual price from tick:', actualPrice);
     
+    // Calculate actual market cap in quote token units
+    // If we're not token0, we need to invert the actual price
+    const finalPrice = isToken0 ? actualPrice : 1 / actualPrice;
+    const actualMarketCap = finalPrice * Number(totalSupply) / Math.pow(10, tokenDecimals);
+    console.log('Actual market cap in quote token:', actualMarketCap);
+
     return initialTick;
   }
 
@@ -86,6 +123,12 @@ export class Clanker {
     try {
       // Since RewardsConfig is required in DeploymentConfig, we can safely access it
       const rewardsConfig: RewardsConfig = config.rewardsConfig;
+
+      // Calculate tick based on quote token and market cap
+      const tick = await this.calculateTickForQuoteToken(
+        config.poolConfig.pairedToken,
+        config.poolConfig.initialMarketCapInPairedToken
+      );
 
       // Create deployment data array
       const deploymentData = {
@@ -104,7 +147,7 @@ export class Clanker {
         },
         poolConfig: {
           pairedToken: config.poolConfig.pairedToken,
-          tickIfToken0IsNewToken: this.calculateTick(),
+          tickIfToken0IsNewToken: tick,
         },
         initialBuyConfig: {
           pairedTokenPoolFee:
@@ -127,8 +170,7 @@ export class Clanker {
         abi: Clanker_v3_1_abi,
         functionName: 'deployToken',
         args: [deploymentData],
-        value:
-          config.initialBuyConfig?.pairedTokenSwapAmountOutMinimum || BigInt(0),
+        value: BigInt(0),
         chain: this.publicClient.chain,
         account: this.wallet.account,
       });
@@ -170,25 +212,28 @@ export class Clanker {
     // Store the address to avoid undefined checks
     const deployerAddress = this.wallet.account.address;
 
-    // Determine quote token and calculate initial tick if market cap is specified
+    // Get quote token decimals for proper unit parsing
     const quoteToken = config.pool?.quoteToken ?? WETH_ADDRESS;
-    const initialTick = config.pool?.initialMarketCap 
-      ? await this.calculateTickFromMarketCap(config.pool.initialMarketCap, quoteToken)
-      : this.calculateTick();
+    const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
+    console.log('Quote token decimals:', quoteDecimals);
 
     // Convert to internal config format
     const deploymentConfig: DeploymentConfig = {
       tokenConfig: {
         name: config.name,
         symbol: config.symbol,
-        salt: config.salt ?? '0x0000000000000000000000000000000000000000000000000000000000000000',
-        image: config.image ?? 'https://ipfs.io/ipfs/QmcjfTeK3tpK3MVCQuvEaXvSscrqbL3MwsEo8LdBTWabY4',
-        metadata: config.metadata ?? {
+        salt:
+          config.salt ||
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        image:
+          config.image ||
+          'https://ipfs.io/ipfs/QmcjfTeK3tpK3MVCQuvEaXvSscrqbL3MwsEo8LdBTWabY4',
+        metadata: config.metadata || {
           description: 'Clanker Token',
           socialMediaUrls: [],
           auditUrls: [],
         },
-        context: config.context ?? {
+        context: config.context || {
           interface: 'Clanker SDK',
           platform: 'Clanker',
           messageId: 'Clanker SDK',
@@ -198,8 +243,8 @@ export class Clanker {
       },
       poolConfig: {
         pairedToken: quoteToken,
-        initialMarketCapInPairedToken: parseEther(config.pool?.initialMarketCap ?? '10'),
-        initialMarketCap: config.pool?.initialMarketCap,
+        initialMarketCapInPairedToken: parseUnits(config.pool?.initialMarketCap ?? '10', quoteDecimals),
+        tickIfToken0IsNewToken: 0, // Will be calculated in deploy() based on quote token
       },
       vaultConfig: config.vault
         ? {

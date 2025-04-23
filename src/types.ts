@@ -17,8 +17,9 @@ export interface VaultConfig {
 
 export interface PoolConfig {
   pairedToken: Address;
-  initialMarketCapInPairedToken: bigint; // Used to calculate tickIfToken0IsNewToken
-  initialMarketCap?: string; // Optional: Initial market cap in quote token as string (e.g. "20" for 20 ETH)
+  initialMarketCapInPairedToken: bigint;
+  initialMarketCap?: string;
+  tickIfToken0IsNewToken: number;
 }
 
 export interface InitialBuyConfig {
