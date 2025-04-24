@@ -17,12 +17,15 @@ export interface VaultConfig {
 
 export interface PoolConfig {
   pairedToken: Address;
-  initialMarketCapInPairedToken: bigint; // Used to calculate tickIfToken0IsNewToken
+  initialMarketCapInPairedToken: bigint;
+  initialMarketCap?: string;
+  tickIfToken0IsNewToken?: number;
 }
 
 export interface InitialBuyConfig {
-  pairedTokenPoolFee: 10000; // Fixed at 1%
+  pairedTokenPoolFee: number;
   pairedTokenSwapAmountOutMinimum: bigint;
+  ethAmount?: bigint; // Amount of ETH to send with deployment
 }
 
 export interface RewardsConfig {
@@ -51,46 +54,21 @@ export interface ClankerConfig {
 export interface SimpleTokenConfig {
   name: string;
   symbol: string;
-  image?: string;
   salt?: `0x${string}`;
-  vault?: {
-    percentage: number; // 0-30
-    durationInDays: number; // e.g., 31, 60, 90
-  };
-  // Optional metadata
+  image?: string;
   metadata?: IClankerMetadata;
   context?: IClankerSocialContext;
-}
-
-// Internal full configuration (keeping pool fee at 1%)
-export interface DeploymentConfig {
-  tokenConfig: {
-    name: string;
-    symbol: string;
-    salt: `0x${string}`;
-    image: string;
-    metadata: IClankerMetadata;
-    context: IClankerSocialContext;
-    originatingChainId: bigint;
+  pool?: {
+    quoteToken?: Address;
+    initialMarketCap?: string;
   };
-  poolConfig: {
-    pairedToken: Address;
-    initialMarketCapInPairedToken: bigint;
+  vault?: {
+    percentage: number;
+    durationInDays: number;
   };
-  vaultConfig?: {
-    vaultPercentage: number;
-    vaultDuration: bigint;
-  };
-  initialBuyConfig?: {
-    pairedTokenPoolFee: 10000; // Fixed at 1%
-    pairedTokenSwapAmountOutMinimum: bigint;
-  };
-  rewardsConfig: {
-    creatorReward: bigint;
-    creatorAdmin: Address;
-    creatorRewardRecipient: Address;
-    interfaceAdmin: Address;
-    interfaceRewardRecipient: Address;
+  devBuy?: {
+    ethAmount: string; // Amount of ETH to send with deployment
+    maxSlippage?: number; // Max slippage percentage, defaults to 5%
   };
 }
 
