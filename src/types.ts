@@ -17,7 +17,7 @@ export interface VaultConfig {
 
 export interface PoolConfig {
   pairedToken: Address;
-  initialMarketCapInPairedToken: bigint; // Used to calculate tickIfToken0IsNewToken
+  initialMarketCapInPairedToken: string; // Used to calculate tickIfToken0IsNewToken
 }
 
 export interface InitialBuyConfig {
@@ -73,10 +73,7 @@ export interface DeploymentConfig {
     context: IClankerSocialContext;
     originatingChainId: bigint;
   };
-  poolConfig: {
-    pairedToken: Address;
-    initialMarketCapInPairedToken: bigint;
-  };
+  poolConfig: PoolConfig;
   vaultConfig?: {
     vaultPercentage: number;
     vaultDuration: bigint;
