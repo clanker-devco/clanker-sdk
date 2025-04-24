@@ -29,8 +29,11 @@ export class Clanker {
   }
 
   // Get paired token decimals
-  private calculateTick(): number {
-    let desiredPrice = 0.0000000001;
+  private calculateTick(marketCap: string): number {
+  let desiredPrice = 0.0000000001;
+
+  // Only adjust the desired price for WETH pairs
+    desiredPrice = Number(marketCap) * 0.00000000001; // Dynamic market cap in ETH
     const logBase = 1.0001;
     const tickSpacing = 200;
     const rawTick = Math.log(desiredPrice) / Math.log(logBase);
@@ -69,7 +72,7 @@ export class Clanker {
         },
         poolConfig: {
           pairedToken: config.poolConfig.pairedToken,
-          tickIfToken0IsNewToken: this.calculateTick(),
+          tickIfToken0IsNewToken: this.calculateTick(config.poolConfig.initialMarketCapInPairedToken.toString()),
         },
         initialBuyConfig: {
           pairedTokenPoolFee:
@@ -161,7 +164,7 @@ export class Clanker {
       },
       poolConfig: {
         pairedToken: WETH_ADDRESS, // WETH on Base
-        initialMarketCapInPairedToken: parseEther('10'),
+        initialMarketCapInPairedToken: '1',
       },
       vaultConfig: config.vault
         ? {

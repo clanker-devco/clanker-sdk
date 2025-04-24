@@ -73,15 +73,11 @@ async function main(): Promise<void> {
       poolConfig: {
         pairedToken:
           "0x4200000000000000000000000000000000000006" as `0x${string}`,
-        initialMarketCapInPairedToken: parseEther("10"), // 5 WETH initial mcap
+        initialMarketCapInPairedToken: "1", // 1 WETH initial mcap
       },
       vaultConfig: {
         vaultPercentage: 30, // 30% vault
         vaultDuration: BigInt(60 * 24 * 60 * 60), // 60 days vault duration
-      },
-      initialBuyConfig: {
-        pairedTokenPoolFee: 10000, // 1% fee tier (fixed)
-        pairedTokenSwapAmountOutMinimum: parseEther("0.001"), // 0.001 WETH initial buy
       },
       rewardsConfig: {
         creatorReward: BigInt(40), // 40% creator reward
