@@ -66,6 +66,43 @@ async function deployToken() {
 deployToken().catch(console.error);
 ```
 
+### Using with OnchainKit (Frontend)
+
+For frontend applications using OnchainKit, you can use the `prepareDeployToken` method to get the transaction data without executing it:
+
+```typescript
+import { Clanker } from 'clanker-sdk';
+import { createPublicClient, http } from 'viem';
+import { base } from 'viem/chains';
+
+// Initialize SDK without wallet for frontend use
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http(),
+});
+
+const clanker = new Clanker({
+  publicClient,
+});
+
+// In your component/hook:
+async function prepareTokenDeployment() {
+  // Get transaction data
+  const tx = await clanker.prepareDeployToken({
+    name: "Clanker Test Token",
+    symbol: "TEST",
+    image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+  });
+
+  // Use with OnchainKit
+  return {
+    to: tx.to,
+    data: tx.data,
+    value: tx.value, // For dev-buy (0 if none)
+  };
+}
+```
+
 ## Configuration Options
 
 ### Basic Token Configuration
@@ -141,6 +178,17 @@ const tokenAddress = await clanker.deployToken({
 ## Examples
 
 See the [examples](./examples) directory for more deployment scenarios.
+
+## Development Methods
+
+### `deployToken(config: SimpleTokenConfig): Promise<Address>`
+Deploys a new token with the specified configuration. Requires a wallet to be configured.
+
+### `prepareDeployToken(config: SimpleTokenConfig): Promise<PreparedDeployTx>`
+Prepares the transaction data for deploying a token without executing it. Perfect for frontend integrations with OnchainKit or similar tools. Returns:
+- `to`: Contract address to call
+- `data`: Encoded calldata
+- `value`: ETH value to send (for dev-buy, 0 if none)
 
 ## Development
 

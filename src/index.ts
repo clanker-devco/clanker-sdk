@@ -18,6 +18,13 @@ import type {
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants';
 import { Clanker_v3_1_abi } from './abis/Clanker_V3_1';
 
+/** Lightweight container for a pre-built deploy transaction */
+export type PreparedDeployTx = {
+  to: Address;
+  data: `0x${string}`;
+  value: bigint;   // ETH value for dev-buy (0 if none)
+};
+
 // ERC20 decimals ABI
 const ERC20_DECIMALS_ABI = [
   {
@@ -77,7 +84,7 @@ const UNIV3_FACTORY = '0x33128a8fC17869897dcE68Ed026d694621f6FDfD' as const;
 const FEE_TIERS = [100, 500, 3000, 10000] as const;
 
 export class Clanker {
-  private readonly wallet: WalletClient;
+  private readonly wallet?: WalletClient;
   private readonly factoryAddress: Address;
   private readonly publicClient: PublicClient;
 
@@ -245,7 +252,7 @@ export class Clanker {
   }
 
   public async deploy(config: DeploymentConfig): Promise<Address> {
-    if (!this.wallet.account) {
+    if (!this.wallet?.account) {
       throw new Error('Wallet account not configured');
     }
 
@@ -327,23 +334,52 @@ export class Clanker {
     }
   }
 
-  /**
-   * Simplified token deployment method for easier user experience
-   * @param config Simple configuration for token deployment
-   * @returns Deployed token address
-   */
-  public async deployToken(config: SimpleTokenConfig): Promise<Address> {
-    if (!this.wallet.account) {
-      throw new Error('Wallet account not configured');
-    }
-
-    // Store the address to avoid undefined checks
-    const deployerAddress = this.wallet.account.address;
-
+  private async buildDeploymentConfig(cfg: SimpleTokenConfig): Promise<{
+    tokenConfig: {
+      name: string;
+      symbol: string;
+      salt: `0x${string}`;
+      image: string;
+      metadata: string;
+      context: string;
+      originatingChainId: bigint;
+    };
+    vaultConfig: {
+      vaultPercentage: number;
+      vaultDuration: bigint;
+    };
+    poolConfig: {
+      pairedToken: `0x${string}`;
+      tickIfToken0IsNewToken: number;
+      initialMarketCapInPairedToken: bigint;
+    };
+    initialBuyConfig: {
+      pairedTokenPoolFee: number;
+      pairedTokenSwapAmountOutMinimum: bigint;
+      ethAmount?: bigint;
+    };
+    rewardsConfig: {
+      creatorReward: bigint;
+      creatorAdmin: `0x${string}`;
+      creatorRewardRecipient: `0x${string}`;
+      interfaceAdmin: `0x${string}`;
+      interfaceRewardRecipient: `0x${string}`;
+    };
+  }> {
     // Get quote token decimals for proper unit parsing
-    const quoteToken = config.pool?.quoteToken ?? WETH_ADDRESS;
+    const quoteToken = cfg.pool?.quoteToken ?? WETH_ADDRESS;
     const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
     console.log('Quote token decimals:', quoteDecimals);
+
+    // Calculate tick based on quote token and market cap
+    const marketCap = parseUnits(
+      cfg.pool?.initialMarketCap ?? '100',
+      quoteDecimals
+    );
+    const tick = await this.calculateTickForQuoteToken(
+      quoteToken,
+      marketCap
+    );
 
     // If dev buy is enabled, find the most liquid pool and calculate minimum output
     let initialBuyConfig: InitialBuyConfig = {
@@ -352,14 +388,14 @@ export class Clanker {
       ethAmount: undefined,
     };
     
-    if (config.devBuy) {
-      const ethAmount = parseEther(config.devBuy.ethAmount);
+    if (cfg.devBuy) {
+      const ethAmount = parseEther(cfg.devBuy.ethAmount);
       const { fee, sqrtPriceX96 } = await this.findMostLiquidPool(quoteToken);
       const minOutput = this.calculateMinimumOutput(
         ethAmount,
         sqrtPriceX96,
         quoteDecimals,
-        config.devBuy.maxSlippage ?? 5
+        cfg.devBuy.maxSlippage ?? 5
       );
       
       initialBuyConfig = {
@@ -369,61 +405,109 @@ export class Clanker {
       };
 
       console.log('Dev buy configuration:', {
-        ethAmount: config.devBuy.ethAmount,
+        ethAmount: cfg.devBuy.ethAmount,
         fee,
         minOutput: minOutput.toString(),
       });
     }
 
+    // Use deployer address if wallet is available, otherwise use a default address
+    const deployerAddress = this.wallet?.account?.address ?? '0x0000000000000000000000000000000000000000';
+
     // Convert to internal config format
-    const deploymentConfig: DeploymentConfig = {
+    return {
       tokenConfig: {
-        name: config.name,
-        symbol: config.symbol,
+        name: cfg.name,
+        symbol: cfg.symbol,
         salt:
-          config.salt ||
+          cfg.salt ||
           '0x0000000000000000000000000000000000000000000000000000000000000000',
         image:
-          config.image ||
+          cfg.image ||
           'https://ipfs.io/ipfs/QmcjfTeK3tpK3MVCQuvEaXvSscrqbL3MwsEo8LdBTWabY4',
-        metadata: config.metadata || {
+        metadata: JSON.stringify(cfg.metadata || {
           description: 'Clanker Token',
           socialMediaUrls: [],
           auditUrls: [],
-        },
-        context: config.context || {
+        }),
+        context: JSON.stringify(cfg.context || {
           interface: 'Clanker SDK',
           platform: 'Clanker',
           messageId: 'Clanker SDK',
           id: 'Clanker SDK',
-        },
+        }),
         originatingChainId: BigInt(this.publicClient.chain!.id),
       },
       poolConfig: {
         pairedToken: quoteToken,
-        initialMarketCapInPairedToken: parseUnits(
-          config.pool?.initialMarketCap ?? '100',
-          quoteDecimals
-        ),
+        tickIfToken0IsNewToken: tick,
+        initialMarketCapInPairedToken: marketCap,
       },
-      vaultConfig: config.vault
+      vaultConfig: cfg.vault
         ? {
-            vaultPercentage: config.vault.percentage,
-            vaultDuration: BigInt(config.vault.durationInDays * 24 * 60 * 60),
+            vaultPercentage: cfg.vault.percentage,
+            vaultDuration: BigInt(cfg.vault.durationInDays * 24 * 60 * 60),
           }
-        : undefined,
+        : {
+            vaultPercentage: 0,
+            vaultDuration: 0n,
+          },
       initialBuyConfig,
       rewardsConfig: {
         creatorReward: BigInt(40), // Default to 40% creator reward
-        creatorAdmin: deployerAddress,
-        creatorRewardRecipient: deployerAddress,
-        interfaceAdmin: deployerAddress,
-        interfaceRewardRecipient: deployerAddress,
+        creatorAdmin: deployerAddress as `0x${string}`,
+        creatorRewardRecipient: deployerAddress as `0x${string}`,
+        interfaceAdmin: deployerAddress as `0x${string}`,
+        interfaceRewardRecipient: deployerAddress as `0x${string}`,
       },
     };
+  }
 
-    // Use existing deploy method
-    return this.deploy(deploymentConfig);
+  /** Creates calldata + value without asking the wallet to sign/send. */
+  public async prepareDeployToken(cfg: SimpleTokenConfig): Promise<PreparedDeployTx> {
+    const deploymentConfig = await this.buildDeploymentConfig(cfg);
+
+    const { request } = await simulateContract(this.publicClient, {
+      address: this.factoryAddress,
+      abi: Clanker_v3_1_abi,
+      functionName: 'deployToken',
+      args: [deploymentConfig],
+      value: deploymentConfig.initialBuyConfig?.ethAmount ?? 0n,
+      chain: this.publicClient.chain,
+      // give Viem *some* account for simulation
+      account: this.wallet?.account ?? deploymentConfig.rewardsConfig.creatorAdmin,
+    });
+
+    return {
+      to: this.factoryAddress,
+      data: (request as any).data as `0x${string}`,
+      value: request.value ?? 0n,
+    };
+  }
+
+  public async deployToken(cfg: SimpleTokenConfig): Promise<Address> {
+    if (!this.wallet) throw new Error('Wallet client required for deployToken');
+    if (!this.wallet.account) throw new Error('Wallet account required for deployToken');
+
+    // 1) build calldata
+    const tx = await this.prepareDeployToken(cfg);
+
+    // 2) send
+    const hash = await this.wallet.sendTransaction({
+      ...tx,
+      account: this.wallet.account,
+      chain: this.publicClient.chain,
+    });
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+
+    // 3) parse logs (same as before)
+    const [log] = parseEventLogs({
+      abi: Clanker_v3_1_abi,
+      eventName: 'TokenCreated',
+      logs: receipt.logs,
+    });
+    if (!log) throw new Error('No deployment event found');
+    return log.args.tokenAddress;
   }
 }
 
