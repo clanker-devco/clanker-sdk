@@ -6,6 +6,7 @@ import {
   parseUnits,
   stringify,
   parseEventLogs,
+  encodeFunctionData,
 } from 'viem';
 import { simulateContract, writeContract, readContract } from 'viem/actions';
 import type {
@@ -463,25 +464,31 @@ export class Clanker {
     };
   }
 
-  /** Creates calldata + value without asking the wallet to sign/send. */
+  /**
+   * Creates calldata (+ msg.value) **without** sending a transaction.
+   * This version no longer relies on viem's `simulateContract`, which
+   * was returning an object without `.data`.  We now ABI-encode the
+   * call manually so `data` is always defined.
+   */
   public async prepareDeployToken(cfg: SimpleTokenConfig): Promise<PreparedDeployTx> {
+    /* 1 · build the struct used by the on-chain factory */
     const deploymentConfig = await this.buildDeploymentConfig(cfg);
 
-    const { request } = await simulateContract(this.publicClient, {
-      address: this.factoryAddress,
+    /* 2 · ABI-encode calldata */
+    const data = encodeFunctionData({
       abi: Clanker_v3_1_abi,
       functionName: 'deployToken',
       args: [deploymentConfig],
-      value: deploymentConfig.initialBuyConfig?.ethAmount ?? 0n,
-      chain: this.publicClient.chain,
-      // give Viem *some* account for simulation
-      account: this.wallet?.account ?? deploymentConfig.rewardsConfig.creatorAdmin,
     });
 
+    /* 3 · derive ETH value (0 if no dev-buy) */
+    const value = deploymentConfig.initialBuyConfig?.ethAmount ?? 0n;
+
+    /* 4 · done */
     return {
-      to: this.factoryAddress,
-      data: (request as any).data as `0x${string}`,
-      value: request.value ?? 0n,
+      to:    this.factoryAddress,
+      data,               // 0x-prefixed hex string (non-empty)
+      value,
     };
   }
 
