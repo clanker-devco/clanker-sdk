@@ -40,3 +40,8 @@ llm.txt
 
 #package lock
 package-lock.json
+
+# Test files
+test/
+*.test.ts
+vitest.config.*

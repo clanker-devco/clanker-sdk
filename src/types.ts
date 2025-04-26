@@ -44,11 +44,11 @@ export interface DeploymentConfig {
   rewardsConfig: RewardsConfig;
 }
 
-export interface ClankerConfig {
-  wallet: WalletClient;
+export type ClankerConfig = {
   publicClient: PublicClient;
+  wallet?: WalletClient;
   factoryAddress?: Address;
-}
+};
 
 // Simplified user-facing interface
 export interface SimpleTokenConfig {
