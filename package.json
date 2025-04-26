@@ -1,6 +1,6 @@
 {
   "name": "clanker-sdk",
-  "version": "3.8.1",
+  "version": "3.8.2",
   "description": "SDK for deploying tokens using Clanker",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
