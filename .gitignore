@@ -30,6 +30,7 @@ video_commands.txt
 *.mp4
 *.mov
 *.avi
+standup.txt
 
 # GitBook documentation
 gitbookDocs.md 
