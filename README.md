@@ -12,6 +12,34 @@ yarn add clanker-sdk viem
 pnpm add clanker-sdk viem
 ```
 
+## Using the CLI
+
+You can quickly deploy a token using our interactive CLI:
+
+```bash
+npx create-clanker
+```
+
+Before running the CLI, create a `.env` file in your current directory with:
+
+```env
+# Required
+PRIVATE_KEY=your_private_key_here
+FACTORY_ADDRESS=factory_contract_address_here
+
+# Optional
+RPC_URL=your_custom_rpc_url
+```
+
+The CLI will guide you through:
+- Token name and symbol
+- Quote token selection (WETH, USDC, or custom)
+- Initial market cap
+- Token image (IPFS URI)
+- Optional creator buy amount
+- Optional vault configuration
+- Token description and social links
+
 ## Quick Start
 
 1. Create a `.env` file with your configuration:
