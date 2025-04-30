@@ -15,9 +15,9 @@ import type {
   SimpleTokenConfig,
   RewardsConfig,
   InitialBuyConfig,
-} from './types';
-import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants';
-import { Clanker_v3_1_abi } from './abis/Clanker_V3_1';
+} from './types.js';
+import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants.js';
+import { Clanker_v3_1_abi } from './abis/Clanker_V3_1.js';
 
 /** Lightweight container for a pre-built deploy transaction */
 export type PreparedDeployTx = {
@@ -452,7 +452,7 @@ export class Clanker {
         : {
             vaultPercentage: 0,
             vaultDuration: 0n,
-          },
+      },
       initialBuyConfig,
       rewardsConfig: {
         creatorReward: BigInt(40), // Default to 40% creator reward
@@ -518,4 +518,4 @@ export class Clanker {
   }
 }
 
-export * from './types';
+export * from './types.js';
