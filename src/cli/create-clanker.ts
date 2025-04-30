@@ -13,6 +13,17 @@ import * as path from 'path';
 // Load environment variables
 dotenv.config();
 
+// Check command line arguments
+const args = process.argv.slice(2);
+if (args.length === 0 || (args[0] !== '--create' && args[0] !== 'create')) {
+  console.log('\n🚀 Clanker SDK CLI\n');
+  console.log('Available commands:');
+  console.log('  --create    Create a new token');
+  console.log('\nExample:');
+  console.log('  npx clanker-sdk --create\n');
+  process.exit(0);
+}
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
 const RPC_URL = process.env.RPC_URL;
