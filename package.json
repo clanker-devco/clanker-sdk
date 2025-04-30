@@ -1,14 +1,20 @@
 {
   "name": "clanker-sdk",
-  "version": "3.9.1",
+  "version": "3.9.8",
   "description": "SDK for deploying tokens using Clanker",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "bin": "./dist/cli/create-clanker.js",
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./cli": "./dist/cli/cli.js"
+  },
+  "bin": {
+    "clanker-sdk": "./dist/cli/cli.js"
+  },
   "files": [
     "dist",
-    ".env.example"
+    ".env.example",
+    "README.md"
   ],
   "repository": {
     "type": "git",
@@ -19,11 +25,11 @@
     "url": "https://github.com/clanker-devco/clanker-sdk/issues"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/cli/create-clanker.ts --format cjs --dts",
+    "build": "tsup",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest",
     "test:watch": "vitest",
-    "create-clanker": "ts-node src/cli/create-clanker.ts --create"
+    "create-clanker": "node dist/cli/create-clanker.js --create"
   },
   "keywords": [
     "clanker",
@@ -36,9 +42,9 @@
   "license": "MIT",
   "dependencies": {
     "@types/inquirer": "^8.2.6",
+    "dotenv": "^16.4.7",
     "inquirer": "^8.2.6",
-    "viem": "^2.7.9",
-    "dotenv": "^16.4.7"
+    "viem": "^2.7.9"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
@@ -46,7 +52,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.1",
+    "tsup": "^8.4.0",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {

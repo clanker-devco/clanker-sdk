@@ -17,6 +17,16 @@ pnpm add clanker-sdk viem
 You can quickly deploy a token using our interactive CLI:
 
 ```bash
+npx clanker-sdk
+```
+
+Running without arguments will show available commands:
+```bash
+npx clanker-sdk
+```
+
+To start token creation:
+```bash
 npx clanker-sdk --create
 ```
 
