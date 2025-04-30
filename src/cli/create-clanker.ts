@@ -9,28 +9,27 @@ import * as dotenv from 'dotenv';
 import { parseUnits } from 'ethers';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 // Load environment variables
 dotenv.config();
 
-// Main function that will be exported
-export default async function createClanker() {
-  // Check command line arguments
-  const args = process.argv.slice(2);
-  if (args.length === 0 || (args[0] !== '--create' && args[0] !== 'create')) {
-    console.log('\n🚀 Clanker SDK CLI\n');
-    console.log('Available commands:');
-    console.log('  --create    Create a new token');
-    console.log('\nExample:');
-    console.log('  npx clanker-sdk --create\n');
-    process.exit(0);
-  }
+// Read ASCII art from file
+const ASCII_ART = fs.readFileSync(path.join(__dirname, 'ascii.txt'), 'utf8');
 
+// Main function that will be exported
+async function createClanker() {
   const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
   const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
   const RPC_URL = process.env.RPC_URL;
   const WETH_ADDRESS = '0x4200000000000000000000000000000000000006';
   const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
+  // Helper function to safely convert address to 0x-prefixed string type
+  function toHexAddress(address: string | undefined): `0x${string}` | undefined {
+    if (!address) return undefined;
+    return address.toLowerCase() as `0x${string}`;
+  }
 
   function checkEnvironment(): boolean {
     const missingVars = [];
@@ -104,11 +103,12 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       maxSlippage: number;
     };
     rewardsConfig: {
-      creatorReward: number;
-      creatorAdmin: `0x${string}`;
-      creatorRewardRecipient: `0x${string}`;
-      interfaceAdmin: `0x${string}`;
-      interfaceRewardRecipient: `0x${string}`;
+      creatorReward: string | number;
+      customCreatorReward?: string;
+      creatorAdmin?: `0x${string}`;
+      creatorRewardRecipient?: `0x${string}`;
+      interfaceAdmin?: `0x${string}`;
+      interfaceRewardRecipient?: `0x${string}`;
     };
   }
 
@@ -127,8 +127,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
 
   const validateSymbol = (input: string) => {
     if (!input) return 'Symbol cannot be empty';
-    if (!/^[A-Z0-9]+$/.test(input)) return 'Symbol must contain only uppercase letters and numbers';
-    if (input.length > 10) return 'Symbol must be 10 characters or less';
+    if (!/^[a-zA-Z0-9]+$/.test(input)) return 'Symbol must contain only letters and numbers';
+    if (input.length > 20) return 'Symbol must be 20 characters or less';
     return true;
   };
 
@@ -194,18 +194,21 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'name',
         message: 'Token name:',
+        prefix: '',
         validate: (input: string) => input.length > 0 || 'Name cannot be empty',
       },
       {
         type: 'input',
         name: 'symbol',
         message: 'Token symbol:',
+        prefix: '',
         validate: validateSymbol,
       },
       {
         type: 'list',
         name: 'pairedTokenChoice',
         message: 'Select quote token:',
+        prefix: '',
         choices: [
           { name: 'WETH', value: 'WETH' },
           { name: 'USDC', value: 'USDC' },
@@ -217,6 +220,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'customPairedToken',
         message: 'Enter custom token address:',
+        prefix: '',
         validate: validateAddress,
         when: (answers: ClankerAnswers) => answers.pairedTokenChoice === 'CUSTOM'
       },
@@ -225,6 +229,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         name: 'initialMarketCapUsd',
         message: (answers: ClankerAnswers) => 
           `Enter initial market cap in ${answers.pairedTokenChoice === 'CUSTOM' ? 'quote token' : answers.pairedTokenChoice}:`,
+        prefix: '',
         validate: validateAmount,
         default: (answers: ClankerAnswers) => 
           answers.pairedTokenChoice === 'WETH' ? '1' : 
@@ -234,6 +239,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'customMarketCap',
         message: 'Enter custom market cap in quote token:',
+        prefix: '',
         validate: validateAmount,
         when: (answers: any) => answers.initialMarketCapUsd === 'CUSTOM'
       },
@@ -241,12 +247,14 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'image',
         message: 'Enter the IPFS URI for the token image:',
+        prefix: '',
         validate: validateIpfsUri,
       },
       {
         type: 'list',
         name: 'devBuy.ethAmount',
         message: 'Creator buy amount (optional):',
+        prefix: '',
         choices: [
           { name: 'None', value: '0' },
           { name: '0.00005 ETH', value: '0.00005' },
@@ -261,6 +269,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'customDevBuy',
         message: 'Enter custom dev buy amount in ETH:',
+        prefix: '',
         validate: validateAmount,
         when: (answers: any) => answers.devBuy.ethAmount === 'CUSTOM'
       },
@@ -268,6 +277,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'devBuy.maxSlippage',
         message: 'Maximum slippage percentage (0-100):',
+        prefix: '',
         validate: validateSlippage,
         default: '5',
         when: (answers: any) => answers.devBuy.ethAmount !== '0'
@@ -276,6 +286,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'list',
         name: 'vaultConfig.vaultPercentage',
         message: 'Vault percentage (optional):',
+        prefix: '',
         choices: [
           { name: 'None', value: '0' },
           { name: '5%', value: '5' },
@@ -289,6 +300,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'customVaultPercentage',
         message: 'Enter custom vault percentage (0-30):',
+        prefix: '',
         validate: validateVaultPercentage,
         when: (answers: any) => answers.vaultConfig.vaultPercentage === 'CUSTOM'
       },
@@ -296,6 +308,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'list',
         name: 'vaultConfig.durationInDays',
         message: 'Vault duration:',
+        prefix: '',
         choices: [
           { name: '31 days', value: '31' },
           { name: '90 days', value: '90' },
@@ -309,6 +322,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'customVaultDuration',
         message: 'Enter custom vault duration in days (minimum 30):',
+        prefix: '',
         validate: validateVaultDuration,
         when: (answers: any) => answers.vaultConfig.durationInDays === 'CUSTOM'
       },
@@ -316,6 +330,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'metadata.description',
         message: 'Token description:',
+        prefix: '',
         default: (answers: ClankerAnswers) => `${answers.name} token deployed via Clanker CLI`,
         validate: (input: string) => input.length > 0 || 'Description cannot be empty',
       },
@@ -323,29 +338,100 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         type: 'input',
         name: 'metadata.telegram',
         message: 'Telegram URL (optional):',
+        prefix: '',
         validate: validateUrl,
       },
       {
         type: 'input',
         name: 'metadata.website',
         message: 'Website URL (optional):',
+        prefix: '',
         validate: validateUrl,
       },
       {
         type: 'input',
         name: 'metadata.twitter',
         message: 'X/Twitter URL (optional):',
+        prefix: '',
         validate: validateUrl,
       },
       {
         type: 'input',
         name: 'metadata.farcaster',
         message: 'Farcaster URL (optional):',
+        prefix: '',
         validate: validateUrl,
       },
+      {
+        type: 'input',
+        name: 'salt',
+        message: 'Enter custom salt (optional, press enter for default 0x0000...):',
+        prefix: '',
+        validate: (input: string) => {
+          if (!input) return true; // Allow empty for default
+          if (!/^0x[a-fA-F0-9]{64}$/.test(input)) {
+            return 'Salt must be a valid bytes32 value (0x + 64 hex characters)';
+          }
+          return true;
+        },
+      },
+      {
+        type: 'list',
+        name: 'rewardsConfig.creatorReward',
+        message: 'Creator reward percentage, balance remaining goes to interface:',
+        prefix: '',
+        choices: [
+          { name: '80% (maximum)', value: 80 },
+          { name: '60%', value: 60 },
+          { name: '40%', value: 40 },
+          { name: '20%', value: 20 },
+          { name: '0% (all to interface)', value: 0 },
+          { name: 'Custom', value: 'CUSTOM' }
+        ],
+        default: 80
+      },
+      {
+        type: 'input',
+        name: 'rewardsConfig.customCreatorReward',
+        message: 'Enter custom creator reward percentage (0-80):',
+        prefix: '',
+        validate: validateCreatorReward,
+        when: (answers: any) => answers.rewardsConfig.creatorReward === 'CUSTOM'
+      },
+      {
+        type: 'input',
+        name: 'rewardsConfig.creatorAdmin',
+        message: 'Enter custom creator admin address (optional):',
+        prefix: '',
+        validate: validateAddress,
+      },
+      {
+        type: 'input',
+        name: 'rewardsConfig.creatorRewardRecipient',
+        message: 'Enter custom creator reward recipient address (optional):',
+        prefix: '',
+        validate: validateAddress,
+      },
+      {
+        type: 'input',
+        name: 'rewardsConfig.interfaceAdmin',
+        message: 'Enter custom interface admin address (optional):',
+        prefix: '',
+        validate: validateAddress,
+      },
+      {
+        type: 'input',
+        name: 'rewardsConfig.interfaceRewardRecipient',
+        message: 'Enter custom interface reward recipient address (optional):',
+        prefix: '',
+        validate: validateAddress,
+      },
+      
     ];
 
-    const answers = await inquirer.prompt(questions);
+    const answers = await inquirer.prompt(questions, {
+      
+    });
 
     // Process custom values
     if (answers.initialMarketCapUsd === 'CUSTOM') {
@@ -384,6 +470,23 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       vaultConfig: {
         vaultPercentage: vaultPercentage.toString(),
         durationInDays: vaultDuration.toString()
+      },
+      rewardsConfig: {
+        creatorReward: answers.rewardsConfig.creatorReward === 'CUSTOM'
+          ? Number(answers.rewardsConfig.customCreatorReward)
+          : Number(answers.rewardsConfig.creatorReward),
+        ...(answers.rewardsConfig.creatorAdmin ? {
+          creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin)
+        } : {}),
+        ...(answers.rewardsConfig.creatorRewardRecipient ? {
+          creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient)
+        } : {}),
+        ...(answers.rewardsConfig.interfaceAdmin ? {
+          interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin)
+        } : {}),
+        ...(answers.rewardsConfig.interfaceRewardRecipient ? {
+          interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient)
+        } : {})
       }
     };
   }
@@ -445,11 +548,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       symbol: answers.symbol,
       salt: answers.salt || '0x0000000000000000000000000000000000000000000000000000000000000000',
       image: answers.image,
-      metadata: {
-        description: `${answers.name} token deployed via Clanker CLI`,
-        socialMediaUrls: [],
-        auditUrls: [],
-      },
+      metadata: answers.metadata,
       context: {
         interface: 'Clanker CLI',
         platform: 'Clanker',
@@ -462,18 +561,44 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       } : undefined,
       pool: {
         quoteToken: quoteToken as `0x${string}`,
-        initialMarketCap: answers.initialMarketCapUsd, // Pass raw value, SDK will handle decimals
+        initialMarketCap: answers.initialMarketCapUsd,
       },
       devBuy: answers.devBuy.ethAmount !== '0' ? {
         ethAmount: answers.devBuy.ethAmount,
         maxSlippage: answers.devBuy.maxSlippage,
       } : undefined,
+      rewardsConfig: {
+        creatorReward: answers.rewardsConfig.creatorReward === 'CUSTOM'
+          ? Number(answers.rewardsConfig.customCreatorReward)
+          : Number(answers.rewardsConfig.creatorReward),
+        ...(answers.rewardsConfig.creatorAdmin ? {
+          creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin)
+        } : {}),
+        ...(answers.rewardsConfig.creatorRewardRecipient ? {
+          creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient)
+        } : {}),
+        ...(answers.rewardsConfig.interfaceAdmin ? {
+          interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin)
+        } : {}),
+        ...(answers.rewardsConfig.interfaceRewardRecipient ? {
+          interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient)
+        } : {})
+      }
     });
+
+    console.log('\n✨ Deployment successful!');
+    console.log(`📍 Token address: ${tokenAddress}`);
+    console.log('\n🌐 View on:');
+    console.log(`Basescan: https://basescan.org/token/${tokenAddress}`);
+    console.log(`Clanker World: https://clanker.world/clanker/${tokenAddress}`);
 
     return tokenAddress;
   }
 
   async function main() {
+    // Show header
+    console.clear();
+    console.log(ASCII_ART);
     console.log('\n🚀 Welcome to the Clanker Token Creator! 🚀\n');
     
     // Check environment variables first
@@ -493,6 +618,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           name: 'confirm',
           message: 'Would you like to proceed with deployment?',
           default: false,
+          prefix: '',
         },
       ]);
 
@@ -500,16 +626,15 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         console.log('\n🔄 Deploying your token...');
         try {
           const tokenAddress = await deployToken(answers);
-          console.log('\n✨ Token deployed successfully!');
-          console.log('📍 Token address:', tokenAddress);
-          console.log('\n🌐 View on Basescan:');
-          console.log(`https://basescan.org/token/${tokenAddress}`);
+          // Exit after successful deployment
+          process.exit(0);
         } catch (error) {
           console.error('\n❌ Deployment failed:', error instanceof Error ? error.message : 'Unknown error');
           process.exit(1);
         }
       } else {
         console.log('\n❌ Deployment cancelled');
+        process.exit(0);
       }
       
     } catch (error) {
@@ -521,4 +646,5 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
   await main();
 }
 
-createClanker(); 
+
+export default createClanker; 

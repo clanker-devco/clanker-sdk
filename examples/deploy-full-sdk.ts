@@ -1,8 +1,7 @@
-import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
+import { createPublicClient, createWalletClient, http, type PublicClient, type WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { privateKeyToAccount } from "viem/accounts";
-import { Clanker } from '../src';
+import { Clanker } from '../src/index.js';
 import * as dotenv from "dotenv";
 
 // Hardcoded values from llm.txt
@@ -36,7 +35,7 @@ async function main() {
     account,
     chain: base,
     transport: http(RPC_URL),
-  });
+  }) as WalletClient;
 
   // Initialize Clanker SDK
   const clanker = new Clanker({
@@ -47,18 +46,19 @@ async function main() {
 
   // Deploy token with custom configuration
   const tokenAddress = await clanker.deployToken({
-    name: "Test Token997",
-    symbol: "TEST997",
+    name: "Test Token9978998",
+    symbol: "TESTERRR98",
+    salt: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
     metadata: {
-      description: "Test token deployment",
+      description: "Test token deployment with custom creator reward",
       socialMediaUrls: [],
       auditUrls: [],
     },
     context: {
       interface: "Clanker SDK Test",
       platform: "Clanker",
-      messageId: "Test Deploy",
-      id: "TEST-1",
+      messageId: `TEST-${Date.now()}`,
+      id: `TEST-${Date.now()}`,
     },
     pool: {
       quoteToken: USDC_ADDRESS,
@@ -72,10 +72,18 @@ async function main() {
       ethAmount: '0.00001', // 0.00001 ETH dev buy
       maxSlippage: 5, // 5% max slippage
     },
+    rewardsConfig: {
+      creatorReward: 60
+    }
   });
 
-  console.log('Deployment successful!');
-  console.log('Token address:', tokenAddress);
+  console.log('✨ Deployment successful!');
+  console.log('📍 Token address:', tokenAddress);
+  console.log('\n🌐 View on Basescan:');
+  console.log(`https://basescan.org/token/${tokenAddress}`);
 }
 
-main().catch(console.error); 
+main().catch((error) => {
+  console.error('Error:', error);
+  process.exit(1);
+}); 

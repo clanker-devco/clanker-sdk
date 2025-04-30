@@ -420,9 +420,15 @@ export class Clanker {
       tokenConfig: {
         name: cfg.name,
         symbol: cfg.symbol,
-        salt:
-          cfg.salt ||
-          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        salt: (() => {
+          const defaultSalt = '0x0000000000000000000000000000000000000000000000000000000000000000';
+          const salt = cfg.salt ?? defaultSalt;
+          // Validate salt format: must be 0x + 64 hex characters
+          if (!/^0x[a-fA-F0-9]{64}$/.test(salt)) {
+            throw new Error('Salt must be a valid bytes32 value (0x + 64 hex characters)');
+          }
+          return salt;
+        })(),
         image:
           cfg.image ||
           'https://ipfs.io/ipfs/QmcjfTeK3tpK3MVCQuvEaXvSscrqbL3MwsEo8LdBTWabY4',
@@ -455,11 +461,17 @@ export class Clanker {
       },
       initialBuyConfig,
       rewardsConfig: {
-        creatorReward: BigInt(40), // Default to 40% creator reward
-        creatorAdmin: deployerAddress as `0x${string}`,
-        creatorRewardRecipient: deployerAddress as `0x${string}`,
-        interfaceAdmin: deployerAddress as `0x${string}`,
-        interfaceRewardRecipient: deployerAddress as `0x${string}`,
+        creatorReward: (() => {
+          const reward = cfg.rewardsConfig?.creatorReward ?? 80;
+          if (reward < 0 || reward > 80) {
+            throw new Error('Creator reward must be between 0 and 80');
+          }
+          return BigInt(reward);
+        })(),
+        creatorAdmin: cfg.rewardsConfig?.creatorAdmin ?? deployerAddress,
+        creatorRewardRecipient: cfg.rewardsConfig?.creatorRewardRecipient ?? deployerAddress,
+        interfaceAdmin: cfg.rewardsConfig?.interfaceAdmin ?? deployerAddress,
+        interfaceRewardRecipient: cfg.rewardsConfig?.interfaceRewardRecipient ?? deployerAddress,
       },
     };
   }
