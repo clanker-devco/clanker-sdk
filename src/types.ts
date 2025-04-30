@@ -56,10 +56,19 @@ export interface SimpleTokenConfig {
   symbol: string;
   salt?: `0x${string}`;
   image?: string;
-  metadata?: IClankerMetadata;
-  context?: IClankerSocialContext;
+  metadata?: {
+    description: string;
+    socialMediaUrls: string[];
+    auditUrls: string[];
+  };
+  context?: {
+    interface: string;
+    platform: string;
+    messageId: string;
+    id: string;
+  };
   pool?: {
-    quoteToken?: Address;
+    quoteToken?: `0x${string}`;
     initialMarketCap?: string;
   };
   vault?: {
@@ -67,8 +76,15 @@ export interface SimpleTokenConfig {
     durationInDays: number;
   };
   devBuy?: {
-    ethAmount: string; // Amount of ETH to send with deployment
-    maxSlippage?: number; // Max slippage percentage, defaults to 5%
+    ethAmount: string;
+    maxSlippage?: number;
+  };
+  rewardsConfig?: {
+    creatorReward?: number; // 0-80, represents the percentage of rewards that go to creator (default: 80)
+    creatorAdmin?: `0x${string}`;
+    creatorRewardRecipient?: `0x${string}`;
+    interfaceAdmin?: `0x${string}`;
+    interfaceRewardRecipient?: `0x${string}`;
   };
 }
 

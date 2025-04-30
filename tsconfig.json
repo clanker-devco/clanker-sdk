@@ -10,6 +10,6 @@
     "outDir": "dist",
     "declaration": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "examples/**/*"], // include examples
   "exclude": ["node_modules", "dist"]
 }
