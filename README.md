@@ -1,6 +1,6 @@
 # Clanker SDK
 
-The official TypeScript SDK for deploying tokens using Clanker.
+The official TypeScript SDK for deploying tokens on Base using Clanker.
 
 ## Installation
 
@@ -12,49 +12,12 @@ yarn add clanker-sdk viem
 pnpm add clanker-sdk viem
 ```
 
-## Using the CLI
-
-You can quickly deploy a token using our interactive CLI:
-
-```bash
-npx clanker-sdk
-```
-
-Running without arguments will show available commands:
-```bash
-npx clanker-sdk
-```
-
-To start token creation:
-```bash
-npx clanker-sdk --create
-```
-
-Before running the CLI, create a `.env` file in your current directory with:
-
-```env
-# Required
-PRIVATE_KEY=your_private_key_here
-FACTORY_ADDRESS=factory_contract_address_here
-
-# Optional
-RPC_URL=your_custom_rpc_url
-```
-
-The CLI will guide you through:
-- Token name and symbol
-- Quote token selection (WETH, USDC, or custom)
-- Initial market cap
-- Token image (IPFS URI)
-- Optional creator buy amount
-- Optional vault configuration
-- Token description and social links
-
 ## Quick Start
 
 1. Create a `.env` file with your configuration:
 ```env
 PRIVATE_KEY=your_private_key_here
+FACTORY_ADDRESS=factory_contract_address_here
 ```
 
 2. Create a deployment script:
@@ -65,10 +28,10 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 
 // Initialize wallet with private key
-const account = privateKeyToAccount('0x' + process.env.PRIVATE_KEY);
+const account = privateKeyToAccount(process.env.PRIVATE_KEY!);
 
 // Create transport with optional custom RPC
-const transport = http();
+const transport = http(process.env.RPC_URL);
 
 const publicClient = createPublicClient({
   chain: base,
@@ -85,6 +48,7 @@ const wallet = createWalletClient({
 const clanker = new Clanker({
   wallet,
   publicClient,
+  factoryAddress: process.env.FACTORY_ADDRESS,
 });
 
 async function deployToken() {
@@ -92,53 +56,29 @@ async function deployToken() {
 
   // Deploy the token
   const tokenAddress = await clanker.deployToken({
-    name: "Clanker Test Token",
-    symbol: "TEST",
+    name: "My Token",
+    symbol: "MTK",
     image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+    metadata: {
+      description: "My awesome token",
+      socialMediaUrls: ["https://twitter.com/mytoken"],
+      auditUrls: [],
+    },
+    pool: {
+      initialMarketCap: "100", // 100 WETH initial market cap
+    },
+    devBuy: {
+      ethAmount: "0.1", // 0.1 ETH initial buy
+      maxSlippage: 5, // 5% max slippage
+    },
   });
 
   console.log("Token deployed successfully!");
   console.log("Token address:", tokenAddress);
+  console.log("View on BaseScan:", `https://basescan.org/token/${tokenAddress}`);
 }
 
 deployToken().catch(console.error);
-```
-
-### Using with OnchainKit (Frontend)
-
-For frontend applications using OnchainKit, you can use the `prepareDeployToken` method to get the transaction data without executing it:
-
-```typescript
-import { Clanker } from 'clanker-sdk';
-import { createPublicClient, http } from 'viem';
-import { base } from 'viem/chains';
-
-// Initialize SDK without wallet for frontend use
-const publicClient = createPublicClient({
-  chain: base,
-  transport: http(),
-});
-
-const clanker = new Clanker({
-  publicClient,
-});
-
-// In your component/hook:
-async function prepareTokenDeployment() {
-  // Get transaction data
-  const tx = await clanker.prepareDeployToken({
-    name: "Clanker Test Token",
-    symbol: "TEST",
-    image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
-  });
-
-  // Use with OnchainKit
-  return {
-    to: tx.to,
-    data: tx.data,
-    value: tx.value, // For dev-buy (0 if none)
-  };
-}
 ```
 
 ## Configuration Options
@@ -146,92 +86,34 @@ async function prepareTokenDeployment() {
 ### Basic Token Configuration
 - `name`: Token name
 - `symbol`: Token symbol
-- `salt`: Optional bytes32 value (must be "0x" + 64 hex characters), defaults to all zeros
-- `creatorReward`: Optional percentage (0-80) controlling reward distribution between creator and interface, defaults to 80%
-- `image`: IPFS hash for token image
-- `metadata`: IPFS hash for token metadata
-- `context`: Deployment context string
-- `originatingChainId`: Chain ID where token is deployed (8453 for Base)
-
-### Advanced Configuration Options
-
-For more advanced deployments, you can use additional configuration options as shown below:
-
-```typescript
-const tokenAddress = await clanker.deployToken({
-  // Basic configuration (required)
-  name: "Test Token",
-  symbol: "TEST",
-  
-  // Optional configuration with validation
-  salt: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef", // Must be 0x + 64 hex chars
-  creatorReward: 60, // Must be between 0-80, defaults to 80
-  
-  // Metadata configuration
-  metadata: {
-    description: "Test token deployment",
-    socialMediaUrls: [],
-    auditUrls: [],
-  },
-  
-  // Deployment context
-  context: {
-    interface: "Clanker SDK Test",
-    platform: "Clanker",
-    messageId: "Test Deploy",
-    id: "TEST-1",
-  },
-  
-  // Pool configuration with custom quote token
-  pool: {
-    quoteToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on Base
-    initialMarketCap: "100", // Note: For custom quote tokens, market cap should be >$100 USD for better routing
-  },
-  
-  // Vesting configuration
-  vault: {
-    percentage: 10,        // 10% of tokens vested
-    durationInDays: 30,    // 30-day vesting period
-  },
-  
-  // Initial buy configuration
-  devBuy: {
-    ethAmount: "0.00001", // Initial buy amount in ETH
-    maxSlippage: 5,       // Maximum 5% slippage
-  },
-});
-```
+- `image`: IPFS URI for token image
+- `metadata`: Token metadata (description, social links, etc.)
 
 ### Pool Configuration
-- Pool fee tier is fixed at 1% 
-- Initial market cap in WETH (e.g., 10 WETH)
-- Paired with WETH on Base (`0x4200000000000000000000000000000000000006`)
-- Custom quote tokens supported (e.g., USDC)
-  - **Important**: When using custom quote tokens, set initial market cap >$100 USD to ensure better routing options
-  - Lower market caps may limit trading to direct quote token pairs only
-
-### Vault Configuration
-- `percentage`: Percentage of tokens to be vested
-- `durationInDays`: Duration of the vesting period in days
+- `pool.quoteToken`: Quote token address (defaults to WETH)
+- `pool.initialMarketCap`: Initial market cap in quote token units
 
 ### Dev Buy Configuration
-- `ethAmount`: Amount of ETH for initial buy
-- `maxSlippage`: Maximum allowed slippage percentage for the initial buy
+- `devBuy.ethAmount`: Amount of ETH for initial buy
+- `devBuy.maxSlippage`: Maximum allowed slippage percentage
+
+### Vault Configuration
+- `vault.percentage`: Percentage of tokens to be vested (0-30%)
+- `vault.durationInDays`: Duration of the vesting period in days
+
+### Rewards Configuration
+- `rewardsConfig.creatorReward`: Creator reward percentage (0-80)
+- `rewardsConfig.creatorAdmin`: Creator admin address
+- `rewardsConfig.creatorRewardRecipient`: Creator reward recipient address
+- `rewardsConfig.interfaceAdmin`: Interface admin address
+- `rewardsConfig.interfaceRewardRecipient`: Interface reward recipient address
 
 ## Examples
 
-See the [examples](./examples) directory for more deployment scenarios.
-
-## Development Methods
-
-### `deployToken(config: SimpleTokenConfig): Promise<Address>`
-Deploys a new token with the specified configuration. Requires a wallet to be configured.
-
-### `prepareDeployToken(config: SimpleTokenConfig): Promise<PreparedDeployTx>`
-Prepares the transaction data for deploying a token without executing it. Perfect for frontend integrations with OnchainKit or similar tools. Returns:
-- `to`: Contract address to call
-- `data`: Encoded calldata
-- `value`: ETH value to send (for dev-buy, 0 if none)
+See the [examples](./examples) directory for more deployment scenarios:
+- `deploy-token-simple.ts`: Basic token deployment
+- `deploy-token.ts`: Advanced token deployment with all options
+- `deploy-full-sdk.ts`: Full SDK usage example
 
 ## Development
 

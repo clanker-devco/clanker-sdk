@@ -8,14 +8,11 @@ import {
   parseEventLogs,
   encodeFunctionData,
 } from 'viem';
-import { simulateContract, writeContract, readContract } from 'viem/actions';
-import type {
-  ClankerConfig,
-  DeploymentConfig,
-  SimpleTokenConfig,
-  RewardsConfig,
-  InitialBuyConfig,
-} from './types.js';
+import { readContract } from 'viem/actions';
+import type { ClankerConfig } from './types/common.js';
+import type { SimpleTokenConfig } from './types/config/token.js';
+import type { DeploymentConfig, RewardsConfig, InitialBuyConfig } from './types/config/deployment.js';
+import type { IClankerMetadata, IClankerSocialContext } from './types/core/metadata.js';
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants.js';
 import { Clanker_v3_1_abi } from './abis/Clanker_V3_1.js';
 
@@ -86,8 +83,8 @@ const FEE_TIERS = [100, 500, 3000, 10000] as const;
 
 export class Clanker {
   private readonly wallet?: WalletClient;
-  private readonly factoryAddress: Address;
   private readonly publicClient: PublicClient;
+  private readonly factoryAddress: Address;
 
   constructor(config: ClankerConfig) {
     this.wallet = config.wallet;
@@ -115,7 +112,6 @@ export class Clanker {
     const pools = await Promise.all(
       FEE_TIERS.map(async (fee) => {
         try {
-          // Get pool address
           const poolAddress = await readContract(this.publicClient, {
             address: UNIV3_FACTORY,
             abi: UNIV3_FACTORY_ABI,
@@ -127,7 +123,6 @@ export class Clanker {
             return { fee, liquidity: 0n, sqrtPriceX96: 0n };
           }
 
-          // Get pool liquidity and price
           const [liquidity, slot0] = await Promise.all([
             readContract(this.publicClient, {
               address: poolAddress,
@@ -149,13 +144,11 @@ export class Clanker {
       })
     );
 
-    // Find pool with highest liquidity
     const mostLiquidPool = pools.reduce((max, current) => 
       current.liquidity > max.liquidity ? current : max
     );
 
     if (mostLiquidPool.liquidity === 0n) {
-      // If no liquid pool found, default to 1% fee tier
       console.warn('No liquid pool found, defaulting to 1% fee tier');
       return { fee: 10000, sqrtPriceX96: 0n };
     }
@@ -171,80 +164,16 @@ export class Clanker {
     slippagePercent: number
   ): bigint {
     if (sqrtPriceX96 === 0n) {
-      // If we couldn't get the price, return 0 (no minimum)
       return 0n;
     }
 
-    // Calculate price from sqrtPriceX96
-    const Q96 = BigInt('79228162514264337593543950336'); // 2^96
+    const Q96 = BigInt('79228162514264337593543950336');
     const price = (Number(sqrtPriceX96) / Number(Q96)) ** 2;
-
-    // Calculate expected output in quote token
-    const ethDecimals = 18;
-    const ethAmountInEth = Number(ethAmount) / 10 ** ethDecimals;
+    const ethAmountInEth = Number(ethAmount) / 10 ** 18;
     const expectedOutput = ethAmountInEth * price;
-
-    // Apply slippage tolerance
     const minimumOutput = expectedOutput * (1 - slippagePercent / 100);
 
-    // Convert to quote token base units
     return BigInt(Math.floor(minimumOutput * 10 ** quoteDecimals));
-  }
-
-  // Calculate tick based on quote token and token ordering
-  private async calculateTickForQuoteToken(quoteToken: Address, marketCap: bigint): Promise<number> {
-    // Get quote token decimals
-    const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
-    console.log('Quote token decimals:', quoteDecimals);
-
-    // Our token always has 18 decimals and total supply is 100B
-    const tokenDecimals = 18;
-    const totalSupply = BigInt(100_000_000_000) * BigInt(10) ** BigInt(tokenDecimals);
-    
-    // Calculate price in quote token per token
-    // If we want market cap of 100 USDC to show as 100 USDC on Dexscreener:
-    // price = marketCap / totalSupply
-    // Note: marketCap is already in quote token base units (e.g. 100 * 10^6 for USDC)
-    const priceInQuoteToken = Number(marketCap) / Number(totalSupply);
-    console.log('Price in quote token:', priceInQuoteToken);
-    console.log('Market cap in quote token units:', Number(marketCap) / 10 ** quoteDecimals);
-
-    // Calculate tick using the 1.0001 base formula
-    // tick = log_1.0001(price)
-    const logBase = 1.0001;
-    const tickSpacing = 200; // Fixed for 1% fee tier
-
-    // In Uniswap V3, token0 is the token with the lower address
-    // If our new token's address will be higher than the quote token,
-    // we need to invert the price for the tick calculation
-    const dummyTokenAddress = '0xffffffffffffffffffffffffffffffffffffffff'; // Max possible address
-    const isToken0 = dummyTokenAddress.toLowerCase() < quoteToken.toLowerCase();
-    console.log('Is new token token0?', isToken0);
-
-    // Calculate raw tick using log base formula
-    // If we're not token0, we need to invert the price and negate the tick
-    const priceForTick = isToken0 ? priceInQuoteToken : 1 / priceInQuoteToken;
-    let rawTick = Math.floor(Math.log(priceForTick) / Math.log(logBase));
-    if (!isToken0) {
-      rawTick = -rawTick; // Negate the tick for token1
-    }
-    console.log('Raw tick (before spacing):', rawTick);
-
-    // Round to valid tick spacing
-    const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
-    console.log('Final tick (rounded to spacing):', initialTick);
-
-    // Verify the price calculation
-    const actualPrice = Math.pow(logBase, isToken0 ? initialTick : -initialTick);
-    console.log('Actual price from tick:', actualPrice);
-    
-    // Calculate actual market cap in quote token units
-    // If we're not token0, we need to invert the actual price
-    const finalPrice = isToken0 ? actualPrice : 1 / actualPrice;
-    const actualMarketCap = finalPrice * Number(totalSupply) / Math.pow(10, tokenDecimals);
-    console.log('Actual market cap in quote token:', actualMarketCap);
-
-    return initialTick;
   }
 
   private handleError(error: unknown): never {
@@ -252,139 +181,16 @@ export class Clanker {
     throw new Error(`Deployment failed: ${message}`);
   }
 
-  public async deploy(config: DeploymentConfig): Promise<Address> {
-    if (!this.wallet?.account) {
-      throw new Error('Wallet account not configured');
-    }
-
-    try {
-      // Since RewardsConfig is required in DeploymentConfig, we can safely access it
-      const rewardsConfig: RewardsConfig = config.rewardsConfig;
-
-      // Calculate tick based on quote token and market cap
-      const tick = await this.calculateTickForQuoteToken(
-        config.poolConfig.pairedToken,
-        config.poolConfig.initialMarketCapInPairedToken
-      );
-
-      // Create deployment data array
-      const deploymentData = {
-        tokenConfig: {
-          name: config.tokenConfig.name,
-          symbol: config.tokenConfig.symbol,
-          salt: config.tokenConfig.salt,
-          image: config.tokenConfig.image,
-          metadata: stringify(config.tokenConfig.metadata),
-          context: stringify(config.tokenConfig.context),
-          originatingChainId: config.tokenConfig.originatingChainId,
-        },
-        vaultConfig: {
-          vaultPercentage: config.vaultConfig?.vaultPercentage ?? 0,
-          vaultDuration: config.vaultConfig?.vaultDuration ?? BigInt(0),
-        },
-        poolConfig: {
-          pairedToken: config.poolConfig.pairedToken,
-          tickIfToken0IsNewToken: tick,
-        },
-        initialBuyConfig: {
-          pairedTokenPoolFee:
-            config.initialBuyConfig?.pairedTokenPoolFee ?? 10000,
-          pairedTokenSwapAmountOutMinimum:
-            config.initialBuyConfig?.pairedTokenSwapAmountOutMinimum ?? BigInt(0),
-        },
-        rewardsConfig: {
-          creatorReward: rewardsConfig.creatorReward,
-          creatorAdmin: rewardsConfig.creatorAdmin,
-          creatorRewardRecipient: rewardsConfig.creatorRewardRecipient,
-          interfaceAdmin: rewardsConfig.interfaceAdmin,
-          interfaceRewardRecipient: rewardsConfig.interfaceRewardRecipient,
-        },
-      } as const;
-
-      const { request } = await simulateContract(this.publicClient, {
-        address: this.factoryAddress,
-        abi: Clanker_v3_1_abi,
-        functionName: 'deployToken',
-        args: [deploymentData],
-        value: config.initialBuyConfig?.ethAmount ?? BigInt(0),
-        chain: this.publicClient.chain,
-        account: this.wallet.account,
-      });
-
-      // Deploy token
-      const hash = await writeContract(this.wallet, request);
-
-      // Wait for transaction receipt
-      const receipt = await this.publicClient.waitForTransactionReceipt({
-        hash,
-      });
-
-      const [log] = parseEventLogs({
-        abi: Clanker_v3_1_abi,
-        eventName: 'TokenCreated',
-        logs: receipt.logs,
-      });
-
-      if (!log) {
-        throw new Error('No deployment event found');
-      }
-
-      return log.args.tokenAddress;
-    } catch (error) {
-      this.handleError(error);
-    }
-  }
-
-  private async buildDeploymentConfig(cfg: SimpleTokenConfig): Promise<{
-    tokenConfig: {
-      name: string;
-      symbol: string;
-      salt: `0x${string}`;
-      image: string;
-      metadata: string;
-      context: string;
-      originatingChainId: bigint;
-    };
-    vaultConfig: {
-      vaultPercentage: number;
-      vaultDuration: bigint;
-    };
-    poolConfig: {
-      pairedToken: `0x${string}`;
-      tickIfToken0IsNewToken: number;
-      initialMarketCapInPairedToken: bigint;
-    };
-    initialBuyConfig: {
-      pairedTokenPoolFee: number;
-      pairedTokenSwapAmountOutMinimum: bigint;
-      ethAmount?: bigint;
-    };
-    rewardsConfig: {
-      creatorReward: bigint;
-      creatorAdmin: `0x${string}`;
-      creatorRewardRecipient: `0x${string}`;
-      interfaceAdmin: `0x${string}`;
-      interfaceRewardRecipient: `0x${string}`;
-    };
-  }> {
-    // Get quote token decimals for proper unit parsing
+  private async buildDeploymentConfig(cfg: SimpleTokenConfig): Promise<DeploymentConfig> {
     const quoteToken = cfg.pool?.quoteToken ?? WETH_ADDRESS;
     const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
-    console.log('Quote token decimals:', quoteDecimals);
-
-    // Calculate tick based on quote token and market cap
     const marketCap = parseUnits(
       cfg.pool?.initialMarketCap ?? '100',
       quoteDecimals
     );
-    const tick = await this.calculateTickForQuoteToken(
-      quoteToken,
-      marketCap
-    );
 
-    // If dev buy is enabled, find the most liquid pool and calculate minimum output
     let initialBuyConfig: InitialBuyConfig = {
-      pairedTokenPoolFee: 10000, // Default to 1%
+      pairedTokenPoolFee: 10000,
       pairedTokenSwapAmountOutMinimum: BigInt(0),
       ethAmount: undefined,
     };
@@ -404,50 +210,38 @@ export class Clanker {
         pairedTokenSwapAmountOutMinimum: minOutput,
         ethAmount,
       };
-
-      console.log('Dev buy configuration:', {
-        ethAmount: cfg.devBuy.ethAmount,
-        fee,
-        minOutput: minOutput.toString(),
-      });
     }
 
-    // Use deployer address if wallet is available, otherwise use a default address
     const deployerAddress = this.wallet?.account?.address ?? '0x0000000000000000000000000000000000000000';
 
-    // Convert to internal config format
+    // Convert metadata to proper format
+    const metadata: IClankerMetadata = {
+      description: cfg.metadata?.description ?? 'Clanker Token',
+      socialMediaUrls: cfg.metadata?.socialMediaUrls?.map(url => ({ platform: 'other', url })) ?? [],
+      auditUrls: cfg.metadata?.auditUrls ?? [],
+    };
+
+    // Convert context to proper format
+    const context: IClankerSocialContext = {
+      interface: cfg.context?.interface ?? 'Clanker SDK',
+      platform: cfg.context?.platform ?? 'Clanker',
+      messageId: cfg.context?.messageId ?? 'Clanker SDK',
+      id: cfg.context?.id ?? 'Clanker SDK',
+    };
+
     return {
       tokenConfig: {
         name: cfg.name,
         symbol: cfg.symbol,
-        salt: (() => {
-          const defaultSalt = '0x0000000000000000000000000000000000000000000000000000000000000000';
-          const salt = cfg.salt ?? defaultSalt;
-          // Validate salt format: must be 0x + 64 hex characters
-          if (!/^0x[a-fA-F0-9]{64}$/.test(salt)) {
-            throw new Error('Salt must be a valid bytes32 value (0x + 64 hex characters)');
-          }
-          return salt;
-        })(),
-        image:
-          cfg.image ||
-          'https://ipfs.io/ipfs/QmcjfTeK3tpK3MVCQuvEaXvSscrqbL3MwsEo8LdBTWabY4',
-        metadata: JSON.stringify(cfg.metadata || {
-          description: 'Clanker Token',
-          socialMediaUrls: [],
-          auditUrls: [],
-        }),
-        context: JSON.stringify(cfg.context || {
-          interface: 'Clanker SDK',
-          platform: 'Clanker',
-          messageId: 'Clanker SDK',
-          id: 'Clanker SDK',
-        }),
+        salt: cfg.salt ?? '0x0000000000000000000000000000000000000000000000000000000000000000',
+        image: cfg.image ?? 'https://ipfs.io/ipfs/QmcjfTeK3tpK3MVCQuvEaXvSscrqbL3MwsEo8LdBTWabY4',
+        metadata: stringify(metadata),
+        context: stringify(context),
         originatingChainId: BigInt(this.publicClient.chain!.id),
       },
       poolConfig: {
         pairedToken: quoteToken,
-        tickIfToken0IsNewToken: tick,
+        tickIfToken0IsNewToken: 0, // Will be calculated on-chain
         initialMarketCapInPairedToken: marketCap,
       },
       vaultConfig: cfg.vault
@@ -458,16 +252,10 @@ export class Clanker {
         : {
             vaultPercentage: 0,
             vaultDuration: 0n,
-      },
+          },
       initialBuyConfig,
       rewardsConfig: {
-        creatorReward: (() => {
-          const reward = cfg.rewardsConfig?.creatorReward ?? 80;
-          if (reward < 0 || reward > 80) {
-            throw new Error('Creator reward must be between 0 and 80');
-          }
-          return BigInt(reward);
-        })(),
+        creatorReward: BigInt(cfg.rewardsConfig?.creatorReward ?? 80),
         creatorAdmin: cfg.rewardsConfig?.creatorAdmin ?? deployerAddress,
         creatorRewardRecipient: cfg.rewardsConfig?.creatorRewardRecipient ?? deployerAddress,
         interfaceAdmin: cfg.rewardsConfig?.interfaceAdmin ?? deployerAddress,
@@ -476,58 +264,55 @@ export class Clanker {
     };
   }
 
-  /**
-   * Creates calldata (+ msg.value) **without** sending a transaction.
-   * This version no longer relies on viem's `simulateContract`, which
-   * was returning an object without `.data`.  We now ABI-encode the
-   * call manually so `data` is always defined.
-   */
   public async prepareDeployToken(cfg: SimpleTokenConfig): Promise<PreparedDeployTx> {
-    /* 1 · build the struct used by the on-chain factory */
     const deploymentConfig = await this.buildDeploymentConfig(cfg);
-
-    /* 2 · ABI-encode calldata */
     const data = encodeFunctionData({
       abi: Clanker_v3_1_abi,
       functionName: 'deployToken',
       args: [deploymentConfig],
     });
 
-    /* 3 · derive ETH value (0 if no dev-buy) */
-    const value = deploymentConfig.initialBuyConfig?.ethAmount ?? 0n;
-
-    /* 4 · done */
     return {
-      to:    this.factoryAddress,
-      data,               // 0x-prefixed hex string (non-empty)
-      value,
+      to: this.factoryAddress,
+      data,
+      value: deploymentConfig.initialBuyConfig?.ethAmount ?? 0n,
     };
   }
 
   public async deployToken(cfg: SimpleTokenConfig): Promise<Address> {
-    if (!this.wallet) throw new Error('Wallet client required for deployToken');
-    if (!this.wallet.account) throw new Error('Wallet account required for deployToken');
+    if (!this.wallet?.account) {
+      throw new Error('Wallet account required for deployToken');
+    }
 
-    // 1) build calldata
     const tx = await this.prepareDeployToken(cfg);
-
-    // 2) send
     const hash = await this.wallet.sendTransaction({
       ...tx,
       account: this.wallet.account,
       chain: this.publicClient.chain,
     });
-    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
 
-    // 3) parse logs (same as before)
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
     const [log] = parseEventLogs({
       abi: Clanker_v3_1_abi,
       eventName: 'TokenCreated',
       logs: receipt.logs,
     });
-    if (!log) throw new Error('No deployment event found');
+
+    if (!log) {
+      throw new Error('No deployment event found');
+    }
+
     return log.args.tokenAddress;
   }
 }
 
-export * from './types.js';
+export * from './types/common.js';
+export * from './types/config/token.js';
+export * from './types/config/deployment.js';
+export * from './types/core/metadata.js';
+export * from './types/utils/validation.js';
+
+export { ClankerClient } from './core/client.js';
+
+// Re-export commonly used types
+export type { PublicClient, WalletClient } from 'viem';
