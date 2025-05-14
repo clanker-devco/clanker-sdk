@@ -25,12 +25,12 @@ if (!PRIVATE_KEY || !FACTORY_ADDRESS) {
 
 // Deployment configuration - change this to control which example runs
 type DeploymentType = "simple" | "advanced" | "full" | "validation" | "all";
-const deploymentType: DeploymentType = "advanced"; // Change this value to run different examples
+const deploymentType: DeploymentType = "simple"; // Change this value to run different examples
 
 /**
  * Consolidated deployment example showing different ways to use the Clanker SDK
- * - Basic token deployment
- * - Advanced token deployment
+ * - Basic token deployment (with automatic vanity address)
+ * - Advanced token deployment (with custom vanity address)
  * - Full SDK usage with transaction preparation
  * - Validation examples
  * 
@@ -64,7 +64,6 @@ async function main(): Promise<void> {
     const clanker = new Clanker({
       wallet,
       publicClient,
-      factoryAddress: FACTORY_ADDRESS,
       network: "mainnet",
     });
 
@@ -77,20 +76,17 @@ async function main(): Promise<void> {
     // Example 1: Simple Token Deployment
     // ==========================================
     if (runSimple) {
-      console.log("\n🚀 EXAMPLE 1: Simple Token Deployment\n");
+      console.log("\n🚀 EXAMPLE 1: Simple Token Deployment with Automatic Vanity Address\n");
 
       // Deploy the token with basic configuration
       const simpleTokenConfig = {
-        name: "Simple Token2",
+        name: "Simple Token",
         symbol: "SMPL",
         image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
         metadata: {
-          description: "A simple token deployment example",
+          description: "A simple token deployment example with vanity address",
           socialMediaUrls: ["https://twitter.com/simpletoken"],
           auditUrls: [],
-        },
-        pool: {
-          initialMarketCap: "10", // 100 WETH initial market cap
         },
         devBuy: {
           ethAmount: "0",
@@ -99,7 +95,7 @@ async function main(): Promise<void> {
 
       // Manually validate a token config (optional demonstration)
       const tokenConfigForValidation: TokenConfig = {
-        name: "Simple Token1",
+        name: "Simple Token",
         symbol: "SMPL",
         salt: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
         image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
@@ -122,6 +118,7 @@ async function main(): Promise<void> {
       if (simpleTokenValidation.success) {
         console.log("✅ Simple token config is valid!");
         
+        console.log("Deploying token with automatic vanity address (default suffix '0x4b07')...");
         const simpleTokenAddress = await clanker.deployToken(simpleTokenConfig);
         
         console.log("Simple token deployed successfully!");
@@ -137,16 +134,15 @@ async function main(): Promise<void> {
     // Example 2: Advanced Token Deployment
     // ==========================================
     if (runAdvanced) {
-      console.log("\n🚀 EXAMPLE 2: Advanced Token Deployment\n");
+      console.log("\n🚀 EXAMPLE 2: Advanced Token Deployment with Custom Vanity Address\n");
 
       // Deploy the token with advanced configuration
       const advancedTokenConfig = {
-        name: "Advanced Token2",
+        name: "Advanced Token",
         symbol: "ADV",
-        salt: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" as `0x${string}`,
         image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
         metadata: {
-          description: "Advanced token with custom configuration",
+          description: "Advanced token with custom configuration and vanity address",
           socialMediaUrls: [
             "https://twitter.com/advancedtoken",
             "https://t.me/advancedtoken",
@@ -184,12 +180,13 @@ async function main(): Promise<void> {
 
       if (advancedTokenValidation.success) {
         console.log("✅ Advanced token config is valid!");
-
+        
         const advancedTokenAddress = await clanker.deployToken(advancedTokenConfig);
 
         console.log("Advanced token deployed successfully!");
         console.log("Token address:", advancedTokenAddress);
         console.log("View on BaseScan:", `https://basescan.org/token/${advancedTokenAddress}`);
+        
       } else {
         console.error("❌ Advanced token config validation failed:");
         console.error(advancedTokenValidation.error?.format());
@@ -251,16 +248,6 @@ async function main(): Promise<void> {
       if (fullConfigValidation.success) {
         console.log("✅ Full SDK token config is valid!");
 
-        // First, prepare the deployment transaction
-        const tx = await clanker.prepareDeployToken(fullConfig);
-
-        console.log("Transaction prepared:", {
-          to: tx.to,
-          value: tx.value.toString(),
-          dataLength: tx.data.length,
-        });
-
-        // Then, deploy the token
         const fullTokenAddress = await clanker.deployToken(fullConfig);
 
         console.log("Full SDK token deployed successfully!");

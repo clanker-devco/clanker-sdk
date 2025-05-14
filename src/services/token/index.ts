@@ -1,9 +1,11 @@
-import { type PublicClient, type WalletClient, parseEther, encodeFunctionData, parseEventLogs, type Address } from 'viem';
+import { type PublicClient, type WalletClient, parseEther, encodeFunctionData, parseEventLogs, type Address, isAddress, getAddress } from 'viem';
 import { Clanker_v3_1_abi } from '../../abis/Clanker_V3_1.js';
 import type { 
   TokenConfig, 
   SimpleTokenConfig,
 } from '../../types/index.js';
+import { getDesiredPriceAndPairAddress } from '../../types/utils/desired-price.js';
+import { getTokenPairByAddress } from '../../types/config/desired-price.js';
 
 export class TokenService {
   constructor(
@@ -23,6 +25,11 @@ export class TokenService {
     if (!this.factoryAddress) {
       throw new Error('Factory address required for deployToken');
     }
+
+    const { desiredPrice, pairAddress } = getDesiredPriceAndPairAddress(
+      getTokenPairByAddress(config.pool?.quoteToken as `0x${string}`),
+      config.pool?.initialMarketCap?.toString() || '10'
+    );
 
     // Convert SimpleTokenConfig to TokenConfig
     const tokenConfig: TokenConfig = {
@@ -44,6 +51,14 @@ export class TokenService {
       originatingChainId: BigInt(this.publicClient.chain!.id),
     };
 
+    // Calculate initial tick if desired price is provided
+    const logBase = 1.0001;
+    const tickSpacing = 200;
+    const rawTick = desiredPrice 
+      ? Math.log(desiredPrice) / Math.log(logBase)
+      : 0;
+    const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
+
     // Build deployment configuration for contract
     const deploymentConfig = {
       tokenConfig: {
@@ -61,9 +76,9 @@ export class TokenService {
             vaultDuration: 0n,
           },
       poolConfig: {
-        pairedToken: config.pool?.quoteToken || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        pairedToken: pairAddress,
         initialMarketCapInPairedToken: parseEther(config.pool?.initialMarketCap || '0'),
-        tickIfToken0IsNewToken: 0,
+        tickIfToken0IsNewToken: initialTick,
       },
       initialBuyConfig: config.devBuy
         ? {

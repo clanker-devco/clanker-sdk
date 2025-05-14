@@ -68,3 +68,28 @@ export interface DeploymentConfig {
   /** Rewards configuration */
   rewardsConfig: RewardsConfig;
 } 
+
+export interface IDeployFormData {
+  name: string;
+  symbol: string;
+  image: File | null;
+  imageUrl: string;
+  description: string;
+  devBuyAmount: string | number;
+  lockupPercentage: number;
+  vestingUnlockDate: bigint | null;
+  enableDevBuy: boolean;
+  enableLockup: boolean;
+  feeRecipient: string | null;
+  telegramLink: string;
+  websiteLink: string;
+  xLink: string;
+  marketCap: string;
+  farcasterLink: string;
+  pairedToken: string;
+  creatorRewardsRecipient: string;
+  creatorRewardsAdmin: string;
+  creatorReward?: number;
+  interfaceAdmin?: string;
+  interfaceRewardRecipient?: string;
+}

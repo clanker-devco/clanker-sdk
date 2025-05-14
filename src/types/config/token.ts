@@ -59,6 +59,8 @@ export interface SimpleTokenConfig {
     quoteToken?: `0x${string}`;
     /** Initial market cap */
     initialMarketCap?: string;
+    /** Desired price in terms of quote token */
+    desiredPrice?: number;
   };
   /** Optional vault configuration */
   vault?: {

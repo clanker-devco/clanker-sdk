@@ -1,25 +1,20 @@
-/**
- * Token metadata interface
- */
+// modifiable by the creator, post-deployment
 export interface IClankerMetadata {
-  /** Token description */
   description?: string;
-  /** Array of social media links */
-  socialMediaUrls?: { platform: string; url: string }[];
-  /** Array of audit URLs */
-  auditUrls?: string[];
+  socialMediaUrls?: string[];
+  auditUrls?: string[]; // only relevant for base wallet EAS, don't have to have this on contract
 }
 
-/**
- * Social context interface
- */
+// immutable, only used on bot deployment or if user wants to cast to create a new clanker (e.g. a new clanker from a cast sent by the creator in frame or on web app)
 export interface IClankerSocialContext {
-  /** Interface identifier */
-  interface: string;
-  /** Platform identifier */
-  platform?: string;
-  /** Message ID */
-  messageId?: string;
-  /** Unique identifier */
-  id?: string;
-} 
+  interface: string; // tokenbot, clanker world frame, clank.fun, etc...
+  platform?: string; // farcaster, twitter, etc.
+  messageId?: string; // cast hash, tweet id, etc.
+  id?: string; // FID, twitter user id, etc
+}
+
+export interface IClankerDeployConfig {
+  devBuyAmount: number;
+  lockupPercentage: number;
+  vestingUnlockDate: number;
+}

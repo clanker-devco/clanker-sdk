@@ -1,6 +1,7 @@
 // Export all types from config
 export * from "./config/token.js";
 export * from "./config/deployment.js";
+export * from "./pairs.js";
 
 // Export all types from core
 export * from "./core/metadata.js";
