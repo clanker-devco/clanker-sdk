@@ -11,10 +11,11 @@ import {
 import { readContract } from 'viem/actions';
 import type { ClankerConfig } from './types/common.js';
 import type { SimpleTokenConfig } from './types/config/token.js';
-import type { DeploymentConfig, RewardsConfig, InitialBuyConfig } from './types/config/deployment.js';
+import type { DeploymentConfig, InitialBuyConfig } from './types/config/deployment.js';
 import type { IClankerMetadata, IClankerSocialContext } from './types/core/metadata.js';
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from './constants.js';
 import { Clanker_v3_1_abi } from './abis/Clanker_V3_1.js';
+import { validateConfig } from './types/utils/validation.js';
 
 /** Lightweight container for a pre-built deploy transaction */
 export type PreparedDeployTx = {
@@ -34,59 +35,18 @@ const ERC20_DECIMALS_ABI = [
   }
 ] as const;
 
-// Uniswap V3 Factory ABI for getting pools
-const UNIV3_FACTORY_ABI = [
-  {
-    inputs: [
-      { internalType: 'address', name: 'tokenA', type: 'address' },
-      { internalType: 'address', name: 'tokenB', type: 'address' },
-      { internalType: 'uint24', name: 'fee', type: 'uint24' }
-    ],
-    name: 'getPool',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function'
-  }
-] as const;
-
-// Uniswap V3 Pool ABI for getting liquidity
-const UNIV3_POOL_ABI = [
-  {
-    inputs: [],
-    name: 'liquidity',
-    outputs: [{ internalType: 'uint128', name: '', type: 'uint128' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'slot0',
-    outputs: [
-      { internalType: 'uint160', name: 'sqrtPriceX96', type: 'uint160' },
-      { internalType: 'int24', name: 'tick', type: 'int24' },
-      { internalType: 'uint16', name: 'observationIndex', type: 'uint16' },
-      { internalType: 'uint16', name: 'observationCardinality', type: 'uint16' },
-      { internalType: 'uint16', name: 'observationCardinalityNext', type: 'uint16' },
-      { internalType: 'uint8', name: 'feeProtocol', type: 'uint8' },
-      { internalType: 'bool', name: 'unlocked', type: 'bool' }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  }
-] as const;
-
-// Base Uniswap V3 Factory address
-const UNIV3_FACTORY = '0x33128a8fC17869897dcE68Ed026d694621f6FDfD' as const;
-
-// Available fee tiers
-const FEE_TIERS = [100, 500, 3000, 10000] as const;
-
 export class Clanker {
   private readonly wallet?: WalletClient;
   private readonly publicClient: PublicClient;
   private readonly factoryAddress: Address;
 
   constructor(config: ClankerConfig) {
+    // Validate the ClankerConfig
+    const validationResult = validateConfig(config);
+    if (!validationResult.success) {
+      throw new Error(`Invalid Clanker configuration: ${JSON.stringify(validationResult.error?.format())}`);
+    }
+
     this.wallet = config.wallet;
     this.publicClient = config.publicClient;
     this.factoryAddress = config.factoryAddress ?? CLANKER_FACTORY_V3_1;
@@ -107,80 +67,6 @@ export class Clanker {
     }
   }
 
-  // Find the most liquid pool between WETH and quote token
-  private async findMostLiquidPool(quoteToken: Address): Promise<{ fee: number; sqrtPriceX96: bigint }> {
-    const pools = await Promise.all(
-      FEE_TIERS.map(async (fee) => {
-        try {
-          const poolAddress = await readContract(this.publicClient, {
-            address: UNIV3_FACTORY,
-            abi: UNIV3_FACTORY_ABI,
-            functionName: 'getPool',
-            args: [WETH_ADDRESS, quoteToken, fee],
-          });
-
-          if (poolAddress === '0x0000000000000000000000000000000000000000') {
-            return { fee, liquidity: 0n, sqrtPriceX96: 0n };
-          }
-
-          const [liquidity, slot0] = await Promise.all([
-            readContract(this.publicClient, {
-              address: poolAddress,
-              abi: UNIV3_POOL_ABI,
-              functionName: 'liquidity',
-            }),
-            readContract(this.publicClient, {
-              address: poolAddress,
-              abi: UNIV3_POOL_ABI,
-              functionName: 'slot0',
-            }),
-          ]);
-
-          return { fee, liquidity, sqrtPriceX96: slot0[0] };
-        } catch (error) {
-          console.warn(`Failed to get pool info for fee tier ${fee}:`, error);
-          return { fee, liquidity: 0n, sqrtPriceX96: 0n };
-        }
-      })
-    );
-
-    const mostLiquidPool = pools.reduce((max, current) => 
-      current.liquidity > max.liquidity ? current : max
-    );
-
-    if (mostLiquidPool.liquidity === 0n) {
-      console.warn('No liquid pool found, defaulting to 1% fee tier');
-      return { fee: 10000, sqrtPriceX96: 0n };
-    }
-
-    return { fee: mostLiquidPool.fee, sqrtPriceX96: mostLiquidPool.sqrtPriceX96 };
-  }
-
-  // Calculate minimum output amount for WETH -> quote token swap
-  private calculateMinimumOutput(
-    ethAmount: bigint,
-    sqrtPriceX96: bigint,
-    quoteDecimals: number,
-    slippagePercent: number
-  ): bigint {
-    if (sqrtPriceX96 === 0n) {
-      return 0n;
-    }
-
-    const Q96 = BigInt('79228162514264337593543950336');
-    const price = (Number(sqrtPriceX96) / Number(Q96)) ** 2;
-    const ethAmountInEth = Number(ethAmount) / 10 ** 18;
-    const expectedOutput = ethAmountInEth * price;
-    const minimumOutput = expectedOutput * (1 - slippagePercent / 100);
-
-    return BigInt(Math.floor(minimumOutput * 10 ** quoteDecimals));
-  }
-
-  private handleError(error: unknown): never {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Deployment failed: ${message}`);
-  }
-
   private async buildDeploymentConfig(cfg: SimpleTokenConfig): Promise<DeploymentConfig> {
     const quoteToken = cfg.pool?.quoteToken ?? WETH_ADDRESS;
     const quoteDecimals = await this.getQuoteTokenDecimals(quoteToken);
@@ -191,23 +77,16 @@ export class Clanker {
 
     let initialBuyConfig: InitialBuyConfig = {
       pairedTokenPoolFee: 10000,
-      pairedTokenSwapAmountOutMinimum: BigInt(0),
+      pairedTokenSwapAmountOutMinimum: 0n,
       ethAmount: undefined,
     };
     
     if (cfg.devBuy) {
       const ethAmount = parseEther(cfg.devBuy.ethAmount);
-      const { fee, sqrtPriceX96 } = await this.findMostLiquidPool(quoteToken);
-      const minOutput = this.calculateMinimumOutput(
-        ethAmount,
-        sqrtPriceX96,
-        quoteDecimals,
-        cfg.devBuy.maxSlippage ?? 5
-      );
       
       initialBuyConfig = {
-        pairedTokenPoolFee: fee,
-        pairedTokenSwapAmountOutMinimum: minOutput,
+        pairedTokenPoolFee: 10000,
+        pairedTokenSwapAmountOutMinimum: 0n,
         ethAmount,
       };
     }
@@ -229,7 +108,22 @@ export class Clanker {
       id: cfg.context?.id ?? 'Clanker SDK',
     };
 
-    return {
+    // Create the vaultConfig with proper validation handling
+    let vaultConfig;
+    if (cfg.vault && cfg.vault.percentage > 0) {
+      // Only include vaultDuration if percentage > 0
+      vaultConfig = {
+        vaultPercentage: cfg.vault.percentage,
+        vaultDuration: BigInt(cfg.vault.durationInDays * 24 * 60 * 60),
+      };
+    } else {
+      vaultConfig = {
+        vaultPercentage: 0,
+        vaultDuration: 0n,
+      };
+    }
+
+    const deploymentConfig = {
       tokenConfig: {
         name: cfg.name,
         symbol: cfg.symbol,
@@ -244,15 +138,7 @@ export class Clanker {
         tickIfToken0IsNewToken: 0, // Will be calculated on-chain
         initialMarketCapInPairedToken: marketCap,
       },
-      vaultConfig: cfg.vault
-        ? {
-            vaultPercentage: cfg.vault.percentage,
-            vaultDuration: BigInt(cfg.vault.durationInDays * 24 * 60 * 60),
-          }
-        : {
-            vaultPercentage: 0,
-            vaultDuration: 0n,
-          },
+      vaultConfig,
       initialBuyConfig,
       rewardsConfig: {
         creatorReward: BigInt(cfg.rewardsConfig?.creatorReward ?? 80),
@@ -262,9 +148,23 @@ export class Clanker {
         interfaceRewardRecipient: cfg.rewardsConfig?.interfaceRewardRecipient ?? deployerAddress,
       },
     };
+    
+    // Validate the DeploymentConfig
+    const validationResult = validateConfig(deploymentConfig);
+    if (!validationResult.success) {
+      throw new Error(`Invalid deployment configuration: ${JSON.stringify(validationResult.error?.format())}`);
+    }
+    
+    return deploymentConfig;
   }
 
   public async prepareDeployToken(cfg: SimpleTokenConfig): Promise<PreparedDeployTx> {
+    // Validate the SimpleTokenConfig
+    const validationResult = validateConfig(cfg);
+    if (!validationResult.success) {
+      throw new Error(`Invalid token configuration: ${JSON.stringify(validationResult.error?.format())}`);
+    }
+
     const deploymentConfig = await this.buildDeploymentConfig(cfg);
     const data = encodeFunctionData({
       abi: Clanker_v3_1_abi,
@@ -282,6 +182,12 @@ export class Clanker {
   public async deployToken(cfg: SimpleTokenConfig): Promise<Address> {
     if (!this.wallet?.account) {
       throw new Error('Wallet account required for deployToken');
+    }
+
+    // Validate the SimpleTokenConfig
+    const validationResult = validateConfig(cfg);
+    if (!validationResult.success) {
+      throw new Error(`Invalid token configuration: ${JSON.stringify(validationResult.error?.format())}`);
     }
 
     const tx = await this.prepareDeployToken(cfg);

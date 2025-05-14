@@ -9,6 +9,7 @@ export type { ClankerConfig } from "./common.js";
 
 // Export all types from utils
 export * from "./utils/validation.js";
+export * from "./utils/validation-schema.js";
 
 // Export common types
 export * from "./common.js"; 

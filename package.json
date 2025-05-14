@@ -44,7 +44,8 @@
     "@types/inquirer": "^8.2.6",
     "dotenv": "^16.4.7",
     "inquirer": "^8.2.6",
-    "viem": "^2.7.9"
+    "viem": "^2.7.9",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
