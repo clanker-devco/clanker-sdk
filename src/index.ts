@@ -46,6 +46,11 @@ export class Clanker {
       throw new Error('Wallet account required for deployToken');
     }
 
+    // Ensure required fields are present
+    if (!cfg.name || !cfg.symbol) {
+      throw new Error('Token name and symbol are required');
+    }
+
     // Validate the TokenConfig
     const validationResult = validateConfig(cfg);
     if (!validationResult.success) {
@@ -54,9 +59,15 @@ export class Clanker {
       );
     }
 
+    // Ensure pool config has required fields with defaults
+    const poolConfig = {
+      quoteToken: cfg.pool?.quoteToken || '0x4200000000000000000000000000000000000006', // Default to WETH
+      initialMarketCap: cfg.pool?.initialMarketCap || '10', // Default to 10 ETH
+    };
+
     const { desiredPrice, pairAddress } = getDesiredPriceAndPairAddress(
-      getTokenPairByAddress(cfg.pool?.quoteToken as `0x${string}`),
-      cfg.pool?.initialMarketCap?.toString() || '10'
+      getTokenPairByAddress(poolConfig.quoteToken as `0x${string}`),
+      poolConfig.initialMarketCap
     );
 
     // Calculate vesting unlock date if vault configuration is provided
@@ -67,7 +78,7 @@ export class Clanker {
         )
       : BigInt(0);
 
-    // Extract social media links
+    // Extract social media links with safe defaults
     const socialLinks = cfg.metadata?.socialMediaUrls ?? [];
     const telegramLink = socialLinks.find((url) => url.includes('t.me')) || '';
     const xLink =
@@ -113,7 +124,7 @@ export class Clanker {
         telegramLink,
         websiteLink,
         xLink,
-        marketCap: cfg.pool?.initialMarketCap?.toString() || '10',
+        marketCap: poolConfig.initialMarketCap,
         farcasterLink: '',
         pairedToken: pairAddress,
         creatorRewardsRecipient:

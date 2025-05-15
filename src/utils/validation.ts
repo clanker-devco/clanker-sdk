@@ -35,14 +35,12 @@ type ValidationResult = {
  * @returns Result with success flag and either the validated data or validation errors
  */
 export function validateConfig<T>(config: T): ValidationResult {
-  // Check if it's a SimpleTokenConfig
   if (
     typeof config === 'object' &&
     config !== null &&
     'name' in config &&
     'symbol' in config
   ) {
-    // If it lacks certain properties that are in TokenConfig but not SimpleTokenConfig
     if (
       !('originatingChainId' in config) &&
       !('metadata' in config && typeof config.metadata === 'string')

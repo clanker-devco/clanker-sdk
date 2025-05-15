@@ -40,7 +40,7 @@ export const tokenConfigSchema = z.object({
     .string()
     .refine(isHexRefinement, { message: 'Salt must be a valid hex string' })
     .optional(),
-  image: z.string().min(1, 'Image URL is required').optional(),
+  image: z.string().optional(),
   metadata: z
     .object({
       description: z.string().optional(),
@@ -50,7 +50,7 @@ export const tokenConfigSchema = z.object({
     .optional(),
   context: z
     .object({
-      interface: z.string(),
+      interface: z.string().optional(),
       platform: z.string().optional(),
       messageId: z.string().optional(),
       id: z.string().optional(),
@@ -58,19 +58,19 @@ export const tokenConfigSchema = z.object({
     .optional(),
   pool: z
     .object({
-      quoteToken: z.string().refine(isAddressRefinement),
-      initialMarketCap: z.string(),
+      quoteToken: z.string().refine(isAddressRefinement).optional(),
+      initialMarketCap: z.string().optional(),
     })
     .optional(),
   vault: z
     .object({
-      percentage: z.number(),
-      durationInDays: z.number(),
+      percentage: z.number().optional(),
+      durationInDays: z.number().optional(),
     })
     .optional(),
   devBuy: z
     .object({
-      ethAmount: z.string(),
+      ethAmount: z.string().optional(),
       maxSlippage: z.number().optional(),
     })
     .optional(),
