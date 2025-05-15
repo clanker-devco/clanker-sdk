@@ -1,4 +1,4 @@
-import type { Address, PublicClient, WalletClient } from "viem";
+import type { Address, PublicClient, WalletClient } from 'viem';
 
 /**
  * Core SDK configuration
@@ -12,7 +12,7 @@ export interface ClankerConfig {
   factoryAddress?: Address;
   /** The network to use for deployments and interactions */
   network: 'base' | 'baseSepolia';
-  
+
   /**
    * Optional configuration for gas settings
    */
@@ -22,7 +22,7 @@ export interface ClankerConfig {
     /** Maximum priority fee per gas in wei */
     maxPriorityFeePerGas?: bigint;
   };
-  
+
   /**
    * Optional timeout settings for transactions
    */
@@ -30,4 +30,4 @@ export interface ClankerConfig {
     /** Transaction timeout in milliseconds */
     transactionTimeout?: number;
   };
-} 
+}

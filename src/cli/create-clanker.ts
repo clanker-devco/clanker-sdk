@@ -2,7 +2,13 @@
 
 import inquirer from 'inquirer';
 import { Clanker } from '../index.js';
-import { createPublicClient, createWalletClient, http, PublicClient, WalletClient } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  PublicClient,
+  WalletClient,
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import * as dotenv from 'dotenv';
@@ -28,21 +34,25 @@ async function createClanker() {
   const RPC_URL = process.env.RPC_URL;
 
   // Helper function to safely convert address to 0x-prefixed string type
-  function toHexAddress(address: string | undefined): `0x${string}` | undefined {
+  function toHexAddress(
+    address: string | undefined
+  ): `0x${string}` | undefined {
     if (!address) return undefined;
     return address.toLowerCase() as `0x${string}`;
   }
 
   function checkEnvironment(): boolean {
     const missingVars = [];
-    
+
     if (!PRIVATE_KEY) missingVars.push('PRIVATE_KEY');
     if (!FACTORY_ADDRESS) missingVars.push('FACTORY_ADDRESS');
-    
+
     if (missingVars.length > 0) {
       console.log('\n❌ Missing required environment variables:');
       console.log(missingVars.join(', '));
-      console.log('\n📝 Please create a .env file in your current directory with the following variables:');
+      console.log(
+        '\n📝 Please create a .env file in your current directory with the following variables:'
+      );
       console.log(`
 Required:
 PRIVATE_KEY=your_private_key_here
@@ -51,11 +61,13 @@ FACTORY_ADDRESS=factory_contract_address_here
 Optional:
 RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       `);
-      console.log('\nMake sure to include the 0x prefix for addresses and private keys.');
+      console.log(
+        '\nMake sure to include the 0x prefix for addresses and private keys.'
+      );
       console.log('Never share or commit your private key!\n');
       return false;
     }
-    
+
     // Validate private key format
     if (!PRIVATE_KEY.startsWith('0x') || PRIVATE_KEY.length !== 66) {
       console.log('\n❌ Invalid PRIVATE_KEY format. It should:');
@@ -63,7 +75,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       console.log('- Be 64 characters long (plus 0x prefix)');
       return false;
     }
-    
+
     // Validate factory address format
     if (!FACTORY_ADDRESS.startsWith('0x') || FACTORY_ADDRESS.length !== 42) {
       console.log('\n❌ Invalid FACTORY_ADDRESS format. It should:');
@@ -71,7 +83,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       console.log('- Be 40 characters long (plus 0x prefix)');
       return false;
     }
-    
+
     return true;
   }
 
@@ -128,14 +140,16 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
 
   const validateSymbol = (input: string) => {
     if (!input) return 'Symbol cannot be empty';
-    if (!/^[a-zA-Z0-9]+$/.test(input)) return 'Symbol must contain only letters and numbers';
+    if (!/^[a-zA-Z0-9]+$/.test(input))
+      return 'Symbol must contain only letters and numbers';
     if (input.length > 20) return 'Symbol must be 20 characters or less';
     return true;
   };
 
   const validateIpfsUri = (input: string) => {
     if (!input) return 'Image URI cannot be empty';
-    if (!input.startsWith('ipfs://')) return 'Image URI must start with ipfs://';
+    if (!input.startsWith('ipfs://'))
+      return 'Image URI must start with ipfs://';
     return true;
   };
 
@@ -147,7 +161,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
 
   const validateHexString = (input: string) => {
     if (!input) return true; // Optional
-    if (!/^0x[a-fA-F0-9]+$/.test(input)) return 'Must be a valid hex string starting with 0x';
+    if (!/^0x[a-fA-F0-9]+$/.test(input))
+      return 'Must be a valid hex string starting with 0x';
     return true;
   };
 
@@ -161,7 +176,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
   const validateVaultPercentage = (input: string) => {
     const num = Number(input);
     if (isNaN(num)) return 'Must be a number';
-    if (num < 0 || num > 30) return 'Vault percentage must be between 0 and 30%';
+    if (num < 0 || num > 30)
+      return 'Vault percentage must be between 0 and 30%';
     return true;
   };
 
@@ -213,9 +229,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         choices: [
           { name: 'WETH', value: 'WETH' },
           { name: 'USDC', value: 'USDC' },
-          { name: 'Custom Address', value: 'CUSTOM' }
+          { name: 'Custom Address', value: 'CUSTOM' },
         ],
-        default: 'WETH'
+        default: 'WETH',
       },
       {
         type: 'input',
@@ -223,18 +239,22 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom token address:',
         prefix: '',
         validate: validateAddress,
-        when: (answers: ClankerAnswers) => answers.pairedTokenChoice === 'CUSTOM'
+        when: (answers: ClankerAnswers) =>
+          answers.pairedTokenChoice === 'CUSTOM',
       },
       {
         type: 'input',
         name: 'initialMarketCapUsd',
-        message: (answers: ClankerAnswers) => 
+        message: (answers: ClankerAnswers) =>
           `Enter initial market cap in ${answers.pairedTokenChoice === 'CUSTOM' ? 'quote token' : answers.pairedTokenChoice}:`,
         prefix: '',
         validate: validateAmount,
-        default: (answers: ClankerAnswers) => 
-          answers.pairedTokenChoice === 'WETH' ? '1' : 
-          answers.pairedTokenChoice === 'USDC' ? '1000' : '1',
+        default: (answers: ClankerAnswers) =>
+          answers.pairedTokenChoice === 'WETH'
+            ? '1'
+            : answers.pairedTokenChoice === 'USDC'
+              ? '1000'
+              : '1',
       },
       {
         type: 'input',
@@ -242,7 +262,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom market cap in quote token:',
         prefix: '',
         validate: validateAmount,
-        when: (answers: any) => answers.initialMarketCapUsd === 'CUSTOM'
+        when: (answers: any) => answers.initialMarketCapUsd === 'CUSTOM',
       },
       {
         type: 'input',
@@ -262,9 +282,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           { name: '0.1 ETH', value: '0.1' },
           { name: '0.5 ETH', value: '0.5' },
           { name: '1.0 ETH', value: '1.0' },
-          { name: 'Custom', value: 'CUSTOM' }
+          { name: 'Custom', value: 'CUSTOM' },
         ],
-        default: '0'
+        default: '0',
       },
       {
         type: 'input',
@@ -272,7 +292,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom dev buy amount in ETH:',
         prefix: '',
         validate: validateAmount,
-        when: (answers: any) => answers.devBuy.ethAmount === 'CUSTOM'
+        when: (answers: any) => answers.devBuy.ethAmount === 'CUSTOM',
       },
       {
         type: 'input',
@@ -281,7 +301,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         prefix: '',
         validate: validateSlippage,
         default: '5',
-        when: (answers: any) => answers.devBuy.ethAmount !== '0'
+        when: (answers: any) => answers.devBuy.ethAmount !== '0',
       },
       {
         type: 'list',
@@ -293,9 +313,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           { name: '5%', value: '5' },
           { name: '15%', value: '15' },
           { name: '30%', value: '30' },
-          { name: 'Custom', value: 'CUSTOM' }
+          { name: 'Custom', value: 'CUSTOM' },
         ],
-        default: '0'
+        default: '0',
       },
       {
         type: 'input',
@@ -303,7 +323,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom vault percentage (0-30):',
         prefix: '',
         validate: validateVaultPercentage,
-        when: (answers: any) => answers.vaultConfig.vaultPercentage === 'CUSTOM'
+        when: (answers: any) =>
+          answers.vaultConfig.vaultPercentage === 'CUSTOM',
       },
       {
         type: 'list',
@@ -314,10 +335,10 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           { name: '31 days', value: '31' },
           { name: '90 days', value: '90' },
           { name: '180 days', value: '180' },
-          { name: 'Custom', value: 'CUSTOM' }
+          { name: 'Custom', value: 'CUSTOM' },
         ],
         default: '31',
-        when: (answers: any) => answers.vaultConfig.vaultPercentage !== '0'
+        when: (answers: any) => answers.vaultConfig.vaultPercentage !== '0',
       },
       {
         type: 'input',
@@ -325,15 +346,17 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom vault duration in days (minimum 30):',
         prefix: '',
         validate: validateVaultDuration,
-        when: (answers: any) => answers.vaultConfig.durationInDays === 'CUSTOM'
+        when: (answers: any) => answers.vaultConfig.durationInDays === 'CUSTOM',
       },
       {
         type: 'input',
         name: 'metadata.description',
         message: 'Token description:',
         prefix: '',
-        default: (answers: ClankerAnswers) => `${answers.name} token deployed via Clanker CLI`,
-        validate: (input: string) => input.length > 0 || 'Description cannot be empty',
+        default: (answers: ClankerAnswers) =>
+          `${answers.name} token deployed via Clanker CLI`,
+        validate: (input: string) =>
+          input.length > 0 || 'Description cannot be empty',
       },
       {
         type: 'input',
@@ -367,7 +390,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       {
         type: 'list',
         name: 'rewardsConfig.creatorReward',
-        message: 'Creator reward percentage, balance remaining goes to interface:',
+        message:
+          'Creator reward percentage, balance remaining goes to interface:',
         prefix: '',
         choices: [
           { name: '80% (maximum)', value: 80 },
@@ -375,9 +399,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           { name: '40%', value: 40 },
           { name: '20%', value: 20 },
           { name: '0% (all to interface)', value: 0 },
-          { name: 'Custom', value: 'CUSTOM' }
+          { name: 'Custom', value: 'CUSTOM' },
         ],
-        default: 80
+        default: 80,
       },
       {
         type: 'input',
@@ -385,7 +409,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom creator reward percentage (0-80):',
         prefix: '',
         validate: validateCreatorReward,
-        when: (answers: any) => answers.rewardsConfig.creatorReward === 'CUSTOM'
+        when: (answers: any) =>
+          answers.rewardsConfig.creatorReward === 'CUSTOM',
       },
       {
         type: 'input',
@@ -415,12 +440,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         prefix: '',
         validate: validateAddress,
       },
-      
     ];
 
-    const answers = await inquirer.prompt(questions, {
-      
-    });
+    const answers = await inquirer.prompt(questions, {});
 
     // Process custom values
     if (answers.initialMarketCapUsd === 'CUSTOM') {
@@ -431,25 +453,31 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
     }
 
     // Convert string values to numbers for vault config
-    const vaultPercentage = answers.vaultConfig.vaultPercentage === 'CUSTOM' 
-      ? parseInt(answers.customVaultPercentage || '0', 10)
-      : parseInt(answers.vaultConfig.vaultPercentage, 10);
+    const vaultPercentage =
+      answers.vaultConfig.vaultPercentage === 'CUSTOM'
+        ? parseInt(answers.customVaultPercentage || '0', 10)
+        : parseInt(answers.vaultConfig.vaultPercentage, 10);
 
-    const vaultDuration = answers.vaultConfig.durationInDays === 'CUSTOM'
-      ? parseInt(answers.customVaultDuration || '31', 10)
-      : parseInt(answers.vaultConfig.durationInDays, 10);
+    const vaultDuration =
+      answers.vaultConfig.durationInDays === 'CUSTOM'
+        ? parseInt(answers.customVaultDuration || '31', 10)
+        : parseInt(answers.vaultConfig.durationInDays, 10);
 
     // Clean up metadata
     const socialMediaUrls = [];
-    if (answers.metadata.telegram) socialMediaUrls.push(answers.metadata.telegram);
-    if (answers.metadata.website) socialMediaUrls.push(answers.metadata.website);
-    if (answers.metadata.twitter) socialMediaUrls.push(answers.metadata.twitter);
-    if (answers.metadata.farcaster) socialMediaUrls.push(answers.metadata.farcaster);
+    if (answers.metadata.telegram)
+      socialMediaUrls.push(answers.metadata.telegram);
+    if (answers.metadata.website)
+      socialMediaUrls.push(answers.metadata.website);
+    if (answers.metadata.twitter)
+      socialMediaUrls.push(answers.metadata.twitter);
+    if (answers.metadata.farcaster)
+      socialMediaUrls.push(answers.metadata.farcaster);
 
     const metadata = {
       description: answers.metadata.description,
       socialMediaUrls,
-      auditUrls: []
+      auditUrls: [],
     };
 
     // Return the final config with proper types
@@ -458,25 +486,40 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       metadata,
       vaultConfig: {
         vaultPercentage: vaultPercentage.toString(),
-        durationInDays: vaultDuration.toString()
+        durationInDays: vaultDuration.toString(),
       },
       rewardsConfig: {
-        creatorReward: answers.rewardsConfig.creatorReward === 'CUSTOM'
-          ? Number(answers.rewardsConfig.customCreatorReward)
-          : Number(answers.rewardsConfig.creatorReward),
-        ...(answers.rewardsConfig.creatorAdmin ? {
-          creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin)
-        } : {}),
-        ...(answers.rewardsConfig.creatorRewardRecipient ? {
-          creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient)
-        } : {}),
-        ...(answers.rewardsConfig.interfaceAdmin ? {
-          interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin)
-        } : {}),
-        ...(answers.rewardsConfig.interfaceRewardRecipient ? {
-          interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient)
-        } : {})
-      }
+        creatorReward:
+          answers.rewardsConfig.creatorReward === 'CUSTOM'
+            ? Number(answers.rewardsConfig.customCreatorReward)
+            : Number(answers.rewardsConfig.creatorReward),
+        ...(answers.rewardsConfig.creatorAdmin
+          ? {
+              creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin),
+            }
+          : {}),
+        ...(answers.rewardsConfig.creatorRewardRecipient
+          ? {
+              creatorRewardRecipient: toHexAddress(
+                answers.rewardsConfig.creatorRewardRecipient
+              ),
+            }
+          : {}),
+        ...(answers.rewardsConfig.interfaceAdmin
+          ? {
+              interfaceAdmin: toHexAddress(
+                answers.rewardsConfig.interfaceAdmin
+              ),
+            }
+          : {}),
+        ...(answers.rewardsConfig.interfaceRewardRecipient
+          ? {
+              interfaceRewardRecipient: toHexAddress(
+                answers.rewardsConfig.interfaceRewardRecipient
+              ),
+            }
+          : {}),
+      },
     };
   }
 
@@ -503,24 +546,25 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       const clanker = new Clanker({
         wallet: walletClient,
         publicClient,
-        network: "base",
+        network: 'base',
         factoryAddress: FACTORY_ADDRESS,
       });
 
       console.log('\n🔄 Preparing deployment configuration...');
 
       // Determine quote token address
-      const quoteToken = answers.pairedTokenChoice === 'WETH' 
-        ? WETH_ADDRESS 
-        : answers.pairedTokenChoice === 'USDC' 
-          ? USDC_ADDRESS 
-          : answers.customPairedToken as `0x${string}`;
+      const quoteToken =
+        answers.pairedTokenChoice === 'WETH'
+          ? WETH_ADDRESS
+          : answers.pairedTokenChoice === 'USDC'
+            ? USDC_ADDRESS
+            : (answers.customPairedToken as `0x${string}`);
 
       // Prepare token configuration
       const tokenConfig = {
-              name: answers.name,
-      symbol: answers.symbol,
-      image: answers.image,
+        name: answers.name,
+        symbol: answers.symbol,
+        image: answers.image,
         metadata: {
           description: answers.metadata.description,
           socialMediaUrls: answers.metadata.socialMediaUrls,
@@ -536,36 +580,50 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           quoteToken,
           initialMarketCap: answers.initialMarketCapUsd,
         },
-        vault: answers.vaultConfig.vaultPercentage !== '0' ? {
-          percentage: parseInt(answers.vaultConfig.vaultPercentage, 10),
-          durationInDays: parseInt(answers.vaultConfig.durationInDays, 10),
-        } : undefined,
-        devBuy: answers.devBuy.ethAmount !== '0' ? {
-          ethAmount: answers.devBuy.ethAmount,
-          maxSlippage: answers.devBuy.maxSlippage,
-        } : undefined,
+        vault:
+          answers.vaultConfig.vaultPercentage !== '0'
+            ? {
+                percentage: parseInt(answers.vaultConfig.vaultPercentage, 10),
+                durationInDays: parseInt(
+                  answers.vaultConfig.durationInDays,
+                  10
+                ),
+              }
+            : undefined,
+        devBuy:
+          answers.devBuy.ethAmount !== '0'
+            ? {
+                ethAmount: answers.devBuy.ethAmount,
+                maxSlippage: answers.devBuy.maxSlippage,
+              }
+            : undefined,
         rewardsConfig: {
-          creatorReward: answers.rewardsConfig.creatorReward === 'CUSTOM'
-            ? Number(answers.rewardsConfig.customCreatorReward)
-            : Number(answers.rewardsConfig.creatorReward),
+          creatorReward:
+            answers.rewardsConfig.creatorReward === 'CUSTOM'
+              ? Number(answers.rewardsConfig.customCreatorReward)
+              : Number(answers.rewardsConfig.creatorReward),
           ...(answers.rewardsConfig.creatorAdmin && {
-            creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin)
+            creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin),
           }),
           ...(answers.rewardsConfig.creatorRewardRecipient && {
-            creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient)
+            creatorRewardRecipient: toHexAddress(
+              answers.rewardsConfig.creatorRewardRecipient
+            ),
           }),
           ...(answers.rewardsConfig.interfaceAdmin && {
-            interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin)
+            interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin),
           }),
           ...(answers.rewardsConfig.interfaceRewardRecipient && {
-            interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient)
-          })
-        }
+            interfaceRewardRecipient: toHexAddress(
+              answers.rewardsConfig.interfaceRewardRecipient
+            ),
+          }),
+        },
       };
 
       // Validate the token configuration
       const tokenValidation = validateConfig(tokenConfig);
-      
+
       if (!tokenValidation.success) {
         console.error('\n❌ Token configuration validation failed:');
         console.error(tokenValidation.error?.format());
@@ -583,11 +641,16 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       console.log(`📍 Token address: ${tokenAddress}`);
       console.log('\n🌐 View on:');
       console.log(`Basescan: https://basescan.org/token/${tokenAddress}`);
-      console.log(`Clanker World: https://clanker.world/clanker/${tokenAddress}`);
+      console.log(
+        `Clanker World: https://clanker.world/clanker/${tokenAddress}`
+      );
 
       return tokenAddress;
     } catch (error) {
-      console.error('\n❌ Deployment failed:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        '\n❌ Deployment failed:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   }
@@ -597,18 +660,18 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
     console.clear();
     console.log(ASCII_ART);
     console.log('\n🚀 Welcome to the Clanker Token Creator! 🚀\n');
-    
+
     // Check environment variables first
     if (!checkEnvironment()) {
       process.exit(1);
     }
-    
+
     try {
       const answers = await promptUser();
-      
+
       console.log('\n📝 Review your token configuration:\n');
       console.log(JSON.stringify(answers, null, 2));
-      
+
       const { confirm } = await inquirer.prompt([
         {
           type: 'confirm',
@@ -626,14 +689,16 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           // Exit after successful deployment
           process.exit(0);
         } catch (error) {
-          console.error('\n❌ Deployment failed:', error instanceof Error ? error.message : 'Unknown error');
+          console.error(
+            '\n❌ Deployment failed:',
+            error instanceof Error ? error.message : 'Unknown error'
+          );
           process.exit(1);
         }
       } else {
         console.log('\n❌ Deployment cancelled');
         process.exit(0);
       }
-      
     } catch (error) {
       console.error('\n❌ Error:', error);
       process.exit(1);
@@ -651,4 +716,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error('Failed to create Clanker:', error);
     process.exit(1);
   });
-} 
+}

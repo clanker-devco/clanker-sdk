@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address } from 'viem';
 import {
   CLANKER_ADDRESS,
   DEGEN_ADDRESS,
@@ -122,7 +122,6 @@ export interface RewardsConfig {
 export interface TokenConfig {
   name: string;
   symbol: string;
-  salt?: `0x${string}`;
   image?: string;
   metadata?: ClankerMetadata;
   context?: ClankerSocialContext;
@@ -136,4 +135,4 @@ export interface IClankerDeployConfig {
   devBuyAmount: number;
   lockupPercentage: number;
   vestingUnlockDate: number;
-} 
+}

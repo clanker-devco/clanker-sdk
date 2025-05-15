@@ -86,10 +86,10 @@ async function main(): Promise<void> {
         durationInDays: 30, // 30-day vesting period
       },
       devBuy: {
-        ethAmount: "0", // 0.05 ETH initial buy
+        ethAmount: "0", // 0 ETH initial buy
       },
       rewardsConfig: {
-        creatorReward: 75, // 75% creator reward
+        creatorReward: 40, // 40% creator reward
         creatorAdmin: account.address,
         creatorRewardRecipient: account.address,
         interfaceAdmin: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,

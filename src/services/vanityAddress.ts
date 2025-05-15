@@ -17,7 +17,10 @@ export const findVanityAddress = async (
   }
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {
   const data = encodeDeployData({
-    abi: options?.chainId === monadTestnet.id ? ClankerToken_v3_1_monad_abi : ClankerToken_v3_1_abi,
+    abi:
+      options?.chainId === monadTestnet.id
+        ? ClankerToken_v3_1_monad_abi
+        : ClankerToken_v3_1_abi,
     bytecode:
       options?.chainId === monadTestnet.id
         ? ClankerToken_v3_1_monad_bytecode
