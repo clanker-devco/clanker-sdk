@@ -25,11 +25,38 @@ export const clankerConfigSchema = z.object({
 export const tokenConfigSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   symbol: z.string().min(1, 'Symbol is required'),
-  salt: z.string().refine(isHexRefinement, { message: 'Salt must be a valid hex string' }),
-  image: z.string().min(1, 'Image URL is required'),
-  metadata: z.string(),
-  context: z.string(),
-  originatingChainId: z.bigint()
+  salt: z.string().refine(isHexRefinement, { message: 'Salt must be a valid hex string' }).optional(),
+  image: z.string().min(1, 'Image URL is required').optional(),
+  metadata: z.object({
+    description: z.string().optional(),
+    socialMediaUrls: z.array(z.string()).optional(),
+    auditUrls: z.array(z.string()).optional()
+  }).optional(),
+  context: z.object({
+    interface: z.string(),
+    platform: z.string().optional(),
+    messageId: z.string().optional(),
+    id: z.string().optional()
+  }).optional(),
+  pool: z.object({
+    quoteToken: z.string().refine(isAddressRefinement),
+    initialMarketCap: z.string()
+  }).optional(),
+  vault: z.object({
+    percentage: z.number(),
+    durationInDays: z.number()
+  }).optional(),
+  devBuy: z.object({
+    ethAmount: z.string(),
+    maxSlippage: z.number().optional()
+  }).optional(),
+  rewardsConfig: z.object({
+    creatorReward: z.number().optional(),
+    creatorAdmin: z.string().refine(isAddressRefinement).optional(),
+    creatorRewardRecipient: z.string().refine(isAddressRefinement).optional(),
+    interfaceAdmin: z.string().refine(isAddressRefinement).optional(),
+    interfaceRewardRecipient: z.string().refine(isAddressRefinement).optional()
+  }).optional()
 });
 
 // Vault Config Schema - revised to properly handle default vault (no vesting)
@@ -77,44 +104,6 @@ export const deploymentConfigSchema = z.object({
   rewardsConfig: rewardsConfigSchema
 });
 
-// Simple Token Config Schema
-export const simpleTokenConfigSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  symbol: z.string().min(1, 'Symbol is required'),
-  salt: z.string().refine(isHexRefinement, { message: 'Salt must be a valid hex string' }).optional(),
-  image: z.string().optional(),
-  metadata: z.object({
-    description: z.string(),
-    socialMediaUrls: z.array(z.string()),
-    auditUrls: z.array(z.string())
-  }).optional(),
-  context: z.object({
-    interface: z.string(),
-    platform: z.string(),
-    messageId: z.string(),
-    id: z.string()
-  }).optional(),
-  pool: z.object({
-    quoteToken: z.string().refine(isHexRefinement, { message: 'Quote token must be a valid hex string' }).optional(),
-    initialMarketCap: z.string().optional()
-  }).optional(),
-  vault: z.object({
-    percentage: z.number().min(0).max(100, 'Vault percentage must be between 0 and 100'),
-    durationInDays: z.number().min(0, 'Duration must be non-negative')
-  }).optional(),
-  devBuy: z.object({
-    ethAmount: z.string(),
-    maxSlippage: z.number().optional()
-  }).optional(),
-  rewardsConfig: z.object({
-    creatorReward: z.number().min(0).max(80, 'Creator reward must be between 0 and 80').optional(),
-    creatorAdmin: z.string().refine(isHexRefinement, { message: 'Creator admin must be a valid hex string' }).optional(),
-    creatorRewardRecipient: z.string().refine(isHexRefinement, { message: 'Creator reward recipient must be a valid hex string' }).optional(),
-    interfaceAdmin: z.string().refine(isHexRefinement, { message: 'Interface admin must be a valid hex string' }).optional(),
-    interfaceRewardRecipient: z.string().refine(isHexRefinement, { message: 'Interface reward recipient must be a valid hex string' }).optional()
-  }).optional()
-});
-
 // Type inferences
 export type ZodClankerConfig = z.infer<typeof clankerConfigSchema>;
 export type ZodTokenConfig = z.infer<typeof tokenConfigSchema>;
@@ -123,4 +112,3 @@ export type ZodPoolConfig = z.infer<typeof poolConfigSchema>;
 export type ZodInitialBuyConfig = z.infer<typeof initialBuyConfigSchema>;
 export type ZodRewardsConfig = z.infer<typeof rewardsConfigSchema>;
 export type ZodDeploymentConfig = z.infer<typeof deploymentConfigSchema>;
-export type ZodSimpleTokenConfig = z.infer<typeof simpleTokenConfigSchema>; 

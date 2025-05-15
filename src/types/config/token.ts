@@ -1,92 +1,106 @@
 import type { Address } from "viem";
-import type { IClankerMetadata, IClankerSocialContext } from "../core/metadata.js";
 
 /**
- * Configuration for token deployment
+ * Form data interface for token deployment
  */
-export interface TokenConfig {
-  /** Name of the token */
+export interface DeployFormData {
   name: string;
-  /** Symbol of the token */
   symbol: string;
-  /** Unique salt for token deployment (bytes32) */
-  salt: `0x${string}`;
-  /** URL to token image */
-  image: string;
-  /** Token metadata including description and social links (JSON string) */
-  metadata: string;
-  /** Social context information (JSON string) */
-  context: string;
-  /** Chain ID where the token originates */
-  originatingChainId: bigint;
+  image: File | null;
+  imageUrl: string;
+  description: string;
+  devBuyAmount: string | number;
+  lockupPercentage: number;
+  vestingUnlockDate: bigint | null;
+  enableDevBuy: boolean;
+  enableLockup: boolean;
+  feeRecipient: string | null;
+  telegramLink: string;
+  websiteLink: string;
+  xLink: string;
+  marketCap: string;
+  farcasterLink: string;
+  pairedToken: string;
+  creatorRewardsRecipient: string;
+  creatorRewardsAdmin: string;
+  creatorReward?: number;
+  interfaceAdmin?: string;
+  interfaceRewardRecipient?: string;
 }
 
 /**
- * Simplified user-facing token configuration
+ * Metadata that can be modified by the creator post-deployment
  */
-export interface SimpleTokenConfig {
-  /** Name of the token */
+export interface ClankerMetadata {
+  description?: string;
+  socialMediaUrls?: string[];
+  auditUrls?: string[];
+}
+
+/**
+ * Immutable social context used during deployment
+ */
+export interface ClankerSocialContext {
+  interface: string;
+  platform?: string;
+  messageId?: string;
+  id?: string;
+}
+
+/**
+ * Pool configuration for token deployment
+ */
+export interface PoolConfig {
+  quoteToken?: Address;
+  initialMarketCap?: string;
+  desiredPrice?: number;
+}
+
+/**
+ * Vault configuration for token deployment
+ */
+export interface VaultConfig {
+  percentage: number;
+  durationInDays: number;
+}
+
+/**
+ * Developer buy configuration
+ */
+export interface DevBuyConfig {
+  ethAmount: string;
+  maxSlippage?: number;
+}
+
+/**
+ * Rewards distribution configuration
+ */
+export interface RewardsConfig {
+  creatorReward?: number;
+  creatorAdmin?: Address;
+  creatorRewardRecipient?: Address;
+  interfaceAdmin?: Address;
+  interfaceRewardRecipient?: Address;
+}
+
+/**
+ * Complete token configuration for deployment
+ */
+export interface TokenConfig {
   name: string;
-  /** Symbol of the token */
   symbol: string;
-  /** Optional unique salt for token deployment */
   salt?: `0x${string}`;
-  /** Optional URL to token image */
   image?: string;
-  /** Optional token metadata */
-  metadata?: {
-    /** Token description */
-    description: string;
-    /** Array of social media URLs */
-    socialMediaUrls: string[];
-    /** Array of audit URLs */
-    auditUrls: string[];
-  };
-  /** Optional social context */
-  context?: {
-    /** Interface identifier */
-    interface: string;
-    /** Platform identifier */
-    platform: string;
-    /** Message ID */
-    messageId: string;
-    /** Unique identifier */
-    id: string;
-  };
-  /** Optional pool configuration */
-  pool?: {
-    /** Quote token address */
-    quoteToken?: `0x${string}`;
-    /** Initial market cap */
-    initialMarketCap?: string;
-    /** Desired price in terms of quote token */
-    desiredPrice?: number;
-  };
-  /** Optional vault configuration */
-  vault?: {
-    /** Vault percentage */
-    percentage: number;
-    /** Vault duration in days */
-    durationInDays: number;
-  };
-  /** Optional developer buy configuration */
-  devBuy?: {
-    /** ETH amount */
-    ethAmount: string;
-    /** Maximum slippage percentage */
-    maxSlippage?: number;
-  };
-  /** Optional rewards configuration */
-  rewardsConfig?: {
-    /** Creator reward percentage (0-80) */
-    creatorReward?: number;
-    /** Creator admin address */
-    creatorAdmin?: `0x${string}`;
-    /** Creator reward recipient address */
-    creatorRewardRecipient?: `0x${string}`;
-    /** Interface admin address */
-    interfaceAdmin?: `0x${string}`;
-    /** Interface reward recipient address */
-    interfaceRewardRecipient?: `0x${string}`;
-  };
-} 
+  metadata?: ClankerMetadata;
+  context?: ClankerSocialContext;
+  pool?: PoolConfig;
+  vault?: VaultConfig;
+  devBuy?: DevBuyConfig;
+  rewardsConfig?: RewardsConfig;
+}
+
+export interface IClankerDeployConfig {
+  devBuyAmount: number;
+  lockupPercentage: number;
+  vestingUnlockDate: number;
+}

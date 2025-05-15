@@ -1,4 +1,4 @@
-import type { TokenConfig, SimpleTokenConfig, VaultConfig, PoolConfig, InitialBuyConfig, RewardsConfig, DeploymentConfig } from "../index.js";
+import type { TokenConfig, VaultConfig, PoolConfig, RewardsConfig } from "../index.js";
 import { ClankerConfig } from "../common.js";
 import { 
   tokenConfigSchema, 
@@ -7,10 +7,8 @@ import {
   initialBuyConfigSchema,
   rewardsConfigSchema, 
   deploymentConfigSchema,
-  simpleTokenConfigSchema,
   clankerConfigSchema
 } from "./validation-schema.js";
-import { z } from "zod";
 
 /**
  * Validates if a number is within a valid range
@@ -48,7 +46,7 @@ export function validateConfig<T>(config: T): ValidationResult {
   ) {
     // If it lacks certain properties that are in TokenConfig but not SimpleTokenConfig
     if (!('originatingChainId' in config) && !('metadata' in config && typeof config.metadata === 'string')) {
-      return simpleTokenConfigSchema.safeParse(config);
+      return tokenConfigSchema.safeParse(config);
     } else {
       return tokenConfigSchema.safeParse(config);
     }
@@ -163,15 +161,6 @@ export function isValidRewardsConfig(config: RewardsConfig): boolean {
 }
 
 /**
- * Validates a DeploymentConfig object
- * @param config - The DeploymentConfig to validate
- * @returns boolean indicating if the config is valid
- */
-export function isValidDeploymentConfig(config: DeploymentConfig): boolean {
-  return deploymentConfigSchema.safeParse(config).success;
-}
-
-/**
  * Type guard for ClankerConfig using Zod
  * @param value - The value to check
  * @returns boolean indicating if the value is a valid ClankerConfig
@@ -187,13 +176,4 @@ export function isClankerConfig(value: unknown): value is ClankerConfig {
  */
 export function isTokenConfig(value: unknown): value is TokenConfig {
   return tokenConfigSchema.safeParse(value).success;
-}
-
-/**
- * Type guard for DeploymentConfig using Zod
- * @param value - The value to check
- * @returns boolean indicating if the value is a valid DeploymentConfig
- */
-export function isDeploymentConfig(value: unknown): value is DeploymentConfig {
-  return deploymentConfigSchema.safeParse(value).success;
 }

@@ -5,20 +5,13 @@ import {
   parseEventLogs,
 } from 'viem';
 import type { ClankerConfig } from './types/common.js';
-import type { SimpleTokenConfig } from './types/config/token.js';
-import type { IClankerMetadata, IClankerSocialContext } from './types/core/metadata.js';
+import type { TokenConfig } from './types/config/token.js';
+import type { ClankerMetadata, ClankerSocialContext } from './types/config/token.js';
 import { Clanker_v3_1_abi } from './abi/v3.1/Clanker.js';
 import { validateConfig } from './types/utils/validation.js';
 import { buildTransaction } from './services/buildTransaction.js';
 import { getDesiredPriceAndPairAddress } from './types/utils/desired-price.js';
 import { getTokenPairByAddress } from './types/config/desired-price.js';
-
-/** Lightweight container for a pre-built deploy transaction */
-export type PreparedDeployTx = {
-  to: Address;
-  data: `0x${string}`;
-  value: bigint;   // ETH value for dev-buy (0 if none)
-};
 
 export class Clanker {
   private readonly wallet?: WalletClient;
@@ -44,13 +37,13 @@ export class Clanker {
    * @returns The address of the deployed token
    */
   public async deployToken(
-    cfg: SimpleTokenConfig,
+    cfg: TokenConfig,
   ): Promise<Address> {
     if (!this.wallet?.account) {
       throw new Error('Wallet account required for deployToken');
     }
 
-    // Validate the SimpleTokenConfig
+    // Validate the TokenConfig
     const validationResult = validateConfig(cfg);
     if (!validationResult.success) {
       throw new Error(`Invalid token configuration: ${JSON.stringify(validationResult.error?.format())}`);
@@ -72,13 +65,13 @@ export class Clanker {
     const xLink = socialLinks.find(url => url.includes('twitter.com') || url.includes('x.com')) || '';
     const websiteLink = socialLinks.find(url => !url.includes('t.me') && !url.includes('twitter.com') && !url.includes('x.com')) || '';
 
-    const clankerMetadata: IClankerMetadata = {
+    const clankerMetadata: ClankerMetadata = {
       description: cfg.metadata?.description || '',
       socialMediaUrls: cfg.metadata?.socialMediaUrls ?? [],
       auditUrls: cfg.metadata?.auditUrls ?? [],
     };
 
-    const clankerSocialContext: IClankerSocialContext = {
+    const clankerSocialContext: ClankerSocialContext = {
       interface: cfg.context?.interface || 'SDK',
       platform: cfg.context?.platform || '',
       messageId: cfg.context?.messageId || '',
@@ -144,8 +137,6 @@ export class Clanker {
 
 export * from './types/common.js';
 export * from './types/config/token.js';
-export * from './types/config/deployment.js';
-export * from './types/core/metadata.js';
 export * from './types/utils/validation.js';
 export * from './services/vanityAddress.js';
 

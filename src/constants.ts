@@ -52,13 +52,3 @@ export const VALID_TOKEN_PAIR_ADDRESS: [
   A0X_ADDRESS,
 ];
 
-// Minimal ERC20 ABI for fetching decimals
-export const ERC20_DECIMALS_ABI = [
-  {
-    "inputs": [],
-    "name": "decimals",
-    "outputs": [{ "type": "uint8", "name": "" }],
-    "stateMutability": "view",
-    "type": "function"
-  }
-] as const;
