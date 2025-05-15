@@ -7,7 +7,7 @@ import {
 import type { ClankerConfig } from './types/common.js';
 import type { SimpleTokenConfig } from './types/config/token.js';
 import type { IClankerMetadata, IClankerSocialContext } from './types/core/metadata.js';
-import { Clanker_v3_1_abi } from './abis/Clanker_V3_1.js';
+import { Clanker_v3_1_abi } from './abi/v3.1/Clanker.js';
 import { validateConfig } from './types/utils/validation.js';
 import { buildTransaction } from './services/buildTransaction.js';
 import { getDesiredPriceAndPairAddress } from './types/utils/desired-price.js';

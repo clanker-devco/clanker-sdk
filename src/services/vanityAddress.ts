@@ -5,7 +5,7 @@ import {
   ClankerToken_v3_1_bytecode,
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
-} from '../abis/ClankerToken.js';
+} from '../abi/v3.1/ClankerToken.js';
 import { monadTestnet } from 'viem/chains';
 
 export const findVanityAddress = async (

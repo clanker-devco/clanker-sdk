@@ -2,10 +2,6 @@ import { z } from 'zod';
 import { isAddress, isHex } from 'viem';
 import type { Address } from 'viem';
 
-// Custom validators
-const hexValidator = (val: string) => isHex(val) || 'Invalid hex string';
-const addressValidator = (val: string) => isAddress(val) || 'Invalid Ethereum address';
-
 // Custom Zod refinements
 const isHexRefinement = (val: string) => isHex(val);
 const isAddressRefinement = (val: string) => isAddress(val as Address);
@@ -15,7 +11,7 @@ export const clankerConfigSchema = z.object({
   publicClient: z.any({ message: 'Public client is required' }),
   wallet: z.any().optional(),
   factoryAddress: z.string().refine(isAddressRefinement, { message: 'Factory address must be a valid Ethereum address' }).optional(),
-  network: z.enum(['mainnet', 'testnet'], { message: 'Network must be either "mainnet" or "testnet"' }),
+  network: z.enum(['base', 'baseSepolia'], { message: 'Network must be either "base" or "baseSepolia"' }),
   gas: z.object({
     maxFeePerGas: z.bigint().optional(),
     maxPriorityFeePerGas: z.bigint().optional(),
