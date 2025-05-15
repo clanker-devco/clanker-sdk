@@ -1,10 +1,10 @@
 
 import { Abi } from "viem";
-import { Clanker_v0_abi } from "../../abi/v0/Clanker.js";
-import { Clanker_v1_abi } from "../../abi/v1/Clanker.js";
-import { Clanker_v2_abi } from "../../abi/v2/Clanker.js"; 
-import { Clanker_v3_abi } from "../../abi/v3/Clanker.js";
-import { Clanker_v3_1_abi } from "../../abi/v3.1/Clanker.js";
+import { Clanker_v0_abi } from "../abi/v0/Clanker.js";
+import { Clanker_v1_abi } from "../abi/v1/Clanker.js";
+import { Clanker_v2_abi } from "../abi/v2/Clanker.js"; 
+import { Clanker_v3_abi } from "../abi/v3/Clanker.js";
+import { Clanker_v3_1_abi } from "../abi/v3.1/Clanker.js";
 
 
 export const CLANKERS = {

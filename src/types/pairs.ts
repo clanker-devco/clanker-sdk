@@ -1,3 +1,14 @@
+import {
+  CLANKER_ADDRESS,
+  DEGEN_ADDRESS,
+  HIGHER_ADDRESS,
+  ANON_ADDRESS,
+  CB_BTC_ADDRESS,
+  NATIVE_ADDRESS,
+  A0X_ADDRESS,
+  WETH_ADDRESS,
+} from '../constants.js';
+
 export interface ITokenData {
   chainId: number;
   address: `0x${string}`;
@@ -10,6 +21,7 @@ export interface IPoolConfig {
   pairedToken: `0x${string}`;
   tickIfToken0IsNewToken: number;
 }
+
 export type TokenPair =
   | 'WETH'
   | 'DEGEN'
@@ -19,9 +31,9 @@ export type TokenPair =
   | 'BTC'
   | 'NATIVE'
   | 'A0x'
-  // wrapped monad
   | 'WMON'
   | null;
+
 export const VALID_TOKEN_PAIRS: TokenPair[] = [
   'WETH',
   'DEGEN',
@@ -32,6 +44,7 @@ export const VALID_TOKEN_PAIRS: TokenPair[] = [
   'NATIVE',
   'A0x',
 ];
+
 export const VALID_TOKEN_PAIR_ADDRESSES: `0x${string}`[] = [
   WETH_ADDRESS,
   DEGEN_ADDRESS,
@@ -42,13 +55,3 @@ export const VALID_TOKEN_PAIR_ADDRESSES: `0x${string}`[] = [
   A0X_ADDRESS,
   NATIVE_ADDRESS,
 ];
-import {
-  CLANKER_ADDRESS,
-  DEGEN_ADDRESS,
-  HIGHER_ADDRESS,
-  ANON_ADDRESS,
-  CB_BTC_ADDRESS,
-  NATIVE_ADDRESS,
-  A0X_ADDRESS,
-  WETH_ADDRESS,
-} from '../constants.js';

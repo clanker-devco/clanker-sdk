@@ -2,7 +2,7 @@ import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY, WETH_ADDRESS } from '../constants
 import { encodeFunctionData, getAddress, isAddress, stringify } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import { ClankerMetadata, ClankerSocialContext, DeployFormData } from '../types/config/token.js';
-import { getRelativeUnixTimestamp } from '../types/utils/unix-timestamp.js';
+import { getRelativeUnixTimestamp } from '../utils/unix-timestamp.js';
 import { findVanityAddress } from './vanityAddress.js';
 
 interface BuildTransactionProps {

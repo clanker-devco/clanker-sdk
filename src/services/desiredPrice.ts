@@ -1,7 +1,7 @@
 
 import { monadTestnet } from 'viem/chains';
-import { ITokenData, TokenPair } from '../pairs.js';
-import { WETH_ADDRESS, DEGEN_ADDRESS, NATIVE_ADDRESS, CLANKER_ADDRESS, ANON_ADDRESS, HIGHER_ADDRESS, CB_BTC_ADDRESS, A0X_ADDRESS } from '../../constants.js';
+import { ITokenData, TokenPair } from '../types/pairs.js';
+import { WETH_ADDRESS, DEGEN_ADDRESS, NATIVE_ADDRESS, CLANKER_ADDRESS, ANON_ADDRESS, HIGHER_ADDRESS, CB_BTC_ADDRESS, A0X_ADDRESS } from '../constants.js';
 
 
 export const getTokenPairByAddress = (address: `0x${string}`): TokenPair => {

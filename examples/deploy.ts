@@ -8,7 +8,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
 import { Clanker } from "../src/index.js";
 import * as dotenv from "dotenv";
-import { validateConfig } from "../src/types/utils/validation.js";
+import { validateConfig } from "../src/utils/validation.js";
 
 // Load environment variables
 dotenv.config();

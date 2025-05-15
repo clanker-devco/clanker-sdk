@@ -1,5 +1,5 @@
-import type { TokenConfig, VaultConfig, PoolConfig, RewardsConfig } from "../index.js";
-import { ClankerConfig } from "../common.js";
+import type { TokenConfig, VaultConfig, PoolConfig, RewardsConfig } from "../types/index.js";
+import { ClankerConfig } from "../types/common.js";
 import { 
   tokenConfigSchema, 
   vaultConfigSchema, 

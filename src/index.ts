@@ -8,10 +8,10 @@ import type { ClankerConfig } from './types/common.js';
 import type { TokenConfig } from './types/config/token.js';
 import type { ClankerMetadata, ClankerSocialContext } from './types/config/token.js';
 import { Clanker_v3_1_abi } from './abi/v3.1/Clanker.js';
-import { validateConfig } from './types/utils/validation.js';
+import { validateConfig } from './utils/validation.js';
 import { buildTransaction } from './services/buildTransaction.js';
-import { getDesiredPriceAndPairAddress } from './types/utils/desired-price.js';
-import { getTokenPairByAddress } from './types/config/desired-price.js';
+import { getDesiredPriceAndPairAddress } from './utils/desired-price.js';
+import { getTokenPairByAddress } from './services/desiredPrice.js';
 
 export class Clanker {
   private readonly wallet?: WalletClient;
@@ -137,7 +137,7 @@ export class Clanker {
 
 export * from './types/common.js';
 export * from './types/config/token.js';
-export * from './types/utils/validation.js';
+export * from './utils/validation.js';
 export * from './services/vanityAddress.js';
 
 // Re-export commonly used types

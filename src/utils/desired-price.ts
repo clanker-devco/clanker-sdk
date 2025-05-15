@@ -1,5 +1,5 @@
-import { TokenPair } from "../pairs.js";
-import { WETH_ADDRESS, DEGEN_ADDRESS, CLANKER_ADDRESS, ANON_ADDRESS, HIGHER_ADDRESS, CB_BTC_ADDRESS, NATIVE_ADDRESS, A0X_ADDRESS } from "../../constants.js";
+import { TokenPair } from "../types/pairs.js";
+import { WETH_ADDRESS, DEGEN_ADDRESS, CLANKER_ADDRESS, ANON_ADDRESS, HIGHER_ADDRESS, CB_BTC_ADDRESS, NATIVE_ADDRESS, A0X_ADDRESS } from "../constants.js";
 
 
 export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: string = '10') => {

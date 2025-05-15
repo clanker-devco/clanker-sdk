@@ -1,5 +1,5 @@
 import { ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
-import { CLANKERS } from '../types/utils/clankers.js';
+import { CLANKERS } from '../utils/clankers.js';
 import {
   ClankerToken_v3_1_abi,
   ClankerToken_v3_1_bytecode,
