@@ -2,7 +2,7 @@
 export const DEFAULT_BASE_RPC = 'https://mainnet.base.org';
 
 // Common addresses
-import { b3, base, baseSepolia } from 'viem/chains';
+import { base, baseSepolia } from 'viem/chains';
 
 export const CLANKER_FACTORY_V2: `0x${string}` =
   '0x732560fa1d1A76350b1A500155BA978031B53833';
@@ -37,16 +37,7 @@ export const CB_BTC_ADDRESS: `0x${string}` =
 export const A0X_ADDRESS: `0x${string}` =
   '0x820C5F0fB255a1D18fd0eBB0F1CCefbC4D546dA7';
 
-export const SUPPORTED_CHAINS: number[] = [base.id, b3.id, baseSepolia.id];
-
-export const B3_FACTORY_ADDRESS: `0x${string}` =
-  '0xF16De52f29D690d229273C583714bA622827a1F5';
-export const B3_LOCKER_ADDRESS: `0x${string}` =
-  '0x99fd7dd31879e38b701f644e041894626a32d3e4';
-export const B3_VAULT_ADDRESS: `0x${string}` =
-  '0x99f54b1f2266b683cb043bdb1996f7e8b7f034c9';
-export const B3_WETH_ADDRESS: `0x${string}` =
-  '0x4200000000000000000000000000000000000006';
+export const SUPPORTED_CHAINS: number[] = [base.id, baseSepolia.id];
 
 export const INTERFACE_ADMIN_ADDRESS =
   '0xEea96d959963EaB488A3d4B7d5d347785cf1Eab8';
