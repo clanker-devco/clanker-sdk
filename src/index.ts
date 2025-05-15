@@ -136,7 +136,7 @@ export class Clanker {
           cfg.rewardsConfig?.interfaceRewardRecipient || '',
         image: null,
       },
-      chainId: 8453,
+      chainId: this.publicClient.chain?.id || 8453,
       clankerMetadata,
       clankerSocialContext,
       desiredPrice: desiredPrice,

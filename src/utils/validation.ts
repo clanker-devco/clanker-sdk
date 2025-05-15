@@ -41,14 +41,7 @@ export function validateConfig<T>(config: T): ValidationResult {
     'name' in config &&
     'symbol' in config
   ) {
-    if (
-      !('originatingChainId' in config) &&
-      !('metadata' in config && typeof config.metadata === 'string')
-    ) {
-      return tokenConfigSchema.safeParse(config);
-    } else {
-      return tokenConfigSchema.safeParse(config);
-    }
+    return tokenConfigSchema.safeParse(config);
   }
 
   // Check if it's a DeploymentConfig
@@ -107,8 +100,7 @@ export function validateConfig<T>(config: T): ValidationResult {
   if (
     typeof config === 'object' &&
     config !== null &&
-    'publicClient' in config &&
-    'network' in config
+    'publicClient' in config
   ) {
     return clankerConfigSchema.safeParse(config);
   }

@@ -10,36 +10,12 @@ const isAddressRefinement = (val: string) => isAddress(val as Address);
 export const clankerConfigSchema = z.object({
   publicClient: z.any({ message: 'Public client is required' }),
   wallet: z.any().optional(),
-  factoryAddress: z
-    .string()
-    .refine(isAddressRefinement, {
-      message: 'Factory address must be a valid Ethereum address',
-    })
-    .optional(),
-  network: z.enum(['base', 'baseSepolia'], {
-    message: 'Network must be either "base" or "baseSepolia"',
-  }),
-  gas: z
-    .object({
-      maxFeePerGas: z.bigint().optional(),
-      maxPriorityFeePerGas: z.bigint().optional(),
-    })
-    .optional(),
-  timeout: z
-    .object({
-      transactionTimeout: z.number().min(0).optional(),
-    })
-    .optional(),
 });
 
 // Token Config Schema
 export const tokenConfigSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   symbol: z.string().min(1, 'Symbol is required'),
-  salt: z
-    .string()
-    .refine(isHexRefinement, { message: 'Salt must be a valid hex string' })
-    .optional(),
   image: z.string().optional(),
   metadata: z
     .object({

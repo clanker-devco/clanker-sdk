@@ -76,7 +76,6 @@ const wallet = createWalletClient({
 const clanker = new Clanker({
   wallet,
   publicClient,
-  network: "base",
 });
 
 async function deployToken() {
