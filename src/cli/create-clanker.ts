@@ -545,9 +545,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       // Initialize Clanker SDK
       const clanker = new Clanker({
         wallet: walletClient,
-        publicClient,
-        network: 'base',
-        factoryAddress: FACTORY_ADDRESS,
+        publicClient
       });
 
       console.log('\n🔄 Preparing deployment configuration...');
