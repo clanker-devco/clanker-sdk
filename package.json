@@ -1,7 +1,7 @@
 {
   "name": "clanker-sdk",
-  "version": "3.9.8",
-  "description": "SDK for deploying tokens using Clanker",
+  "version": "4.0.0",
+  "description": "SDK for deploying tokens on Baseusing Clanker",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {
