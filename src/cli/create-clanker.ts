@@ -6,10 +6,10 @@ import { createPublicClient, createWalletClient, http, PublicClient, WalletClien
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import * as dotenv from 'dotenv';
-import { parseUnits } from 'ethers';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { validateConfig } from '../utils/validation.js';
 
 // Load environment variables
 dotenv.config();
@@ -17,13 +17,15 @@ dotenv.config();
 // Read ASCII art from file
 const ASCII_ART = fs.readFileSync(path.join(__dirname, 'ascii.txt'), 'utf8');
 
+// Constants
+const WETH_ADDRESS = '0x4200000000000000000000000000000000000006' as const;
+const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+
 // Main function that will be exported
 async function createClanker() {
   const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
   const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
   const RPC_URL = process.env.RPC_URL;
-  const WETH_ADDRESS = '0x4200000000000000000000000000000000000006';
-  const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 
   // Helper function to safely convert address to 0x-prefixed string type
   function toHexAddress(address: string | undefined): `0x${string}` | undefined {
@@ -76,7 +78,6 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
   interface ClankerAnswers {
     name: string;
     symbol: string;
-    salt?: `0x${string}`;
     image: string;
     pairedTokenChoice: 'WETH' | 'USDC' | 'CUSTOM';
     customPairedToken?: string;
@@ -362,19 +363,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         prefix: '',
         validate: validateUrl,
       },
-      {
-        type: 'input',
-        name: 'salt',
-        message: 'Enter custom salt (optional, press enter for default 0x0000...):',
-        prefix: '',
-        validate: (input: string) => {
-          if (!input) return true; // Allow empty for default
-          if (!/^0x[a-fA-F0-9]{64}$/.test(input)) {
-            return 'Salt must be a valid bytes32 value (0x + 64 hex characters)';
-          }
-          return true;
-        },
-      },
+
       {
         type: 'list',
         name: 'rewardsConfig.creatorReward',
@@ -492,107 +481,115 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
   }
 
   async function deployToken(answers: ClankerAnswers) {
-    if (!PRIVATE_KEY || !FACTORY_ADDRESS) {
-      throw new Error('Missing required environment variables (PRIVATE_KEY, FACTORY_ADDRESS)');
-    }
+    try {
+      // Initialize wallet with private key
+      const account = privateKeyToAccount(PRIVATE_KEY);
 
-    const account = privateKeyToAccount(PRIVATE_KEY);
-    const transport = RPC_URL ? http(RPC_URL) : http();
-    
-    // Initialize the wallet and public client with explicit typing
-    const publicClient = createPublicClient({
-      chain: base,
-      transport,
-    }) as PublicClient;
+      // Create transport with optional custom RPC
+      const transport = RPC_URL ? http(RPC_URL) : http();
 
-    const walletClient = createWalletClient({
-      account,
-      chain: base,
-      transport,
-    }) as WalletClient;
+      const publicClient = createPublicClient({
+        chain: base,
+        transport,
+      }) as PublicClient;
 
-    // Initialize Clanker SDK
-    const clanker = new Clanker({
-      wallet: walletClient,
-      publicClient,
-      factoryAddress: FACTORY_ADDRESS,
-    });
+      const walletClient = createWalletClient({
+        account,
+        chain: base,
+        transport,
+      }) as WalletClient;
 
-    console.log('\n🔄 Preparing deployment configuration...');
+      // Initialize Clanker SDK
+      const clanker = new Clanker({
+        wallet: walletClient,
+        publicClient,
+        network: "base",
+        factoryAddress: FACTORY_ADDRESS,
+      });
 
-    // Determine quote token address and decimals
-    let quoteToken: string;
-    let decimals: number;
-    
-    switch (answers.pairedTokenChoice) {
-      case 'WETH':
-        quoteToken = WETH_ADDRESS;
-        decimals = 18;
-        break;
-      case 'USDC':
-        quoteToken = USDC_ADDRESS;
-        decimals = 6;
-        break;
-      case 'CUSTOM':
-        quoteToken = answers.customPairedToken!;
-        decimals = 18; // Default to 18 for custom tokens
-        break;
-      default:
-        quoteToken = WETH_ADDRESS;
-        decimals = 18;
-    }
+      console.log('\n🔄 Preparing deployment configuration...');
 
-    // Deploy token with configuration
-    const tokenAddress = await clanker.deployToken({
-      name: answers.name,
+      // Determine quote token address
+      const quoteToken = answers.pairedTokenChoice === 'WETH' 
+        ? WETH_ADDRESS 
+        : answers.pairedTokenChoice === 'USDC' 
+          ? USDC_ADDRESS 
+          : answers.customPairedToken as `0x${string}`;
+
+      // Prepare token configuration
+      const tokenConfig = {
+              name: answers.name,
       symbol: answers.symbol,
-      salt: answers.salt || '0x0000000000000000000000000000000000000000000000000000000000000000',
       image: answers.image,
-      metadata: answers.metadata,
-      context: {
-        interface: 'Clanker CLI',
-        platform: 'Clanker',
-        messageId: `CLI-${Date.now()}`,
-        id: `${answers.symbol}-${Date.now()}`,
-      },
-      vault: answers.vaultConfig.vaultPercentage !== '0' ? {
-        percentage: parseInt(answers.vaultConfig.vaultPercentage, 10),
-        durationInDays: parseInt(answers.vaultConfig.durationInDays, 10),
-      } : undefined,
-      pool: {
-        quoteToken: quoteToken as `0x${string}`,
-        initialMarketCap: answers.initialMarketCapUsd,
-      },
-      devBuy: answers.devBuy.ethAmount !== '0' ? {
-        ethAmount: answers.devBuy.ethAmount,
-        maxSlippage: answers.devBuy.maxSlippage,
-      } : undefined,
-      rewardsConfig: {
-        creatorReward: answers.rewardsConfig.creatorReward === 'CUSTOM'
-          ? Number(answers.rewardsConfig.customCreatorReward)
-          : Number(answers.rewardsConfig.creatorReward),
-        ...(answers.rewardsConfig.creatorAdmin ? {
-          creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin)
-        } : {}),
-        ...(answers.rewardsConfig.creatorRewardRecipient ? {
-          creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient)
-        } : {}),
-        ...(answers.rewardsConfig.interfaceAdmin ? {
-          interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin)
-        } : {}),
-        ...(answers.rewardsConfig.interfaceRewardRecipient ? {
-          interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient)
-        } : {})
+        metadata: {
+          description: answers.metadata.description,
+          socialMediaUrls: answers.metadata.socialMediaUrls,
+          auditUrls: answers.metadata.auditUrls,
+        },
+        context: {
+          interface: 'Clanker CLI',
+          platform: 'Clanker',
+          messageId: `CLI-${Date.now()}`,
+          id: `${answers.symbol}-${Date.now()}`,
+        },
+        pool: {
+          quoteToken,
+          initialMarketCap: answers.initialMarketCapUsd,
+        },
+        vault: answers.vaultConfig.vaultPercentage !== '0' ? {
+          percentage: parseInt(answers.vaultConfig.vaultPercentage, 10),
+          durationInDays: parseInt(answers.vaultConfig.durationInDays, 10),
+        } : undefined,
+        devBuy: answers.devBuy.ethAmount !== '0' ? {
+          ethAmount: answers.devBuy.ethAmount,
+          maxSlippage: answers.devBuy.maxSlippage,
+        } : undefined,
+        rewardsConfig: {
+          creatorReward: answers.rewardsConfig.creatorReward === 'CUSTOM'
+            ? Number(answers.rewardsConfig.customCreatorReward)
+            : Number(answers.rewardsConfig.creatorReward),
+          ...(answers.rewardsConfig.creatorAdmin && {
+            creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin)
+          }),
+          ...(answers.rewardsConfig.creatorRewardRecipient && {
+            creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient)
+          }),
+          ...(answers.rewardsConfig.interfaceAdmin && {
+            interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin)
+          }),
+          ...(answers.rewardsConfig.interfaceRewardRecipient && {
+            interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient)
+          })
+        }
+      };
+
+      // Validate the token configuration
+      const tokenValidation = validateConfig(tokenConfig);
+      
+      if (!tokenValidation.success) {
+        console.error('\n❌ Token configuration validation failed:');
+        console.error(tokenValidation.error?.format());
+        throw new Error('Invalid token configuration');
       }
-    });
 
-    console.log('\n✨ Deployment successful!');
-    console.log(`📍 Token address: ${tokenAddress}`);
-    console.log('\n🌐 View on:');
-    console.log(`Basescan: https://basescan.org/token/${tokenAddress}`);
-    console.log(`Clanker World: https://clanker.world/clanker/${tokenAddress}`);
+      console.log('\n✅ Token configuration is valid!');
+      console.log('\n📝 Review your token configuration:\n');
+      console.log(JSON.stringify(tokenConfig, null, 2));
 
-    return tokenAddress;
+      // Deploy token with validated configuration
+      const tokenAddress = await clanker.deployToken(tokenConfig);
+
+      console.log('\n✨ Deployment successful!');
+      console.log(`📍 Token address: ${tokenAddress}`);
+      console.log('\n🌐 View on:');
+      console.log(`Basescan: https://basescan.org/token/${tokenAddress}`);
+      console.log(`Clanker World: https://clanker.world/clanker/${tokenAddress}`);
+
+      return tokenAddress;
+    } catch (error) {
+      console.error('\n❌ Deployment failed:', error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
   }
 
   async function main() {
@@ -646,5 +643,12 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
   await main();
 }
 
+export default createClanker;
 
-export default createClanker; 
+// Call the function when the script is run directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  createClanker().catch((error) => {
+    console.error('Failed to create Clanker:', error);
+    process.exit(1);
+  });
+} 
