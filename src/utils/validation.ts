@@ -1,5 +1,3 @@
-import type { TokenConfig, VaultConfig, PoolConfig, RewardsConfig } from "../types/index.js";
-import { ClankerConfig } from "../types/index.js";
 import { 
   tokenConfigSchema, 
   vaultConfigSchema, 
@@ -122,58 +120,4 @@ export function validateConfig<T>(config: T): ValidationResult {
       format: () => ({ _errors: ['Unable to determine configuration type for validation'] })
     }
   };
-}
-
-/**
- * Validates a TokenConfig object
- * @param config - The TokenConfig to validate
- * @returns boolean indicating if the config is valid
- */
-export function isValidTokenConfig(config: TokenConfig): boolean {
-  return tokenConfigSchema.safeParse(config).success;
-}
-
-/**
- * Validates a VaultConfig object
- * @param config - The VaultConfig to validate
- * @returns boolean indicating if the config is valid
- */
-export function isValidVaultConfig(config: VaultConfig): boolean {
-  return vaultConfigSchema.safeParse(config).success;
-}
-
-/**
- * Validates a PoolConfig object
- * @param config - The PoolConfig to validate
- * @returns boolean indicating if the config is valid
- */
-export function isValidPoolConfig(config: PoolConfig): boolean {
-  return poolConfigSchema.safeParse(config).success;
-}
-
-/**
- * Validates a RewardsConfig object
- * @param config - The RewardsConfig to validate
- * @returns boolean indicating if the config is valid
- */
-export function isValidRewardsConfig(config: RewardsConfig): boolean {
-  return rewardsConfigSchema.safeParse(config).success;
-}
-
-/**
- * Type guard for ClankerConfig using Zod
- * @param value - The value to check
- * @returns boolean indicating if the value is a valid ClankerConfig
- */
-export function isClankerConfig(value: unknown): value is ClankerConfig {
-  return clankerConfigSchema.safeParse(value).success;
-}
-
-/**
- * Type guard for TokenConfig using Zod
- * @param value - The value to check
- * @returns boolean indicating if the value is a valid TokenConfig
- */
-export function isTokenConfig(value: unknown): value is TokenConfig {
-  return tokenConfigSchema.safeParse(value).success;
 }
