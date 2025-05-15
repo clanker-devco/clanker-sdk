@@ -127,15 +127,6 @@ export function validateConfig<T>(config: T): ValidationResult {
 }
 
 /**
- * Validates a ClankerConfig object
- * @param config - The ClankerConfig to validate
- * @returns boolean indicating if the config is valid
- */
-export function isValidClankerConfig(config: ClankerConfig): boolean {
-  return clankerConfigSchema.safeParse(config).success;
-}
-
-/**
  * Validates a TokenConfig object
  * @param config - The TokenConfig to validate
  * @returns boolean indicating if the config is valid
@@ -199,15 +190,6 @@ export function isTokenConfig(value: unknown): value is TokenConfig {
 }
 
 /**
- * Type guard for SimpleTokenConfig using Zod
- * @param value - The value to check
- * @returns boolean indicating if the value is a valid SimpleTokenConfig
- */
-export function isSimpleTokenConfig(value: unknown): value is SimpleTokenConfig {
-  return simpleTokenConfigSchema.safeParse(value).success;
-}
-
-/**
  * Type guard for DeploymentConfig using Zod
  * @param value - The value to check
  * @returns boolean indicating if the value is a valid DeploymentConfig
@@ -215,85 +197,3 @@ export function isSimpleTokenConfig(value: unknown): value is SimpleTokenConfig 
 export function isDeploymentConfig(value: unknown): value is DeploymentConfig {
   return deploymentConfigSchema.safeParse(value).success;
 }
-
-// Export enhanced validation functions that return detailed results
-// These are kept for backward compatibility
-/**
- * Validates a ClankerConfig object using Zod
- * @param config - The ClankerConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateClankerConfig(config: ClankerConfig) {
-  return clankerConfigSchema.safeParse(config);
-}
-
-/**
- * Validates a TokenConfig object using Zod
- * @param config - The TokenConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateTokenConfig(config: TokenConfig) {
-  return tokenConfigSchema.safeParse(config);
-}
-
-/**
- * Validates a VaultConfig object using Zod
- * @param config - The VaultConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateVaultConfig(config: VaultConfig) {
-  return vaultConfigSchema.safeParse(config);
-}
-
-/**
- * Validates a PoolConfig object using Zod
- * @param config - The PoolConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validatePoolConfig(config: PoolConfig) {
-  return poolConfigSchema.safeParse(config);
-}
-
-/**
- * Validates an InitialBuyConfig object using Zod
- * @param config - The InitialBuyConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateInitialBuyConfig(config: InitialBuyConfig) {
-  return initialBuyConfigSchema.safeParse(config);
-}
-
-/**
- * Validates a RewardsConfig object using Zod
- * @param config - The RewardsConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateRewardsConfig(config: RewardsConfig) {
-  return rewardsConfigSchema.safeParse(config);
-}
-
-/**
- * Validates a DeploymentConfig object using Zod
- * @param config - The DeploymentConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateDeploymentConfig(config: DeploymentConfig) {
-  return deploymentConfigSchema.safeParse(config);
-}
-
-/**
- * Validates a SimpleTokenConfig object using Zod
- * @param config - The SimpleTokenConfig to validate
- * @returns Result with success flag and either the validated data or validation errors
- * @deprecated Use validateConfig instead
- */
-export function validateSimpleTokenConfig(config: SimpleTokenConfig) {
-  return simpleTokenConfigSchema.safeParse(config);
-} 

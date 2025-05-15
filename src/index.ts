@@ -61,50 +61,62 @@ export class Clanker {
       cfg.pool?.initialMarketCap?.toString() || '10'
     );
 
+    // Calculate vesting unlock date if vault configuration is provided
+    const vestingUnlockDate = cfg.vault?.durationInDays 
+      ? BigInt(Math.floor(Date.now() / 1000) + (cfg.vault.durationInDays * 24 * 60 * 60))
+      : BigInt(0);
+
+    // Extract social media links
+    const socialLinks = cfg.metadata?.socialMediaUrls ?? [];
+    const telegramLink = socialLinks.find(url => url.includes('t.me')) || '';
+    const xLink = socialLinks.find(url => url.includes('twitter.com') || url.includes('x.com')) || '';
+    const websiteLink = socialLinks.find(url => !url.includes('t.me') && !url.includes('twitter.com') && !url.includes('x.com')) || '';
+
     const clankerMetadata: IClankerMetadata = {
-      description: 'test description from SDK',
+      description: cfg.metadata?.description || '',
       socialMediaUrls: cfg.metadata?.socialMediaUrls ?? [],
       auditUrls: cfg.metadata?.auditUrls ?? [],
     };
 
-      const clankerSocialContext: IClankerSocialContext = {
-        interface: 'SDK',
-        platform: '',
-        messageId: '',
-        id: '',
-      };
+    const clankerSocialContext: IClankerSocialContext = {
+      interface: cfg.context?.interface || 'SDK',
+      platform: cfg.context?.platform || '',
+      messageId: cfg.context?.messageId || '',
+      id: cfg.context?.id || '',
+    };
 
-      const tx = await buildTransaction({
-        deployerAddress: this.wallet.account.address,
-        formData: {
-          name: cfg.name,
-          symbol: cfg.symbol,
-          imageUrl: '',
-          description: '',
-          devBuyAmount: 0,
-          lockupPercentage: 0,
-          vestingUnlockDate: BigInt(0),
-          enableDevBuy: false,
-          enableLockup: false,
-          feeRecipient: '',
-          telegramLink: '',
-          websiteLink: '',
-          xLink: '',
-          marketCap: '10',
-          farcasterLink: '',
-          pairedToken: pairAddress,
-          creatorRewardsRecipient: '',
-          creatorRewardsAdmin: '',
-          interfaceAdmin: '',
-          interfaceRewardRecipient: '',
-          image: null,
-        },
-        chainId: 8453,
-        clankerMetadata,
-        clankerSocialContext,
-        desiredPrice: desiredPrice,
-      });
-      console.log('tx', tx);
+    const tx = await buildTransaction({
+      deployerAddress: this.wallet.account.address,
+      formData: {
+        name: cfg.name,
+        symbol: cfg.symbol,
+        imageUrl: cfg.image || '',
+        description: cfg.metadata?.description || '',
+        devBuyAmount: cfg.devBuy?.ethAmount ? parseFloat(cfg.devBuy.ethAmount) : 0,
+        lockupPercentage: cfg.vault?.percentage || 0,
+        vestingUnlockDate,
+        enableDevBuy: !!cfg.devBuy?.ethAmount,
+        enableLockup: !!cfg.vault?.percentage,
+        feeRecipient: cfg.rewardsConfig?.creatorRewardRecipient || '',
+        telegramLink,
+        websiteLink,
+        xLink,
+        marketCap: cfg.pool?.initialMarketCap?.toString() || '10',
+        farcasterLink: '',
+        pairedToken: pairAddress,
+        creatorRewardsRecipient: cfg.rewardsConfig?.creatorRewardRecipient || '',
+        creatorRewardsAdmin: cfg.rewardsConfig?.creatorAdmin || '',
+        interfaceAdmin: cfg.rewardsConfig?.interfaceAdmin || '',
+        creatorReward: cfg.rewardsConfig?.creatorReward || 0,
+        interfaceRewardRecipient: cfg.rewardsConfig?.interfaceRewardRecipient || '',
+        image: null,
+      },
+      chainId: 8453,
+      clankerMetadata,
+      clankerSocialContext,
+      desiredPrice: desiredPrice,
+    });
+    console.log('tx', tx);
     const hash = await this.wallet.sendTransaction({
       ...tx.transaction,
       account: this.wallet.account,
