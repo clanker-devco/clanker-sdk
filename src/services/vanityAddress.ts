@@ -1,11 +1,11 @@
 import { ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
-import { CLANKERS } from '../../types/utils/clankers.js';
+import { CLANKERS } from '../types/utils/clankers.js';
 import {
   ClankerToken_v3_1_abi,
   ClankerToken_v3_1_bytecode,
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
-} from '../../abis/ClankerToken.js';
+} from '../abis/ClankerToken.js';
 import { monadTestnet } from 'viem/chains';
 
 export const findVanityAddress = async (

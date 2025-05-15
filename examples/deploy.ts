@@ -53,7 +53,7 @@ async function main(): Promise<void> {
     const clanker = new Clanker({
       wallet,
       publicClient,
-      network: "mainnet",
+      network: "base",
     });
 
     console.log("\n🚀 Deploying Token\n");

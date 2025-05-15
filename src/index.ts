@@ -9,7 +9,7 @@ import type { SimpleTokenConfig } from './types/config/token.js';
 import type { IClankerMetadata, IClankerSocialContext } from './types/core/metadata.js';
 import { Clanker_v3_1_abi } from './abis/Clanker_V3_1.js';
 import { validateConfig } from './types/utils/validation.js';
-import { buildTransaction } from './services/deployment/buildTransaction.js';
+import { buildTransaction } from './services/buildTransaction.js';
 import { getDesiredPriceAndPairAddress } from './types/utils/desired-price.js';
 import { getTokenPairByAddress } from './types/config/desired-price.js';
 
@@ -147,9 +147,7 @@ export * from './types/config/token.js';
 export * from './types/config/deployment.js';
 export * from './types/core/metadata.js';
 export * from './types/utils/validation.js';
-export * from './services/vanity/index.js';
-
-export { ClankerClient } from './core/client.js';
+export * from './services/vanityAddress.js';
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';

@@ -11,7 +11,7 @@ export interface ClankerConfig {
   /** Optional factory address */
   factoryAddress?: Address;
   /** The network to use for deployments and interactions */
-  network: 'mainnet' | 'testnet';
+  network: 'base' | 'baseSepolia';
   
   /**
    * Optional configuration for gas settings
