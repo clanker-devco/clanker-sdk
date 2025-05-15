@@ -30,46 +30,4 @@ export interface ClankerConfig {
     /** Transaction timeout in milliseconds */
     transactionTimeout?: number;
   };
-}
-
-/**
- * Pool configuration for token deployment
- */
-export interface PoolConfig {
-  quoteToken?: Address;
-  initialMarketCap?: string;
-  desiredPrice?: number;
-}
-
-/**
- * Vault configuration for token deployment
- */
-export interface VaultConfig {
-  percentage: number;
-  durationInDays: number;
-}
-
-/**
- * Developer buy configuration
- */
-export interface DevBuyConfig {
-  ethAmount: string;
-  maxSlippage?: number;
-}
-
-/**
- * Rewards distribution configuration
- */
-export interface RewardsConfig {
-  creatorReward?: number;
-  creatorAdmin?: Address;
-  creatorRewardRecipient?: Address;
-  interfaceAdmin?: Address;
-  interfaceRewardRecipient?: Address;
-}
-
-export interface IClankerDeployConfig {
-  devBuyAmount: number;
-  lockupPercentage: number;
-  vestingUnlockDate: number;
 } 

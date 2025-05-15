@@ -4,9 +4,7 @@ import {
   type WalletClient,
   parseEventLogs,
 } from 'viem';
-import type { ClankerConfig } from './types/common.js';
-import type { TokenConfig } from './types/config/token.js';
-import type { ClankerMetadata, ClankerSocialContext } from './types/config/token.js';
+import type { ClankerConfig, TokenConfig, ClankerMetadata, ClankerSocialContext } from './types/index.js';
 import { Clanker_v3_1_abi } from './abi/v3.1/Clanker.js';
 import { validateConfig } from './utils/validation.js';
 import { buildTransaction } from './services/buildTransaction.js';
@@ -135,8 +133,7 @@ export class Clanker {
   }
 }
 
-export * from './types/common.js';
-export * from './types/config/token.js';
+export * from './types/index.js';
 export * from './utils/validation.js';
 export * from './services/vanityAddress.js';
 

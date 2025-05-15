@@ -1,5 +1,5 @@
-import type { TokenConfig, VaultConfig, PoolConfig, RewardsConfig } from "../types/config/token.js";
-import { ClankerConfig } from "../types/core/sdk.js";
+import type { TokenConfig, VaultConfig, PoolConfig, RewardsConfig } from "../types/index.js";
+import { ClankerConfig } from "../types/index.js";
 import { 
   tokenConfigSchema, 
   vaultConfigSchema, 
