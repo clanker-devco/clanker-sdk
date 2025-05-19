@@ -2,6 +2,7 @@ import {
   type Address,
   type PublicClient,
   type WalletClient,
+  encodeFunctionData,
   parseEventLogs,
 } from 'viem';
 import type {
@@ -9,12 +10,15 @@ import type {
   TokenConfig,
   ClankerMetadata,
   ClankerSocialContext,
+  TokenConfigV4,
 } from './types/index.js';
 import { Clanker_v3_1_abi } from './abi/v3.1/Clanker.js';
 import { validateConfig } from './utils/validation.js';
 import { buildTransaction } from './services/buildTransaction.js';
 import { getDesiredPriceAndPairAddress } from './utils/desired-price.js';
 import { getTokenPairByAddress } from './services/desiredPrice.js';
+import { Clanker_v4_abi } from './abi/v4/Clanker.js';
+import { CLANKER_FACTORY_V4 } from './constants.js';
 
 export class Clanker {
   private readonly wallet?: WalletClient;
@@ -31,6 +35,44 @@ export class Clanker {
 
     this.wallet = config.wallet;
     this.publicClient = config.publicClient;
+  }
+
+  public async deployTokenV4(): Promise<Address> {
+    console.log(`deployTokenV4`);
+    if (!this.wallet?.account) {
+      throw new Error('Wallet account required for deployToken');
+    }
+
+    console.log(this.wallet.account.address);
+    return '0x' as `0x${string}`;
+
+    const tokenConfig = {
+      tokenAdmin: this.wallet.account.address,
+      name: 'My Token',
+      symbol: 'TKN',
+      supply: 1000000000000000000000000n,
+      image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
+      metadata: '',
+      context: '',
+      originatingChainId: 84532,
+    };
+
+    const deployCalldata = encodeFunctionData({
+      abi: Clanker_v4_abi,
+      functionName: 'deployToken',
+      args: [tokenConfig],
+    });
+
+    const tx = await this.wallet.sendTransaction({
+      to: CLANKER_FACTORY_V4,
+      data: deployCalldata,
+      account: this.wallet.account,
+      chain: this.publicClient.chain,
+    });
+
+    console.log(tx);
+
+    return '0x' as `0x${string}`;
   }
 
   /**

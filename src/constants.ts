@@ -18,6 +18,7 @@ export const LP_LOCKER_V3_1: `0x${string}` =
   '0x33e2Eda238edcF470309b8c6D228986A1204c8f9';
 export const CLANKER_VAULT_V3_1: `0x${string}` =
   '0x42A95190B4088C88Dd904d930c79deC1158bF09D';
+export const CLANKER_FACTORY_V4 = '0xeBA5bCE4a0e62e8D374fa46c6914D8d8c70619f6' as `0x${string}`;
 
 // Replace the old WETH_ADDRESS constant with this one
 export const WETH_ADDRESS: `0x${string}` =
