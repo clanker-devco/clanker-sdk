@@ -49,7 +49,7 @@ export class Clanker {
     const deploymentConfig = {
       tokenConfig: {
         tokenAdmin: account.address,
-        name: 'My Token1',
+        name: 'My Token2',
         symbol: 'TKN',
         salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
         image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
@@ -80,6 +80,7 @@ export class Clanker {
         mevModuleData: '0x',
       },
       extensionConfigs: [
+        // vaulting extension
         {
           extension: '0xfed01720E35FA0977254414B7245f9b78D87c76b',
           msgValue: 0n,
@@ -87,7 +88,7 @@ export class Clanker {
           extensionData: encodeAbiParameters(
             [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
             // lockup duration, vesting duration
-            [account.address, 1000000000000000000n, 1000000000000000000n]
+            [account.address, 0n, 0n]
           ),
         }
       ],
