@@ -80,16 +80,16 @@ export class Clanker {
         mevModuleData: '0x',
       },
       extensionConfigs: [
-        // {
-        //   extension: '0xfed01720E35FA0977254414B7245f9b78D87c76b',
-        //   msgValue: 0n,
-        //   extensionBps: 1000,
-        //   extensionData: encodeAbiParameters(
-        //     [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
-        //     // lockup duration, vesting duration
-        //     [account.address, 0n, 0n]
-        //   ),
-        // }
+        {
+          extension: '0xfed01720E35FA0977254414B7245f9b78D87c76b',
+          msgValue: 0n,
+          extensionBps: 1000,
+          extensionData: encodeAbiParameters(
+            [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
+            // lockup duration, vesting duration
+            [account.address, 1000000000000000000n, 1000000000000000000n]
+          ),
+        }
       ],
     };
 
