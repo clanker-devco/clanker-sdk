@@ -2,6 +2,7 @@ import {
   type Address,
   type PublicClient,
   type WalletClient,
+  encodeAbiParameters,
   encodeFunctionData,
   parseEventLogs,
 } from 'viem';
@@ -38,41 +39,95 @@ export class Clanker {
   }
 
   public async deployTokenV4(): Promise<Address> {
-    console.log(`deployTokenV4`);
-    if (!this.wallet?.account) {
+
+    const account = this.wallet?.account;
+
+    if (!account) {
       throw new Error('Wallet account required for deployToken');
     }
 
-    console.log(this.wallet.account.address);
-    return '0x' as `0x${string}`;
-
-    const tokenConfig = {
-      tokenAdmin: this.wallet.account.address,
-      name: 'My Token',
-      symbol: 'TKN',
-      supply: 1000000000000000000000000n,
-      image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-      metadata: '',
-      context: '',
-      originatingChainId: 84532,
+    const deploymentConfig = {
+      tokenConfig: {
+        tokenAdmin: account.address,
+        name: 'My Token1',
+        symbol: 'TKN',
+        salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
+        metadata: '',
+        context: '',
+        originatingChainId: BigInt(84532),
+      },
+      lockerConfig: {
+        rewardAdmins: [account.address],
+        rewardRecipients: [account.address],
+        rewardBps: [10000],
+        tickLower: [-230400],
+        tickUpper: [230400],
+        positionBps: [10000],
+      },
+      poolConfig: {
+        hook: '0x3227d5AA27FC55AB4d4f8A9733959B265aBDa8cC',
+        pairedToken: '0x4200000000000000000000000000000000000006',
+        tickIfToken0IsClanker: -230400,
+        tickSpacing: 200,
+        poolData: encodeAbiParameters(
+          [{ type: 'uint24' }, { type: 'uint24' }],
+          [10000, 10000]
+        ),
+      },
+      mevModuleConfig: {
+        mevModule: '0x9037603A27aCf7c70A2A531B60cCc48eCD154fB3',
+        mevModuleData: '0x',
+      },
+      extensionConfigs: [
+        // {
+        //   extension: '0xfed01720E35FA0977254414B7245f9b78D87c76b',
+        //   msgValue: 0n,
+        //   extensionBps: 1000,
+        //   extensionData: encodeAbiParameters(
+        //     [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
+        //     // lockup duration, vesting duration
+        //     [account.address, 0n, 0n]
+        //   ),
+        // }
+      ],
     };
 
     const deployCalldata = encodeFunctionData({
       abi: Clanker_v4_abi,
       functionName: 'deployToken',
-      args: [tokenConfig],
+      args: [deploymentConfig],
     });
+
+    console.log(deployCalldata);
 
     const tx = await this.wallet.sendTransaction({
       to: CLANKER_FACTORY_V4,
       data: deployCalldata,
-      account: this.wallet.account,
+      account: account,
       chain: this.publicClient.chain,
+      value: BigInt(0),
     });
 
-    console.log(tx);
+    console.log('Transaction hash:', tx);
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash: tx });
 
-    return '0x' as `0x${string}`;
+    const logs = parseEventLogs({
+      abi: Clanker_v4_abi,
+      eventName: 'TokenCreated',
+      logs: receipt.logs,
+    });
+
+    if (!logs || logs.length === 0) {
+      throw new Error('No deployment event found');
+    }
+
+    const log = logs[0] as unknown as { args: { tokenAddress: Address } };
+    if (!('args' in log) || !('tokenAddress' in log.args)) {
+      throw new Error('Invalid event log format');
+    }
+
+    return log.args.tokenAddress;
   }
 
   /**
