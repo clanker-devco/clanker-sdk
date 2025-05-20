@@ -1,5 +1,11 @@
 import { type Address } from 'viem';
-import { ClankerSocialContext, ClankerMetadata, VaultConfig, DevBuyConfig, RewardsConfig } from './token.js';
+import {
+  ClankerSocialContext,
+  ClankerMetadata,
+  VaultConfig,
+  DevBuyConfig,
+  RewardsConfig,
+} from './token.js';
 
 export interface TokenConfigV4 {
   tokenAdmin: Address;
@@ -21,7 +27,7 @@ export interface VaultConfigV4 {
 
 export interface RewardsConfigV4 extends RewardsConfig {
   additionalRewardRecipients?: Address[];
-} 
+}
 
 export interface PoolConfigV4 {
   hook: Address;
@@ -64,4 +70,16 @@ export interface DeploymentInfoV4 {
   token: Address;
   hook: Address;
   extensions: Address[];
-} 
+}
+
+export interface DevBuyExtensionDataV4 {
+  pairedTokenPoolKey: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  };
+  pairedTokenAmountOutMinimum: bigint;
+  recipient: Address;
+}

@@ -18,7 +18,8 @@ export const LP_LOCKER_V3_1: `0x${string}` =
   '0x33e2Eda238edcF470309b8c6D228986A1204c8f9';
 export const CLANKER_VAULT_V3_1: `0x${string}` =
   '0x42A95190B4088C88Dd904d930c79deC1158bF09D';
-export const CLANKER_FACTORY_V4 = '0xeBA5bCE4a0e62e8D374fa46c6914D8d8c70619f6' as `0x${string}`;
+export const CLANKER_FACTORY_V4 =
+  '0xeBA5bCE4a0e62e8D374fa46c6914D8d8c70619f6' as `0x${string}`;
 
 // Replace the old WETH_ADDRESS constant with this one
 export const WETH_ADDRESS: `0x${string}` =
@@ -64,3 +65,11 @@ export const VALID_TOKEN_PAIR_ADDRESS: [
   CB_BTC_ADDRESS,
   A0X_ADDRESS,
 ];
+
+// Extension contract addresses
+export const CLANKER_VAULT_ADDRESS =
+  '0xfed01720E35FA0977254414B7245f9b78D87c76b' as const;
+export const CLANKER_AIRDROP_ADDRESS =
+  '0xB68f58460B7a80Bd8232F5A714b3899F8B43dE04' as const;
+export const CLANKER_DEVBUY_ADDRESS =
+  '0x685DfF86292744500E624c629E91E20dd68D9908' as const;

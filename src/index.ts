@@ -88,9 +88,50 @@ export class Clanker {
           extensionData: encodeAbiParameters(
             [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
             // lockup duration, vesting duration
-            [account.address, BigInt(cfg.vault?.lockupDuration || 0), BigInt(cfg.vault?.vestingDuration || 0)]
+            [
+              account.address,
+              BigInt(cfg.vault?.lockupDuration || 0),
+              BigInt(cfg.vault?.vestingDuration || 0),
+            ]
           ),
         },
+        // devBuy extension
+        ...(cfg.devBuy
+          ? [
+              {
+                extension: '0x685DfF86292744500E624c629E91E20dd68D9908',
+                msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
+                extensionBps: 0,
+                extensionData: encodeAbiParameters(
+                  [
+                    {
+                      type: 'tuple',
+                      components: [
+                        { type: 'address', name: 'currency0' },
+                        { type: 'address', name: 'currency1' },
+                        { type: 'uint24', name: 'fee' },
+                        { type: 'int24', name: 'tickSpacing' },
+                        { type: 'address', name: 'hooks' },
+                      ],
+                    },
+                    { type: 'uint128' },
+                    { type: 'address' },
+                  ],
+                  [
+                    {
+                      currency0: '0x4200000000000000000000000000000000000006', // WETH
+                      currency1: account.address, // Token being deployed
+                      fee: 3000,
+                      tickSpacing: 60,
+                      hooks: '0x0000000000000000000000000000000000000000',
+                    },
+                    BigInt(0),
+                    account.address,
+                  ]
+                ),
+              },
+            ]
+          : []),
       ],
     };
 
@@ -107,7 +148,9 @@ export class Clanker {
       data: deployCalldata,
       account: account,
       chain: this.publicClient.chain,
-      value: BigInt(0),
+      value: cfg.devBuy
+        ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
+        : BigInt(0),
     });
 
     console.log('Transaction hash:', tx);
@@ -270,6 +313,7 @@ export class Clanker {
 export * from './types/index.js';
 export * from './utils/validation.js';
 export * from './services/vanityAddress.js';
+export * from './extensions/index.js';
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';
