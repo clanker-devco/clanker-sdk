@@ -8,9 +8,15 @@ export interface TokenConfigV4 {
   image: string;
   metadata: ClankerMetadata;
   context: ClankerSocialContext;
-  vault?: VaultConfig;
+  vault?: VaultConfigV4;
   devBuy?: DevBuyConfig;
   rewardsConfig?: RewardsConfigV4;
+}
+
+export interface VaultConfigV4 {
+  percentage: number;
+  lockupDuration: number;
+  vestingDuration: number;
 }
 
 export interface RewardsConfigV4 extends RewardsConfig {

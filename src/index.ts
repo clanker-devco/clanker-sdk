@@ -39,7 +39,6 @@ export class Clanker {
   }
 
   public async deployTokenV4(cfg: TokenConfigV4): Promise<Address> {
-
     const account = this.wallet?.account;
     const CHAIN_ID = this.publicClient.chain?.id;
 
@@ -85,13 +84,13 @@ export class Clanker {
         {
           extension: '0xfed01720E35FA0977254414B7245f9b78D87c76b',
           msgValue: 0n,
-          extensionBps: 1000,
+          extensionBps: cfg.vault?.percentage ? cfg.vault.percentage * 100 : 0,
           extensionData: encodeAbiParameters(
             [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
             // lockup duration, vesting duration
-            [account.address, 0n, 0n]
+            [account.address, BigInt(cfg.vault?.lockupDuration || 0), BigInt(cfg.vault?.vestingDuration || 0)]
           ),
-        }
+        },
       ],
     };
 
@@ -112,7 +111,9 @@ export class Clanker {
     });
 
     console.log('Transaction hash:', tx);
-    const receipt = await this.publicClient.waitForTransactionReceipt({ hash: tx });
+    const receipt = await this.publicClient.waitForTransactionReceipt({
+      hash: tx,
+    });
 
     const logs = parseEventLogs({
       abi: Clanker_v4_abi,
@@ -160,7 +161,8 @@ export class Clanker {
 
     // Ensure pool config has required fields with defaults
     const poolConfig = {
-      quoteToken: cfg.pool?.quoteToken || '0x4200000000000000000000000000000000000006', // Default to WETH
+      quoteToken:
+        cfg.pool?.quoteToken || '0x4200000000000000000000000000000000000006', // Default to WETH
       initialMarketCap: cfg.pool?.initialMarketCap || '10', // Default to 10 ETH
     };
 

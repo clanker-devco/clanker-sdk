@@ -61,16 +61,13 @@ async function main(): Promise<void> {
 
     const tokenConfig: TokenConfigV4 = {
       tokenAdmin: account.address,
-      name: "My Token5",
+      name: "My Token6",
       symbol: "TKN",
       image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
       metadata: {
         description: "Token with custom configuration including vesting and rewards",
-        socialMediaUrls: [
-          "https://twitter.com/mytoken",
-          "https://t.me/mytoken",
-        ],
-        auditUrls: ["https://example.com/audit"],
+        socialMediaUrls: [],
+        auditUrls: [],
       },
       context: {
         interface: "Clanker SDK",
@@ -79,8 +76,9 @@ async function main(): Promise<void> {
         id: "TKN-1",
       },
       vault: {
-        percentage: 100,
-        durationInDays: 30,
+        percentage: 10,
+        lockupDuration: 2592000000, // 30 days in ms
+        vestingDuration: 2592000000, // 30 days in ms
       },
       devBuy: {
         ethAmount: "0.0001",
