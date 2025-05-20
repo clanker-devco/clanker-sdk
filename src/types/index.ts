@@ -11,8 +11,7 @@ export * from '../utils/validation-schema.js';
 // Export V4 types
 export * from './v4.js';
 
-import { type Address, type PublicClient, type WalletClient } from 'viem';
-import type { AirdropEntry } from '../extensions/AirdropExtension.js';
+import type { Address, PublicClient, WalletClient } from 'viem';
 
 export interface ClankerConfig {
   wallet?: WalletClient;
@@ -23,47 +22,83 @@ export interface TokenConfig {
   name: string;
   symbol: string;
   image?: string;
-  metadata?: {
-    description?: string;
-    socialMediaUrls?: string[];
-    auditUrls?: string[];
-  };
-  context?: {
-    interface?: string;
-    platform?: string;
-    messageId?: string;
-    id?: string;
-  };
+  metadata?: ClankerMetadata;
+  context?: ClankerSocialContext;
+  vault?: VaultConfig;
+  devBuy?: DevBuyConfig;
+  rewardsConfig?: RewardsConfig;
   pool?: {
     quoteToken?: Address;
     initialMarketCap?: string;
   };
-  vault?: {
-    percentage?: number;
-    durationInDays?: number;
-  };
-  devBuy?: {
-    ethAmount?: string;
-  };
-  rewardsConfig?: {
-    creatorReward?: number;
-    creatorAdmin?: Address;
-    creatorRewardRecipient?: Address;
-    interfaceAdmin?: Address;
-    interfaceRewardRecipient?: Address;
-    additionalRewardRecipients?: Address[];
-  };
+}
+
+export interface TokenConfigV4 {
+  name: string;
+  symbol: string;
+  image?: string;
+  metadata?: ClankerMetadata;
+  context?: ClankerSocialContext;
+  vault?: VaultConfigV4;
+  airdrop?: AirdropConfig;
+  devBuy?: DevBuyConfig;
+  rewardsConfig?: RewardsConfigV4;
 }
 
 export interface ClankerMetadata {
-  description: string;
-  socialMediaUrls: string[];
-  auditUrls: string[];
+  description?: string;
+  socialMediaUrls?: string[];
+  auditUrls?: string[];
 }
 
 export interface ClankerSocialContext {
-  interface: string;
-  platform: string;
-  messageId: string;
-  id: string;
+  interface?: string;
+  platform?: string;
+  messageId?: string;
+  id?: string;
+}
+
+export interface VaultConfig {
+  percentage: number;
+  durationInDays: number;
+}
+
+export interface VaultConfigV4 {
+  percentage: number;
+  lockupDuration: number;
+  vestingDuration: number;
+}
+
+export interface AirdropConfig {
+  merkleRoot: `0x${string}`;
+  lockupDuration: number;
+  vestingDuration: number;
+  entries: AirdropEntry[];
+  percentage: number;
+}
+
+export interface AirdropEntry {
+  account: `0x${string}`;
+  amount: bigint;
+}
+
+export interface DevBuyConfig {
+  ethAmount: string;
+}
+
+export interface RewardsConfig {
+  creatorReward: number;
+  creatorAdmin: `0x${string}`;
+  creatorRewardRecipient: `0x${string}`;
+  interfaceAdmin: `0x${string}`;
+  interfaceRewardRecipient: `0x${string}`;
+}
+
+export interface RewardsConfigV4 {
+  creatorReward: number;
+  creatorAdmin: `0x${string}`;
+  creatorRewardRecipient: `0x${string}`;
+  interfaceAdmin: `0x${string}`;
+  interfaceRewardRecipient: `0x${string}`;
+  additionalRewardRecipients: `0x${string}`[];
 }

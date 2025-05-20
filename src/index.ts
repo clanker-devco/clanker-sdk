@@ -1,33 +1,15 @@
 import {
-  type Address,
   type PublicClient,
   type WalletClient,
-  encodeAbiParameters,
-  encodeFunctionData,
-  parseEventLogs,
 } from 'viem';
 import type {
   ClankerConfig,
   TokenConfig,
-  ClankerMetadata,
-  ClankerSocialContext,
   TokenConfigV4,
 } from './types/index.js';
-import { Clanker_v3_1_abi } from './abi/v3.1/Clanker.js';
 import { validateConfig } from './utils/validation.js';
-import { buildTransaction } from './services/buildTransaction.js';
-import { getDesiredPriceAndPairAddress } from './utils/desired-price.js';
-import { getTokenPairByAddress } from './services/desiredPrice.js';
-import { Clanker_v4_abi } from './abi/v4/Clanker.js';
-import { CLANKER_FACTORY_V4, CLANKER_AIRDROP_ADDRESS } from './constants.js';
-
-// Custom JSON replacer to handle BigInt serialization
-const bigIntReplacer = (_key: string, value: unknown) => {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-};
+import { deployTokenV3 } from './deployment/v3.js';
+import { deployTokenV4 } from './deployment/v4.js';
 
 export class Clanker {
   private readonly wallet?: WalletClient;
@@ -46,300 +28,36 @@ export class Clanker {
     this.publicClient = config.publicClient;
   }
 
-  public async deployTokenV4(cfg: TokenConfigV4): Promise<Address> {
-    const account = this.wallet?.account;
-    const CHAIN_ID = this.publicClient.chain?.id;
-
-    if (!account) {
-      throw new Error('Wallet account required for deployToken');
+  /**
+   * Deploy a token using the V4 protocol
+   * @param cfg Token configuration for V4 deployment
+   * @returns The address of the deployed token
+   */
+  public async deployTokenV4(cfg: TokenConfigV4) {
+    if (!this.wallet) {
+      throw new Error('Wallet client required for deployment');
     }
-
-    const deploymentConfig = {
-      tokenConfig: {
-        tokenAdmin: account.address,
-        name: cfg.name,
-        symbol: cfg.symbol,
-        salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        image: cfg.image || '',
-        metadata: JSON.stringify(cfg.metadata || {}),
-        context: JSON.stringify(cfg.context || {}),
-        originatingChainId: BigInt(CHAIN_ID || 84532),
-      },
-      lockerConfig: {
-        rewardAdmins: [cfg.rewardsConfig?.creatorAdmin || account.address],
-        rewardRecipients: [account.address],
-        rewardBps: [10000],
-        tickLower: [-230400],
-        tickUpper: [230400],
-        positionBps: [10000],
-      },
-      poolConfig: {
-        hook: '0x3227d5AA27FC55AB4d4f8A9733959B265aBDa8cC',
-        pairedToken: '0x4200000000000000000000000000000000000006',
-        tickIfToken0IsClanker: -230400,
-        tickSpacing: 200,
-        poolData: encodeAbiParameters(
-          [{ type: 'uint24' }, { type: 'uint24' }],
-          [10000, 10000]
-        ),
-      },
-      mevModuleConfig: {
-        mevModule: '0x9037603A27aCf7c70A2A531B60cCc48eCD154fB3',
-        mevModuleData: '0x',
-      },
-      extensionConfigs: [
-        // vaulting extension
-        {
-          extension: '0xfed01720E35FA0977254414B7245f9b78D87c76b',
-          msgValue: 0n,
-          extensionBps: cfg.vault?.percentage ? cfg.vault.percentage * 100 : 0,
-          extensionData: encodeAbiParameters(
-            [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
-            // lockup duration, vesting duration
-            [
-              account.address,
-              BigInt(cfg.vault?.lockupDuration || 0),
-              BigInt(cfg.vault?.vestingDuration || 0),
-            ]
-          ),
-        },
-        // airdrop extension
-        ...(cfg.airdrop
-          ? [
-              {
-                extension: CLANKER_AIRDROP_ADDRESS,
-                msgValue: 0n,
-                extensionBps: cfg.airdrop.percentage,
-                extensionData: encodeAbiParameters(
-                  [{ type: 'bytes32' }, { type: 'uint256' }, { type: 'uint256' }],
-                  [
-                    cfg.airdrop.merkleRoot,
-                    BigInt(cfg.airdrop.lockupDuration),
-                    BigInt(cfg.airdrop.vestingDuration),
-                  ]
-                ),
-              },
-            ]
-          : []),
-        // devBuy extension
-        ...(cfg.devBuy && cfg.devBuy.ethAmount !== '0'
-          ? [
-              {
-                extension: '0x685DfF86292744500E624c629E91E20dd68D9908',
-                msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
-                extensionBps: 0,
-                extensionData: encodeAbiParameters(
-                  [
-                    {
-                      type: 'tuple',
-                      components: [
-                        { type: 'address', name: 'currency0' },
-                        { type: 'address', name: 'currency1' },
-                        { type: 'uint24', name: 'fee' },
-                        { type: 'int24', name: 'tickSpacing' },
-                        { type: 'address', name: 'hooks' },
-                      ],
-                    },
-                    { type: 'uint128' },
-                    { type: 'address' },
-                  ],
-                  [
-                    {
-                      currency0: '0x4200000000000000000000000000000000000006', // WETH
-                      currency1: account.address, // Token being deployed
-                      fee: 3000,
-                      tickSpacing: 60,
-                      hooks: '0x0000000000000000000000000000000000000000',
-                    },
-                    BigInt(0),
-                    account.address,
-                  ]
-                ),
-              },
-            ]
-          : []),
-      ],
-    };
-
-    const deployCalldata = encodeFunctionData({
-      abi: Clanker_v4_abi,
-      functionName: 'deployToken',
-      args: [deploymentConfig],
-    });
-
-    console.log('Deployment config:', JSON.stringify(deploymentConfig, bigIntReplacer, 2));
-
-    const tx = await this.wallet.sendTransaction({
-      to: CLANKER_FACTORY_V4,
-      data: deployCalldata,
-      account: account,
-      chain: this.publicClient.chain,
-      value: cfg.devBuy && cfg.devBuy.ethAmount !== '0'
-        ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
-        : BigInt(0),
-    });
-
-    console.log('Transaction hash:', tx);
-    const receipt = await this.publicClient.waitForTransactionReceipt({
-      hash: tx,
-    });
-
-    const logs = parseEventLogs({
-      abi: Clanker_v4_abi,
-      eventName: 'TokenCreated',
-      logs: receipt.logs,
-    });
-
-    if (!logs || logs.length === 0) {
-      throw new Error('No deployment event found');
-    }
-
-    const log = logs[0] as unknown as { args: { tokenAddress: Address } };
-    if (!('args' in log) || !('tokenAddress' in log.args)) {
-      throw new Error('Invalid event log format');
-    }
-
-    return log.args.tokenAddress;
+    return deployTokenV4(cfg, this.wallet, this.publicClient);
   }
 
   /**
-   * Deploy a token with an optional vanity address
-   * If no salt is provided, a vanity address with suffix '0x4b07' will be used
-   *
-   * @param cfg Token configuration
-   * @param options Optional parameters for deployment
+   * Deploy a token using the V3 protocol
+   * @param cfg Token configuration for V3 deployment
    * @returns The address of the deployed token
    */
-  public async deployToken(cfg: TokenConfig): Promise<Address> {
-    if (!this.wallet?.account) {
-      throw new Error('Wallet account required for deployToken');
+  public async deployToken(cfg: TokenConfig) {
+    if (!this.wallet) {
+      throw new Error('Wallet client required for deployment');
     }
-
-    // Ensure required fields are present
-    if (!cfg.name || !cfg.symbol) {
-      throw new Error('Token name and symbol are required');
-    }
-
-    // Validate the TokenConfig
-    const validationResult = validateConfig(cfg);
-    if (!validationResult.success) {
-      throw new Error(
-        `Invalid token configuration: ${JSON.stringify(validationResult.error?.format())}`
-      );
-    }
-
-    // Ensure pool config has required fields with defaults
-    const poolConfig = {
-      quoteToken:
-        cfg.pool?.quoteToken || '0x4200000000000000000000000000000000000006', // Default to WETH
-      initialMarketCap: cfg.pool?.initialMarketCap || '10', // Default to 10 ETH
-    };
-
-    const { desiredPrice, pairAddress } = getDesiredPriceAndPairAddress(
-      getTokenPairByAddress(poolConfig.quoteToken as `0x${string}`),
-      poolConfig.initialMarketCap
-    );
-
-    // Calculate vesting unlock date if vault configuration is provided
-    const vestingUnlockDate = cfg.vault?.durationInDays
-      ? BigInt(
-          Math.floor(Date.now() / 1000) +
-            cfg.vault.durationInDays * 24 * 60 * 60
-        )
-      : BigInt(0);
-
-    // Extract social media links with safe defaults
-    const socialLinks = cfg.metadata?.socialMediaUrls ?? [];
-    const telegramLink = socialLinks.find((url) => url.includes('t.me')) || '';
-    const xLink =
-      socialLinks.find(
-        (url) => url.includes('twitter.com') || url.includes('x.com')
-      ) || '';
-    const websiteLink =
-      socialLinks.find(
-        (url) =>
-          !url.includes('t.me') &&
-          !url.includes('twitter.com') &&
-          !url.includes('x.com')
-      ) || '';
-
-    const clankerMetadata: ClankerMetadata = {
-      description: cfg.metadata?.description || '',
-      socialMediaUrls: cfg.metadata?.socialMediaUrls ?? [],
-      auditUrls: cfg.metadata?.auditUrls ?? [],
-    };
-
-    const clankerSocialContext: ClankerSocialContext = {
-      interface: cfg.context?.interface || 'SDK',
-      platform: cfg.context?.platform || '',
-      messageId: cfg.context?.messageId || '',
-      id: cfg.context?.id || '',
-    };
-
-    const tx = await buildTransaction({
-      deployerAddress: this.wallet.account.address,
-      formData: {
-        name: cfg.name,
-        symbol: cfg.symbol,
-        imageUrl: cfg.image || '',
-        description: cfg.metadata?.description || '',
-        devBuyAmount: cfg.devBuy?.ethAmount
-          ? parseFloat(cfg.devBuy.ethAmount)
-          : 0,
-        lockupPercentage: cfg.vault?.percentage || 0,
-        vestingUnlockDate,
-        enableDevBuy: !!cfg.devBuy?.ethAmount,
-        enableLockup: !!cfg.vault?.percentage,
-        feeRecipient: cfg.rewardsConfig?.creatorRewardRecipient || '',
-        telegramLink,
-        websiteLink,
-        xLink,
-        marketCap: poolConfig.initialMarketCap,
-        farcasterLink: '',
-        pairedToken: pairAddress,
-        creatorRewardsRecipient:
-          cfg.rewardsConfig?.creatorRewardRecipient || '',
-        creatorRewardsAdmin: cfg.rewardsConfig?.creatorAdmin || '',
-        interfaceAdmin: cfg.rewardsConfig?.interfaceAdmin || '',
-        creatorReward: cfg.rewardsConfig?.creatorReward || 0,
-        interfaceRewardRecipient:
-          cfg.rewardsConfig?.interfaceRewardRecipient || '',
-        image: null,
-      },
-      chainId: this.publicClient.chain?.id || 8453,
-      clankerMetadata,
-      clankerSocialContext,
-      desiredPrice: desiredPrice,
-    });
-    console.log('tx', tx);
-    const hash = await this.wallet.sendTransaction({
-      ...tx.transaction,
-      account: this.wallet.account,
-      chain: this.publicClient.chain,
-    });
-    console.log('hash', hash);
-    const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
-
-    const [log] = parseEventLogs({
-      abi: Clanker_v3_1_abi,
-      eventName: 'TokenCreated',
-      logs: receipt.logs,
-    });
-
-    if (!log) {
-      throw new Error('No deployment event found');
-    }
-
-    const tokenAddress = log.args.tokenAddress;
-
-    return tokenAddress;
+    return deployTokenV3(cfg, this.wallet, this.publicClient);
   }
 }
 
+// Re-export types and utilities
 export * from './types/index.js';
 export * from './utils/validation.js';
 export * from './services/vanityAddress.js';
-export * from './extensions/index.js';
+export { AirdropExtension } from './extensions/index.js';
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';

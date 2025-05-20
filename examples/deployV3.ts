@@ -7,10 +7,8 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { baseSepolia } from 'viem/chains';
 import { Clanker } from '../src/index.js';
-import { TokenConfigV4Builder } from '../src/config/builders.js';
+import { TokenConfigBuilder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
-import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import type { VaultConfigV4, RewardsConfigV4 } from '../src/types/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -26,17 +24,14 @@ if (!PRIVATE_KEY) {
 }
 
 /**
- * Example showing how to deploy a v4 token using the Clanker SDK
+ * Example showing how to deploy a v3 token using the Clanker SDK
  * This example demonstrates:
- * - Token deployment with full v4 configuration
+ * - Token deployment with v3 configuration
  * - Custom metadata and social links
- * - Pool configuration with hooks
- * - Locker configuration
- * - MEV module configuration
- * - Extension configuration including:
- *   - Vault extension with lockup and vesting
- *   - Airdrop extension with merkle root
- *   - DevBuy extension with initial swap
+ * - Pool configuration
+ * - Vault configuration with vesting
+ * - DevBuy configuration
+ * - Rewards configuration
  */
 async function main(): Promise<void> {
   try {
@@ -64,51 +59,31 @@ async function main(): Promise<void> {
       publicClient,
     });
 
-    console.log('\n🚀 Deploying V4 Token\n');
-
-    // Example airdrop entries
-    const airdropEntries = [
-      {
-        account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        amount: BigInt('1000000000000000000'), // 1 token
-      },
-      {
-        account: '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
-        amount: BigInt('2000000000000000000'), // 2 tokens
-      },
-    ];
-
-    // Create Merkle tree for airdrop
-    const airdropExtension = new AirdropExtension();
-    const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
+    console.log('\n🚀 Deploying V3 Token\n');
 
     // Build token configuration using the builder pattern
-    const tokenConfig = new TokenConfigV4Builder()
-      .withName(`My Token224-${Math.floor(Math.random() * 10000) + 1}`) // for salt
-      .withSymbol('TKN')
+    const tokenConfig = new TokenConfigBuilder()
+      .withName('My Token V3')
+      .withSymbol('TKN3')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
       .withMetadata({
         description: 'Token with custom configuration including vesting and rewards',
-        socialMediaUrls: [],
-        auditUrls: [],
+        socialMediaUrls: [
+          'https://t.me/mytoken',
+          'https://twitter.com/mytoken',
+          'https://mytoken.com',
+        ],
+        auditUrls: ['https://mytoken.com/audit.pdf'],
       })
       .withContext({
         interface: 'Clanker SDK',
         platform: 'Clanker',
         messageId: 'Deploy Example',
-        id: 'TKN-1',
+        id: 'TKN3-1',
       })
       .withVault({
         percentage: 10, // 10% of token supply
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
-      })
-      .withAirdrop({
-        merkleRoot: root,
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
-        entries: airdropEntries,
-        percentage: 1000, // 10%
+        durationInDays: 30, // 30 days vesting
       })
       .withDevBuy({
         ethAmount: '0.0001',
@@ -119,12 +94,11 @@ async function main(): Promise<void> {
         creatorRewardRecipient: account.address,
         interfaceAdmin: account.address,
         interfaceRewardRecipient: account.address,
-        additionalRewardRecipients: [account.address],
       })
       .build();
 
-    // Deploy the token with full v4 configuration
-    const tokenAddress = await clanker.deployTokenV4(tokenConfig);
+    // Deploy the token with v3 configuration
+    const tokenAddress = await clanker.deployToken(tokenConfig);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
@@ -132,15 +106,6 @@ async function main(): Promise<void> {
       'View on BaseScan:',
       `https://sepolia.basescan.org/token/${tokenAddress}`
     );
-
-    // Example of how to get a Merkle proof for claiming
-    const proof = airdropExtension.getMerkleProof(
-      tree,
-      entries,
-      airdropEntries[0].account,
-      airdropEntries[0].amount
-    );
-    console.log('Example Merkle proof for first entry:', proof);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);
@@ -151,4 +116,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(console.error);
+main().catch(console.error); 
