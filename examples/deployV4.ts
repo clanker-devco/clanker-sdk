@@ -9,6 +9,8 @@ import { baseSepolia } from 'viem/chains';
 import { Clanker, TokenConfigV4, DevBuyExtensionDataV4 } from '../src/index.js';
 import * as dotenv from 'dotenv';
 import { CLANKER_FACTORY_V4, WETH_ADDRESS } from '../src/constants.js';
+import { AirdropExtension, type AirdropEntry } from '../src/extensions/AirdropExtension.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -64,9 +66,25 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V4 Token\n');
 
+    // Example airdrop entries
+    const airdropEntries: AirdropEntry[] = [
+      {
+        account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
+        amount: BigInt('1000000000000000000'), // 1 token
+      },
+      {
+        account: '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+        amount: BigInt('2000000000000000000'), // 2 tokens
+      },
+    ];
+
+    // Create Merkle tree for airdrop
+    const airdropExtension = new AirdropExtension();
+    const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
+
     const tokenConfig: TokenConfigV4 = {
       tokenAdmin: account.address,
-      name: 'My Token10',
+      name: 'My Token21',
       symbol: 'TKN',
       image:
         'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
@@ -88,6 +106,14 @@ async function main(): Promise<void> {
         lockupDuration: 2592000000, // 30 days in ms
         vestingDuration: 2592000000, // 30 days in ms
       },
+      // Airdrop extension configuration
+      airdrop: {
+        merkleRoot: root,
+        lockupDuration: 2592000000, // 30 days in ms
+        vestingDuration: 2592000000, // 30 days in ms
+        entries: airdropEntries,
+        percentage: 1000, // 10%
+      },
       // DevBuy extension configuration
       devBuy: {
         ethAmount: '0.0001',
@@ -103,26 +129,6 @@ async function main(): Promise<void> {
       },
     };
 
-    // Example merkle root for airdrop (this would be generated from your airdrop list)
-    const exampleMerkleRoot =
-      '0x0000000000000000000000000000000000000000000000000000000000000000';
-
-    // Example pool key for WETH<>PairedToken pool
-    const examplePoolKey = {
-      currency0: WETH_ADDRESS,
-      currency1: '0x4200000000000000000000000000000000000006' as `0x${string}`, // Example paired token
-      fee: 3000, // 0.3%
-      tickSpacing: 60,
-      hooks: '0x0000000000000000000000000000000000000000' as `0x${string}`,
-    };
-
-    // Create the DevBuy extension data
-    const devBuyExtensionData: DevBuyExtensionDataV4 = {
-      pairedTokenPoolKey: examplePoolKey,
-      pairedTokenAmountOutMinimum: BigInt('1000000000000000'), // 0.001 ETH in wei
-      recipient: account.address,
-    };
-
     // Deploy the token with full v4 configuration
     const tokenAddress = await clanker.deployTokenV4(tokenConfig);
 
@@ -132,6 +138,15 @@ async function main(): Promise<void> {
       'View on BaseScan:',
       `https://sepolia.basescan.org/token/${tokenAddress}`
     );
+
+    // Example of how to get a Merkle proof for claiming
+    const proof = airdropExtension.getMerkleProof(
+      tree,
+      entries,
+      airdropEntries[0].account,
+      airdropEntries[0].amount
+    );
+    console.log('Example Merkle proof for first entry:', proof);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);

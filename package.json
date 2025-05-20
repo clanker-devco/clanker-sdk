@@ -41,6 +41,7 @@
   "author": "Clanker Team",
   "license": "MIT",
   "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.8",
     "@types/inquirer": "^8.2.6",
     "dotenv": "^16.4.7",
     "inquirer": "^8.2.6",

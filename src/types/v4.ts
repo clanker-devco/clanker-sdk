@@ -6,17 +6,47 @@ import {
   DevBuyConfig,
   RewardsConfig,
 } from './token.js';
+import type { AirdropEntry } from '../extensions/AirdropExtension.js';
 
 export interface TokenConfigV4 {
   tokenAdmin: Address;
   name: string;
   symbol: string;
-  image: string;
-  metadata: ClankerMetadata;
-  context: ClankerSocialContext;
-  vault?: VaultConfigV4;
-  devBuy?: DevBuyConfig;
-  rewardsConfig?: RewardsConfigV4;
+  image?: string;
+  metadata?: {
+    description?: string;
+    socialMediaUrls?: string[];
+    auditUrls?: string[];
+  };
+  context?: {
+    interface?: string;
+    platform?: string;
+    messageId?: string;
+    id?: string;
+  };
+  vault?: {
+    percentage: number;
+    lockupDuration: number;
+    vestingDuration: number;
+  };
+  airdrop?: {
+    merkleRoot: `0x${string}`;
+    lockupDuration: number;
+    vestingDuration: number;
+    entries?: AirdropEntry[];
+    percentage: number;
+  };
+  devBuy?: {
+    ethAmount: string;
+  };
+  rewardsConfig?: {
+    creatorReward: number;
+    creatorAdmin: Address;
+    creatorRewardRecipient: Address;
+    interfaceAdmin: Address;
+    interfaceRewardRecipient: Address;
+    additionalRewardRecipients: Address[];
+  };
 }
 
 export interface VaultConfigV4 {

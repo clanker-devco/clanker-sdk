@@ -19,7 +19,15 @@ import { buildTransaction } from './services/buildTransaction.js';
 import { getDesiredPriceAndPairAddress } from './utils/desired-price.js';
 import { getTokenPairByAddress } from './services/desiredPrice.js';
 import { Clanker_v4_abi } from './abi/v4/Clanker.js';
-import { CLANKER_FACTORY_V4 } from './constants.js';
+import { CLANKER_FACTORY_V4, CLANKER_AIRDROP_ADDRESS } from './constants.js';
+
+// Custom JSON replacer to handle BigInt serialization
+const bigIntReplacer = (_key: string, value: unknown) => {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+};
 
 export class Clanker {
   private readonly wallet?: WalletClient;
@@ -52,9 +60,9 @@ export class Clanker {
         name: cfg.name,
         symbol: cfg.symbol,
         salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        image: cfg.image,
-        metadata: cfg.metadata,
-        context: cfg.context,
+        image: cfg.image || '',
+        metadata: JSON.stringify(cfg.metadata || {}),
+        context: JSON.stringify(cfg.context || {}),
         originatingChainId: BigInt(CHAIN_ID || 84532),
       },
       lockerConfig: {
@@ -95,8 +103,26 @@ export class Clanker {
             ]
           ),
         },
+        // airdrop extension
+        ...(cfg.airdrop
+          ? [
+              {
+                extension: CLANKER_AIRDROP_ADDRESS,
+                msgValue: 0n,
+                extensionBps: cfg.airdrop.percentage,
+                extensionData: encodeAbiParameters(
+                  [{ type: 'bytes32' }, { type: 'uint256' }, { type: 'uint256' }],
+                  [
+                    cfg.airdrop.merkleRoot,
+                    BigInt(cfg.airdrop.lockupDuration),
+                    BigInt(cfg.airdrop.vestingDuration),
+                  ]
+                ),
+              },
+            ]
+          : []),
         // devBuy extension
-        ...(cfg.devBuy
+        ...(cfg.devBuy && cfg.devBuy.ethAmount !== '0'
           ? [
               {
                 extension: '0x685DfF86292744500E624c629E91E20dd68D9908',
@@ -141,14 +167,14 @@ export class Clanker {
       args: [deploymentConfig],
     });
 
-    console.log(deployCalldata);
+    console.log('Deployment config:', JSON.stringify(deploymentConfig, bigIntReplacer, 2));
 
     const tx = await this.wallet.sendTransaction({
       to: CLANKER_FACTORY_V4,
       data: deployCalldata,
       account: account,
       chain: this.publicClient.chain,
-      value: cfg.devBuy
+      value: cfg.devBuy && cfg.devBuy.ethAmount !== '0'
         ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
         : BigInt(0),
     });
