@@ -1,15 +1,21 @@
 import { type Address } from 'viem';
+import { ClankerSocialContext, ClankerMetadata, VaultConfig, DevBuyConfig, RewardsConfig } from './token.js';
 
 export interface TokenConfigV4 {
   tokenAdmin: Address;
   name: string;
   symbol: string;
-  salt: `0x${string}`;
   image: string;
-  metadata: string;
-  context: string;
-  originatingChainId: bigint;
+  metadata: ClankerMetadata;
+  context: ClankerSocialContext;
+  vault?: VaultConfig;
+  devBuy?: DevBuyConfig;
+  rewardsConfig?: RewardsConfigV4;
 }
+
+export interface RewardsConfigV4 extends RewardsConfig {
+  additionalRewardRecipients?: Address[];
+} 
 
 export interface PoolConfigV4 {
   hook: Address;

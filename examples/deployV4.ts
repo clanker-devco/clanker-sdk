@@ -6,7 +6,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
-import { Clanker } from "../src/index.js";
+import { Clanker, TokenConfigV4 } from "../src/index.js";
 import * as dotenv from "dotenv";
 import { CLANKER_FACTORY_V4 } from "../src/constants.js";
 // Load environment variables
@@ -59,8 +59,44 @@ async function main(): Promise<void> {
 
     console.log("\n🚀 Deploying V4 Token\n");
 
+    const tokenConfig: TokenConfigV4 = {
+      tokenAdmin: account.address,
+      name: "My Token5",
+      symbol: "TKN",
+      image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+      metadata: {
+        description: "Token with custom configuration including vesting and rewards",
+        socialMediaUrls: [
+          "https://twitter.com/mytoken",
+          "https://t.me/mytoken",
+        ],
+        auditUrls: ["https://example.com/audit"],
+      },
+      context: {
+        interface: "Clanker SDK",
+        platform: "Clanker",
+        messageId: "Deploy Example",
+        id: "TKN-1",
+      },
+      vault: {
+        percentage: 100,
+        durationInDays: 30,
+      },
+      devBuy: {
+        ethAmount: "0.0001",
+      },
+      rewardsConfig: {
+        creatorReward: 1000,
+        creatorAdmin: account.address,
+        creatorRewardRecipient: account.address,
+        interfaceAdmin: account.address,
+        interfaceRewardRecipient: account.address,
+        additionalRewardRecipients: [account.address],
+      },
+    };
+
     // Deploy the token with full v4 configuration
-    const tokenAddress = await clanker.deployTokenV4();
+    const tokenAddress = await clanker.deployTokenV4(tokenConfig);
 
     console.log("Token deployed successfully!");
     console.log("Token address:", tokenAddress);

@@ -38,9 +38,10 @@ export class Clanker {
     this.publicClient = config.publicClient;
   }
 
-  public async deployTokenV4(): Promise<Address> {
+  public async deployTokenV4(cfg: TokenConfigV4): Promise<Address> {
 
     const account = this.wallet?.account;
+    const CHAIN_ID = this.publicClient.chain?.id;
 
     if (!account) {
       throw new Error('Wallet account required for deployToken');
@@ -49,16 +50,16 @@ export class Clanker {
     const deploymentConfig = {
       tokenConfig: {
         tokenAdmin: account.address,
-        name: 'My Token2',
-        symbol: 'TKN',
+        name: cfg.name,
+        symbol: cfg.symbol,
         salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
-        metadata: '',
-        context: '',
-        originatingChainId: BigInt(84532),
+        image: cfg.image,
+        metadata: cfg.metadata,
+        context: cfg.context,
+        originatingChainId: BigInt(CHAIN_ID || 84532),
       },
       lockerConfig: {
-        rewardAdmins: [account.address],
+        rewardAdmins: [cfg.rewardsConfig?.creatorAdmin || account.address],
         rewardRecipients: [account.address],
         rewardBps: [10000],
         tickLower: [-230400],
