@@ -119,9 +119,15 @@ async function main(): Promise<void> {
         creatorRewardRecipient: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
         interfaceAdmin: account.address,
         interfaceRewardRecipient: account.address,
-        additionalRewardRecipients: ['0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`],
-        additionalRewardBps: [5000], // 50% to second address
-        additionalRewardAdmins: [account.address], // Using same admin for both
+        additionalRewardRecipients: [
+          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+        ],
+        additionalRewardBps: [2500, 2500], // 50% to second address
+        additionalRewardAdmins: [
+          '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
+          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+        ], // Using same admin for both
       })
       .withFeeConfig({
         type: 'dynamic',
