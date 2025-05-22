@@ -38,14 +38,7 @@ export interface TokenConfigV4 {
   devBuy?: {
     ethAmount: string;
   };
-  rewardsConfig?: {
-    creatorReward: number;
-    creatorAdmin: Address;
-    creatorRewardRecipient: Address;
-    interfaceAdmin: Address;
-    interfaceRewardRecipient: Address;
-    additionalRewardRecipients?: Address[];
-  };
+  rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
 }
 
@@ -57,6 +50,8 @@ export interface VaultConfigV4 {
 
 export interface RewardsConfigV4 extends RewardsConfig {
   additionalRewardRecipients?: Address[];
+  additionalRewardBps?: number[];
+  additionalRewardAdmins?: Address[];
 }
 
 export interface PoolConfigV4 {

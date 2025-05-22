@@ -47,9 +47,18 @@ export async function deployTokenV4(
       originatingChainId: BigInt(CHAIN_ID || 84532),
     },
     lockerConfig: {
-      rewardAdmins: [cfg.rewardsConfig?.creatorAdmin || account.address],
-      rewardRecipients: [account.address],
-      rewardBps: [10000],
+      rewardAdmins: [
+        cfg.rewardsConfig?.creatorAdmin || account.address,
+        ...(cfg.rewardsConfig?.additionalRewardAdmins || [])
+      ],
+      rewardRecipients: [
+        cfg.rewardsConfig?.creatorRewardRecipient || account.address,
+        ...(cfg.rewardsConfig?.additionalRewardRecipients || [])
+      ],
+      rewardBps: [
+        cfg.rewardsConfig?.creatorReward || 10000,
+        ...(cfg.rewardsConfig?.additionalRewardBps || [])
+      ],
       tickLower: [-230400],
       tickUpper: [230400],
       positionBps: [10000],

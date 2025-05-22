@@ -102,4 +102,6 @@ export interface RewardsConfigV4 {
   interfaceAdmin: Address;
   interfaceRewardRecipient: Address;
   additionalRewardRecipients?: Address[];
+  additionalRewardBps?: number[];
+  additionalRewardAdmins?: Address[];
 }
