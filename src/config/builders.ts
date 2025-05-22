@@ -4,12 +4,10 @@ import type {
   ClankerMetadata,
   ClankerSocialContext,
   VaultConfig,
-  VaultConfigV4,
-  AirdropConfig,
   DevBuyConfig,
   RewardsConfig,
-  RewardsConfigV4,
 } from '../types/index.js';
+import type { FeeConfig } from '../types/fee.js';
 
 export class TokenConfigBuilder {
   private config: Partial<TokenConfig> = {};
@@ -80,40 +78,85 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withMetadata(metadata: ClankerMetadata): TokenConfigV4Builder {
+  withMetadata(metadata: TokenConfigV4['metadata']): TokenConfigV4Builder {
     this.config.metadata = metadata;
     return this;
   }
 
-  withContext(context: ClankerSocialContext): TokenConfigV4Builder {
+  withContext(context: TokenConfigV4['context']): TokenConfigV4Builder {
     this.config.context = context;
     return this;
   }
 
-  withVault(vault: VaultConfigV4): TokenConfigV4Builder {
+  withVault(vault: TokenConfigV4['vault']): TokenConfigV4Builder {
     this.config.vault = vault;
     return this;
   }
 
-  withAirdrop(airdrop: AirdropConfig): TokenConfigV4Builder {
+  withAirdrop(airdrop: TokenConfigV4['airdrop']): TokenConfigV4Builder {
     this.config.airdrop = airdrop;
     return this;
   }
 
-  withDevBuy(devBuy: DevBuyConfig): TokenConfigV4Builder {
+  withDevBuy(devBuy: TokenConfigV4['devBuy']): TokenConfigV4Builder {
     this.config.devBuy = devBuy;
     return this;
   }
 
-  withRewards(rewards: RewardsConfigV4): TokenConfigV4Builder {
-    this.config.rewardsConfig = rewards;
+  withRewards(rewardsConfig: TokenConfigV4['rewardsConfig']): TokenConfigV4Builder {
+    this.config.rewardsConfig = rewardsConfig;
+    return this;
+  }
+
+  withFeeConfig(feeConfig: FeeConfig): TokenConfigV4Builder {
+    this.config.feeConfig = feeConfig;
     return this;
   }
 
   build(): TokenConfigV4 {
     if (!this.config.name || !this.config.symbol) {
-      throw new Error('Token name and symbol are required');
+      throw new Error('Name and symbol are required');
     }
-    return this.config as TokenConfigV4;
+    if (!this.config.rewardsConfig?.creatorAdmin) {
+      throw new Error('Creator admin is required');
+    }
+
+    // Calculate total allocation
+    let totalAllocation = 0;
+    
+    // Add rewards allocation
+    if (this.config.rewardsConfig?.creatorReward) {
+      totalAllocation += this.config.rewardsConfig.creatorReward;
+    }
+
+    // Add vault allocation
+    if (this.config.vault?.percentage) {
+      totalAllocation += this.config.vault.percentage * 100; // Convert percentage to basis points
+    }
+
+    // Add airdrop allocation
+    if (this.config.airdrop?.percentage) {
+      totalAllocation += this.config.airdrop.percentage;
+    }
+
+    // Check if total allocation is 100% (10000 basis points)
+    if (totalAllocation !== 10000) {
+      const allocations = [
+        this.config.rewardsConfig?.creatorReward ? `Rewards: ${this.config.rewardsConfig.creatorReward} bps` : null,
+        this.config.vault?.percentage ? `Vault: ${this.config.vault.percentage * 100} bps` : null,
+        this.config.airdrop?.percentage ? `Airdrop: ${this.config.airdrop.percentage} bps` : null,
+      ].filter(Boolean).join(', ');
+
+      throw new Error(
+        `Total token allocation must be 100% (10000 basis points). Current allocation: ${totalAllocation} basis points. ` +
+        `Current allocations: ${allocations}. ` +
+        `Please adjust your configuration to ensure all tokens are allocated.`
+      );
+    }
+
+    return {
+      ...this.config,
+      tokenAdmin: this.config.rewardsConfig.creatorAdmin,
+    } as TokenConfigV4;
   }
 } 

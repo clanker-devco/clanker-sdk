@@ -7,8 +7,9 @@ import {
   parseEventLogs,
 } from 'viem';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
-import { CLANKER_FACTORY_V4, CLANKER_AIRDROP_ADDRESS, CLANKER_DEVBUY_ADDRESS, CLANKER_VAULT_ADDRESS, CLANKER_MEV_MODULE_ADDRESS, CLANKER_HOOK_STATIC_FEE_ADDRESS } from '../constants.js';
-import type { TokenConfigV4 } from '../types/index.js';
+import { CLANKER_FACTORY_V4, CLANKER_AIRDROP_ADDRESS, CLANKER_DEVBUY_ADDRESS, CLANKER_VAULT_ADDRESS, CLANKER_MEV_MODULE_ADDRESS } from '../constants.js';
+import type { TokenConfigV4 } from '../types/v4.js';
+import { encodeFeeConfig } from '../types/fee.js';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -30,6 +31,10 @@ export async function deployTokenV4(
     throw new Error('Wallet account required for deployToken');
   }
 
+  // Get fee configuration
+  const feeConfig = cfg.feeConfig || { type: 'static', fee: 500 }; // Default to 0.05% static fee
+  const { hook, poolData } = encodeFeeConfig(feeConfig);
+
   const deploymentConfig = {
     tokenConfig: {
       tokenAdmin: account.address,
@@ -50,14 +55,11 @@ export async function deployTokenV4(
       positionBps: [10000],
     },
     poolConfig: {
-      hook: CLANKER_HOOK_STATIC_FEE_ADDRESS,
+      hook,
       pairedToken: '0x4200000000000000000000000000000000000006',
       tickIfToken0IsClanker: -230400,
       tickSpacing: 200,
-      poolData: encodeAbiParameters(
-        [{ type: 'uint24' }, { type: 'uint24' }],
-        [10000, 10000]
-      ),
+      poolData,
     },
     mevModuleConfig: {
       mevModule: CLANKER_MEV_MODULE_ADDRESS,

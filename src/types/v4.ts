@@ -1,12 +1,8 @@
 import { type Address } from 'viem';
 import {
-  ClankerSocialContext,
-  ClankerMetadata,
-  VaultConfig,
-  DevBuyConfig,
   RewardsConfig,
 } from './token.js';
-import type { AirdropEntry } from '../extensions/AirdropExtension.js';
+import { type FeeConfig } from './fee.js';
 
 export interface TokenConfigV4 {
   tokenAdmin: Address;
@@ -33,7 +29,10 @@ export interface TokenConfigV4 {
     merkleRoot: `0x${string}`;
     lockupDuration: number;
     vestingDuration: number;
-    entries?: AirdropEntry[];
+    entries: Array<{
+      account: `0x${string}`;
+      amount: bigint;
+    }>;
     percentage: number;
   };
   devBuy?: {
@@ -45,8 +44,9 @@ export interface TokenConfigV4 {
     creatorRewardRecipient: Address;
     interfaceAdmin: Address;
     interfaceRewardRecipient: Address;
-    additionalRewardRecipients: Address[];
+    additionalRewardRecipients?: Address[];
   };
+  feeConfig?: FeeConfig;
 }
 
 export interface VaultConfigV4 {

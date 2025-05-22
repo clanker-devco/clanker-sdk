@@ -12,6 +12,7 @@ export * from '../utils/validation-schema.js';
 export * from './v4.js';
 
 import type { Address, PublicClient, WalletClient } from 'viem';
+import type { FeeConfig } from './fee.js';
 
 export interface ClankerConfig {
   wallet?: WalletClient;
@@ -34,6 +35,7 @@ export interface TokenConfig {
 }
 
 export interface TokenConfigV4 {
+  tokenAdmin: Address;
   name: string;
   symbol: string;
   image?: string;
@@ -43,6 +45,7 @@ export interface TokenConfigV4 {
   airdrop?: AirdropConfig;
   devBuy?: DevBuyConfig;
   rewardsConfig?: RewardsConfigV4;
+  feeConfig?: FeeConfig;
 }
 
 export interface ClankerMetadata {
@@ -73,13 +76,11 @@ export interface AirdropConfig {
   merkleRoot: `0x${string}`;
   lockupDuration: number;
   vestingDuration: number;
-  entries: AirdropEntry[];
+  entries: Array<{
+    account: `0x${string}`;
+    amount: bigint;
+  }>;
   percentage: number;
-}
-
-export interface AirdropEntry {
-  account: `0x${string}`;
-  amount: bigint;
 }
 
 export interface DevBuyConfig {
@@ -88,17 +89,17 @@ export interface DevBuyConfig {
 
 export interface RewardsConfig {
   creatorReward: number;
-  creatorAdmin: `0x${string}`;
-  creatorRewardRecipient: `0x${string}`;
-  interfaceAdmin: `0x${string}`;
-  interfaceRewardRecipient: `0x${string}`;
+  creatorAdmin: Address;
+  creatorRewardRecipient: Address;
+  interfaceAdmin: Address;
+  interfaceRewardRecipient: Address;
 }
 
 export interface RewardsConfigV4 {
   creatorReward: number;
-  creatorAdmin: `0x${string}`;
-  creatorRewardRecipient: `0x${string}`;
-  interfaceAdmin: `0x${string}`;
-  interfaceRewardRecipient: `0x${string}`;
-  additionalRewardRecipients: `0x${string}`[];
+  creatorAdmin: Address;
+  creatorRewardRecipient: Address;
+  interfaceAdmin: Address;
+  interfaceRewardRecipient: Address;
+  additionalRewardRecipients?: Address[];
 }

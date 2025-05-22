@@ -30,7 +30,7 @@ if (!PRIVATE_KEY) {
  * This example demonstrates:
  * - Token deployment with full v4 configuration
  * - Custom metadata and social links
- * - Pool configuration with hooks
+ * - Pool configuration with static or dynamic fee hook
  * - Locker configuration
  * - MEV module configuration
  * - Extension configuration including:
@@ -98,32 +98,46 @@ async function main(): Promise<void> {
         messageId: 'Deploy Example',
         id: 'TKN-1',
       })
-      .withVault({
-        percentage: 10, // 10% of token supply
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
-      })
-      .withAirdrop({
-        merkleRoot: root,
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
-        entries: airdropEntries,
-        percentage: 1000, // 10%
-      })
-      .withDevBuy({
-        ethAmount: '0.0001',
-      })
+      // .withVault({
+      //   percentage: 30, // 30% of token supply
+      //   lockupDuration: 2592000000, // 30 days in ms
+      //   vestingDuration: 2592000000, // 30 days in ms
+      // })
+      // .withAirdrop({
+      //   merkleRoot: root,
+      //   lockupDuration: 2592000000, // 30 days in ms
+      //   vestingDuration: 2592000000, // 30 days in ms
+      //   entries: airdropEntries,
+      //   percentage: 3000, // 30%
+      // })
+      // .withDevBuy({
+      //   ethAmount: '0.0001',
+      // })
       .withRewards({
-        creatorReward: 1000,
+        creatorReward: 10000,
         creatorAdmin: account.address,
         creatorRewardRecipient: account.address,
         interfaceAdmin: account.address,
         interfaceRewardRecipient: account.address,
         additionalRewardRecipients: [account.address],
       })
+      .withFeeConfig({
+        type: 'dynamic',
+        baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
+        maxLpFee: 5000, // 0.5% maximum fee
+        referenceTickFilterPeriod: 300, // 5 minutes
+        resetPeriod: 3600, // 1 hour
+        resetTickFilter: 50, // 0.5% price movement
+        feeControlNumerator: 100000, // Controls how quickly fees increase with volatility
+        decayFilterBps: 9900, // 99% decay rate for previous volatility
+      })
+      // .withFeeConfig({
+      //   type: 'static',
+      //   fee: 10000, // 1% fee
+      // })
       .build();
 
-    // Deploy the token with full v4 configuration
+    // Deploy the token
     const tokenAddress = await clanker.deployTokenV4(tokenConfig);
 
     console.log('Token deployed successfully!');
