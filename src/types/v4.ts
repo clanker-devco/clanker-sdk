@@ -1,8 +1,6 @@
-import { type Address } from 'viem';
-import {
-  RewardsConfig,
-} from './token.js';
-import { type FeeConfig } from './fee.js';
+import { type Address } from "viem";
+import { RewardsConfig } from "./token.js";
+import { type FeeConfig } from "./fee.js";
 
 export interface TokenConfigV4 {
   tokenAdmin: Address;

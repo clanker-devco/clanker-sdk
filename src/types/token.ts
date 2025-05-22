@@ -1,4 +1,4 @@
-import type { Address } from 'viem';
+import type { Address } from "viem";
 import {
   CLANKER_ADDRESS,
   DEGEN_ADDRESS,
@@ -8,7 +8,7 @@ import {
   NATIVE_ADDRESS,
   A0X_ADDRESS,
   WETH_ADDRESS,
-} from '../constants.js';
+} from "../constants.js";
 
 export interface ITokenData {
   chainId: number;
@@ -24,26 +24,26 @@ export interface IPoolConfig {
 }
 
 export type TokenPair =
-  | 'WETH'
-  | 'DEGEN'
-  | 'ANON'
-  | 'HIGHER'
-  | 'CLANKER'
-  | 'BTC'
-  | 'NATIVE'
-  | 'A0x'
-  | 'WMON'
+  | "WETH"
+  | "DEGEN"
+  | "ANON"
+  | "HIGHER"
+  | "CLANKER"
+  | "BTC"
+  | "NATIVE"
+  | "A0x"
+  | "WMON"
   | null;
 
 export const VALID_TOKEN_PAIRS: TokenPair[] = [
-  'WETH',
-  'DEGEN',
-  'ANON',
-  'HIGHER',
-  'CLANKER',
-  'BTC',
-  'NATIVE',
-  'A0x',
+  "WETH",
+  "DEGEN",
+  "ANON",
+  "HIGHER",
+  "CLANKER",
+  "BTC",
+  "NATIVE",
+  "A0x",
 ];
 
 export const VALID_TOKEN_PAIR_ADDRESSES: `0x${string}`[] = [

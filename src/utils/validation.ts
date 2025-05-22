@@ -6,7 +6,7 @@ import {
   rewardsConfigSchema,
   deploymentConfigSchema,
   clankerConfigSchema,
-} from './validation-schema.js';
+} from "./validation-schema.js";
 
 /**
  * Validates if a number is within a valid range
@@ -73,71 +73,71 @@ type ValidationResult = {
  */
 export function validateConfig<T>(config: T): ValidationResult {
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'name' in config &&
-    'symbol' in config
+    "name" in config &&
+    "symbol" in config
   ) {
     return tokenConfigSchema.safeParse(config);
   }
 
   // Check if it's a DeploymentConfig
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'tokenConfig' in config &&
-    'poolConfig' in config &&
-    'rewardsConfig' in config
+    "tokenConfig" in config &&
+    "poolConfig" in config &&
+    "rewardsConfig" in config
   ) {
     return deploymentConfigSchema.safeParse(config);
   }
 
   // Check if it's a VaultConfig
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'vaultPercentage' in config &&
-    'vaultDuration' in config
+    "vaultPercentage" in config &&
+    "vaultDuration" in config
   ) {
     return vaultConfigSchema.safeParse(config);
   }
 
   // Check if it's a PoolConfig
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'pairedToken' in config &&
-    'initialMarketCapInPairedToken' in config
+    "pairedToken" in config &&
+    "initialMarketCapInPairedToken" in config
   ) {
     return poolConfigSchema.safeParse(config);
   }
 
   // Check if it's a RewardsConfig
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'creatorReward' in config &&
-    'creatorAdmin' in config &&
-    'creatorRewardRecipient' in config
+    "creatorReward" in config &&
+    "creatorAdmin" in config &&
+    "creatorRewardRecipient" in config
   ) {
     return rewardsConfigSchema.safeParse(config);
   }
 
   // Check if it's an InitialBuyConfig
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'pairedTokenPoolFee' in config &&
-    'pairedTokenSwapAmountOutMinimum' in config
+    "pairedTokenPoolFee" in config &&
+    "pairedTokenSwapAmountOutMinimum" in config
   ) {
     return initialBuyConfigSchema.safeParse(config);
   }
 
   // Check if it's a ClankerConfig
   if (
-    typeof config === 'object' &&
+    typeof config === "object" &&
     config !== null &&
-    'publicClient' in config
+    "publicClient" in config
   ) {
     return clankerConfigSchema.safeParse(config);
   }
@@ -146,9 +146,9 @@ export function validateConfig<T>(config: T): ValidationResult {
   return {
     success: false,
     error: {
-      message: 'Unknown configuration type',
+      message: "Unknown configuration type",
       format: () => ({
-        _errors: ['Unable to determine configuration type for validation'],
+        _errors: ["Unable to determine configuration type for validation"],
       }),
     },
   };

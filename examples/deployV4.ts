@@ -10,7 +10,6 @@ import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import type { VaultConfigV4, RewardsConfigV4 } from '../src/types/index.js';
 
 // Load environment variables
 dotenv.config();

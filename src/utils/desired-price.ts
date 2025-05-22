@@ -1,4 +1,4 @@
-import { TokenPair } from '../types/index.js';
+import { TokenPair } from "../types/index.js";
 import {
   WETH_ADDRESS,
   DEGEN_ADDRESS,
@@ -8,11 +8,11 @@ import {
   CB_BTC_ADDRESS,
   NATIVE_ADDRESS,
   A0X_ADDRESS,
-} from '../constants.js';
+} from "../constants.js";
 
 export const getDesiredPriceAndPairAddress = (
   pair: TokenPair,
-  marketCap: string = '10'
+  marketCap: string = "10",
 ) => {
   // This is the ratio of token to paired token. In the default case it is WETH.
   // So 0.0000000001 WETH = 1 TOKEN. Since we are deploying with 100000000000 tokens,
@@ -21,11 +21,11 @@ export const getDesiredPriceAndPairAddress = (
   let pairAddress = WETH_ADDRESS;
 
   // Only adjust the desired price for WETH pairs
-  if (pair === 'WETH') {
+  if (pair === "WETH") {
     desiredPrice = Number(marketCap) * 0.00000000001; // Dynamic market cap in ETH
   }
 
-  if (pair === 'DEGEN') {
+  if (pair === "DEGEN") {
     // So how much DEGEN do we need to get to 10k? At DEGEN price on 12/12 (1.5 cents) that is 6666.66666667 DEGEN.
     // So now, we want 100000000000 of the token to be equal to 6666.66666667 DEGEN.
     // So thus, the price of the token is 6666.66666667 / 100000000000 or 0.00000666666667
@@ -34,7 +34,7 @@ export const getDesiredPriceAndPairAddress = (
     pairAddress = DEGEN_ADDRESS;
     // Going backwards then we can say, well if we have 100000000000 tokens, then we have -
     // 100000000000 tokens * 0.00000666666667 = 666666.667 DEGEN = $10k
-  } else if (pair === 'CLANKER') {
+  } else if (pair === "CLANKER") {
     const clankerPrice = 20; // roughly 60 bucks
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
@@ -43,7 +43,7 @@ export const getDesiredPriceAndPairAddress = (
       howManyClankerForDesiredMarketCap / totalSupplyDesired; // 0.000001666777
     desiredPrice = pricePerTokenInClanker;
     pairAddress = CLANKER_ADDRESS;
-  } else if (pair === 'ANON') {
+  } else if (pair === "ANON") {
     const anonPrice = 0.001;
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
@@ -52,7 +52,7 @@ export const getDesiredPriceAndPairAddress = (
       howManyAnonForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInAnon;
     pairAddress = ANON_ADDRESS;
-  } else if (pair === 'HIGHER') {
+  } else if (pair === "HIGHER") {
     const higherPrice = 0.008;
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
@@ -61,7 +61,7 @@ export const getDesiredPriceAndPairAddress = (
       howManyHigherForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInHigher;
     pairAddress = HIGHER_ADDRESS;
-  } else if (pair === 'BTC') {
+  } else if (pair === "BTC") {
     const cbBtcPrice = 105000; // roughly 105k
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
@@ -71,7 +71,7 @@ export const getDesiredPriceAndPairAddress = (
       howManyCBBTCForDesiredMarketCap / totalSupplyDesired / 10 ** 10;
     desiredPrice = pricePerTokenInCbBtc;
     pairAddress = CB_BTC_ADDRESS;
-  } else if (pair === 'NATIVE') {
+  } else if (pair === "NATIVE") {
     const nativePrice = 0.00004; // roughly 2 cents
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
@@ -80,7 +80,7 @@ export const getDesiredPriceAndPairAddress = (
       howManyNativeForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInNative;
     pairAddress = NATIVE_ADDRESS;
-  } else if (pair === 'A0x') {
+  } else if (pair === "A0x") {
     const a0xPrice = 0.00000073; // roughly 0.000000730
     const desiredMarketCap = 5000; // 5k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
@@ -89,9 +89,9 @@ export const getDesiredPriceAndPairAddress = (
       howManyA0xForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInA0x;
     pairAddress = A0X_ADDRESS;
-  } else if (pair === 'WMON') {
+  } else if (pair === "WMON") {
     desiredPrice = Number(marketCap) * 0.00000000001; // Dynamic market cap in ETH
-    pairAddress = '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701';
+    pairAddress = "0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701";
   }
 
   return { desiredPrice, pairAddress };

@@ -2,16 +2,16 @@ import {
   CLANKER_FACTORY_V3_1,
   DEFAULT_SUPPLY,
   WETH_ADDRESS,
-} from '../constants.js';
-import { encodeFunctionData, getAddress, isAddress, stringify } from 'viem';
-import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
+} from "../constants.js";
+import { encodeFunctionData, getAddress, isAddress, stringify } from "viem";
+import { Clanker_v3_1_abi } from "../abi/v3.1/Clanker.js";
 import {
   ClankerMetadata,
   ClankerSocialContext,
   DeployFormData,
-} from '../types/index.js';
-import { getRelativeUnixTimestamp } from '../utils/unix-timestamp.js';
-import { findVanityAddress } from './vanityAddress.js';
+} from "../types/index.js";
+import { getRelativeUnixTimestamp } from "../utils/unix-timestamp.js";
+import { findVanityAddress } from "./vanityAddress.js";
 
 interface BuildTransactionProps {
   deployerAddress: `0x${string}`;
@@ -38,7 +38,7 @@ export async function buildTransaction({
 
   const requestorAddress = deployerAddress;
   if (!requestorAddress) {
-    throw new Error('No account address found');
+    throw new Error("No account address found");
   }
 
   // Extract the values we need
@@ -46,15 +46,15 @@ export async function buildTransaction({
     formData.pairedToken && isAddress(formData.pairedToken)
       ? getAddress(formData.pairedToken)
       : WETH_ADDRESS;
-  console.log('pairAddress', pairAddress);
+  console.log("pairAddress", pairAddress);
 
   // Calculate price tick using the same method as the example
   const logBase = 1.0001;
   const tickSpacing = 200;
-  console.log('desiredPrice', desiredPrice);
+  console.log("desiredPrice", desiredPrice);
   const rawTick = Math.log(desiredPrice) / Math.log(logBase);
   const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
-  console.log('initialTick', initialTick);
+  console.log("initialTick", initialTick);
 
   // Build metadata with social links like in the example
   const metadata = stringify({
@@ -62,14 +62,14 @@ export async function buildTransaction({
     socialMediaUrls: [
       ...(clankerMetadata.socialMediaUrls || []),
       ...(formData.telegramLink
-        ? [{ platform: 'telegram', url: formData.telegramLink }]
+        ? [{ platform: "telegram", url: formData.telegramLink }]
         : []),
       ...(formData.websiteLink
-        ? [{ platform: 'website', url: formData.websiteLink }]
+        ? [{ platform: "website", url: formData.websiteLink }]
         : []),
-      ...(formData.xLink ? [{ platform: 'x', url: formData.xLink }] : []),
+      ...(formData.xLink ? [{ platform: "x", url: formData.xLink }] : []),
       ...(formData.farcasterLink
-        ? [{ platform: 'farcaster', url: formData.farcasterLink }]
+        ? [{ platform: "farcaster", url: formData.farcasterLink }]
         : []),
     ],
   });
@@ -79,7 +79,7 @@ export async function buildTransaction({
   // Validate all addresses to make sure they're not empty or undefined
   const validateAddress = (
     address: string | undefined,
-    defaultAddress: `0x${string}`
+    defaultAddress: `0x${string}`,
   ): `0x${string}` => {
     if (!address || !isAddress(address)) {
       return defaultAddress;
@@ -94,16 +94,16 @@ export async function buildTransaction({
       symbol,
       DEFAULT_SUPPLY,
       admin,
-      imageUrl || '',
+      imageUrl || "",
       metadata,
       socialContext,
       BigInt(chainId),
     ],
     admin,
-    '0x4b07',
+    "0x4b07",
     {
       chainId: chainId,
-    }
+    },
   );
 
   // Convert absolute timestamp to duration if provided
@@ -116,7 +116,7 @@ export async function buildTransaction({
       name: name,
       symbol: symbol,
       salt: salt,
-      image: imageUrl || '',
+      image: imageUrl || "",
       metadata: metadata,
       context: socialContext,
       originatingChainId: BigInt(chainId),
@@ -137,19 +137,19 @@ export async function buildTransaction({
       creatorReward: BigInt(Number(formData.creatorReward || 40)),
       creatorAdmin: validateAddress(
         formData.creatorRewardsAdmin,
-        requestorAddress
+        requestorAddress,
       ),
       creatorRewardRecipient: validateAddress(
         formData.creatorRewardsRecipient,
-        requestorAddress
+        requestorAddress,
       ),
       interfaceAdmin: validateAddress(
         formData.interfaceAdmin,
-        requestorAddress
+        requestorAddress,
       ),
       interfaceRewardRecipient: validateAddress(
         formData.interfaceRewardRecipient,
-        requestorAddress
+        requestorAddress,
       ),
     },
   } as const;
@@ -157,7 +157,7 @@ export async function buildTransaction({
   try {
     const deployCalldata = encodeFunctionData({
       abi: Clanker_v3_1_abi,
-      functionName: 'deployToken',
+      functionName: "deployToken",
       args: [tokenConfig],
     });
 
@@ -169,8 +169,8 @@ export async function buildTransaction({
       expectedAddress,
     };
   } catch (error: any) {
-    console.error('Error encoding function data:', error);
-    console.error('Problematic deployArgs:', tokenConfig);
+    console.error("Error encoding function data:", error);
+    console.error("Problematic deployArgs:", tokenConfig);
     // Re-throw with more context
     throw new Error(`Failed to encode function data: ${error.message}`);
   }
