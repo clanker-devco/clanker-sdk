@@ -98,23 +98,23 @@ async function main(): Promise<void> {
         messageId: 'Deploy Example',
         id: 'TKN-1',
       })
-      // .withVault({
-      //   percentage: 30, // 30% of token supply
-      //   lockupDuration: 2592000000, // 30 days in ms
-      //   vestingDuration: 2592000000, // 30 days in ms
-      // })
-      // .withAirdrop({
-      //   merkleRoot: root,
-      //   lockupDuration: 2592000000, // 30 days in ms
-      //   vestingDuration: 2592000000, // 30 days in ms
-      //   entries: airdropEntries,
-      //   percentage: 3000, // 30%
-      // })
-      // .withDevBuy({
-      //   ethAmount: '0.0001',
-      // })
+      .withVault({
+        percentage: 30, // 30% of token supply
+        lockupDuration: 2592000000, // 30 days in ms
+        vestingDuration: 2592000000, // 30 days in ms
+      })
+      .withAirdrop({
+        merkleRoot: root,
+        lockupDuration: 2592000000, // 30 days in ms
+        vestingDuration: 2592000000, // 30 days in ms
+        entries: airdropEntries,
+        percentage: 3000, // 30%
+      })
+      .withDevBuy({
+        ethAmount: '0.0001',
+      })
       .withRewards({
-        creatorReward: 10000,
+        creatorReward: 4000, // 40% of token supply
         creatorAdmin: account.address,
         creatorRewardRecipient: account.address,
         interfaceAdmin: account.address,
