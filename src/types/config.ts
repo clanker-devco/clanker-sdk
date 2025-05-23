@@ -1,4 +1,4 @@
-import type { PublicClient, WalletClient } from "viem";
+import type { PublicClient, WalletClient } from 'viem';
 
 /**
  * Core SDK configuration

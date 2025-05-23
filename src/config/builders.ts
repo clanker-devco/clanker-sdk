@@ -6,13 +6,9 @@ import type {
   VaultConfig,
   DevBuyConfig,
   RewardsConfig,
-} from "../types/index.js";
-import type { FeeConfig } from "../types/fee.js";
-import {
-  isValidBps,
-  validateBpsSum,
-  percentageToBps,
-} from "../utils/validation.js";
+} from '../types/index.js';
+import type { FeeConfig } from '../types/fee.js';
+import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 
 export class TokenConfigBuilder {
   private config: Partial<TokenConfig> = {};
@@ -59,7 +55,7 @@ export class TokenConfigBuilder {
 
   build(): TokenConfig {
     if (!this.config.name || !this.config.symbol) {
-      throw new Error("Token name and symbol are required");
+      throw new Error('Token name and symbol are required');
     }
     return this.config as TokenConfig;
   }
@@ -83,34 +79,32 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withMetadata(metadata: TokenConfigV4["metadata"]): TokenConfigV4Builder {
+  withMetadata(metadata: TokenConfigV4['metadata']): TokenConfigV4Builder {
     this.config.metadata = metadata;
     return this;
   }
 
-  withContext(context: TokenConfigV4["context"]): TokenConfigV4Builder {
+  withContext(context: TokenConfigV4['context']): TokenConfigV4Builder {
     this.config.context = context;
     return this;
   }
 
-  withVault(vault: TokenConfigV4["vault"]): TokenConfigV4Builder {
+  withVault(vault: TokenConfigV4['vault']): TokenConfigV4Builder {
     this.config.vault = vault;
     return this;
   }
 
-  withAirdrop(airdrop: TokenConfigV4["airdrop"]): TokenConfigV4Builder {
+  withAirdrop(airdrop: TokenConfigV4['airdrop']): TokenConfigV4Builder {
     this.config.airdrop = airdrop;
     return this;
   }
 
-  withDevBuy(devBuy: TokenConfigV4["devBuy"]): TokenConfigV4Builder {
+  withDevBuy(devBuy: TokenConfigV4['devBuy']): TokenConfigV4Builder {
     this.config.devBuy = devBuy;
     return this;
   }
 
-  withRewards(
-    rewardsConfig: TokenConfigV4["rewardsConfig"],
-  ): TokenConfigV4Builder {
+  withRewards(rewardsConfig: TokenConfigV4['rewardsConfig']): TokenConfigV4Builder {
     this.config.rewardsConfig = rewardsConfig;
     return this;
   }
@@ -122,28 +116,24 @@ export class TokenConfigV4Builder {
 
   build(): TokenConfigV4 {
     if (!this.config.name || !this.config.symbol) {
-      throw new Error("Name and symbol are required");
+      throw new Error('Name and symbol are required');
     }
     if (!this.config.rewardsConfig?.creatorAdmin) {
-      throw new Error("Creator admin is required");
+      throw new Error('Creator admin is required');
     }
 
     // Validate vault allocation if present
     if (this.config.vault?.percentage) {
       const vaultBps = percentageToBps(this.config.vault.percentage);
       if (!isValidBps(vaultBps)) {
-        throw new Error(
-          `Invalid vault percentage: ${this.config.vault.percentage}`,
-        );
+        throw new Error(`Invalid vault percentage: ${this.config.vault.percentage}`);
       }
     }
 
     // Validate airdrop allocation if present
     if (this.config.airdrop?.percentage) {
       if (!isValidBps(this.config.airdrop.percentage)) {
-        throw new Error(
-          `Invalid airdrop percentage: ${this.config.airdrop.percentage}`,
-        );
+        throw new Error(`Invalid airdrop percentage: ${this.config.airdrop.percentage}`);
       }
     }
 
@@ -168,25 +158,22 @@ export class TokenConfigV4Builder {
         additionalRewardRecipients.length !== additionalRewardBps.length ||
         additionalRewardRecipients.length !== additionalRewardAdmins.length
       ) {
-        throw new Error("Additional reward arrays must have matching lengths");
+        throw new Error('Additional reward arrays must have matching lengths');
       }
 
       // Collect all reward recipients and their BPS values
-      const rewardRecipients = [
-        creatorRewardRecipient,
-        ...additionalRewardRecipients,
-      ];
+      const rewardRecipients = [creatorRewardRecipient, ...additionalRewardRecipients];
       const rewardBps = [creatorReward, ...additionalRewardBps];
 
       // Validate number of reward recipients
       if (rewardRecipients.length > 7) {
-        throw new Error("Maximum of 7 reward recipients allowed");
+        throw new Error('Maximum of 7 reward recipients allowed');
       }
 
       // Validate that reward BPS sum to 10000
       if (!validateBpsSum(rewardBps)) {
         throw new Error(
-          `Total reward allocation must be 100% (10000 basis points). Current allocation: ${rewardBps.reduce((a, b) => a + b, 0)} basis points.`,
+          `Total reward allocation must be 100% (10000 basis points). Current allocation: ${rewardBps.reduce((a, b) => a + b, 0)} basis points.`
         );
       }
     }

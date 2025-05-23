@@ -8,7 +8,7 @@ export function getRelativeUnixTimestamp(unixTimestamp: number) {
     if (targetTimestamp > currentTimestamp) {
       vestingDuration = targetTimestamp - currentTimestamp;
     } else {
-      console.warn("Target timestamp is in the past, using minimum duration");
+      console.warn('Target timestamp is in the past, using minimum duration');
       vestingDuration = BigInt(31 * 24 * 60 * 60); // 31 days in seconds
     }
   }
