@@ -27,9 +27,24 @@ export const CLANKER_VAULT_ABI = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'oldAdmin', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'newAdmin', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldAdmin',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newAdmin',
+        type: 'address',
+      },
     ],
     name: 'AllocationAdminUpdated',
     type: 'event',
@@ -37,10 +52,30 @@ export const CLANKER_VAULT_ABI = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'admin', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'unlockTime', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'admin',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'unlockTime',
+        type: 'uint256',
+      },
     ],
     name: 'AllocationCreated',
     type: 'event',
@@ -48,9 +83,24 @@ export const CLANKER_VAULT_ABI = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'remainingAmount', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'remainingAmount',
+        type: 'uint256',
+      },
     ],
     name: 'AllocationUnlocked',
     type: 'event',
@@ -58,8 +108,18 @@ export const CLANKER_VAULT_ABI = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'oldVaultTime', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'newVaultTime', type: 'uint256' },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'oldVaultTime',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'newVaultTime',
+        type: 'uint256',
+      },
     ],
     name: 'MinimumVaultTimeUpdated',
     type: 'event',
@@ -67,8 +127,18 @@ export const CLANKER_VAULT_ABI = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
     name: 'OwnershipTransferred',
     type: 'event',

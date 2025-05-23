@@ -29,8 +29,18 @@ export const Clanker_v3_1_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'oldClankerDeployer', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newClankerDeployer', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'oldClankerDeployer',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newClankerDeployer',
+        type: 'address',
+      },
     ],
     name: 'ClankerDeployerUpdated',
     type: 'event',
@@ -38,8 +48,18 @@ export const Clanker_v3_1_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'oldLocker', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newLocker', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'oldLocker',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newLocker',
+        type: 'address',
+      },
     ],
     name: 'LiquidityLockerUpdated',
     type: 'event',
@@ -47,8 +67,18 @@ export const Clanker_v3_1_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
     name: 'OwnershipTransferred',
     type: 'event',
@@ -56,7 +86,12 @@ export const Clanker_v3_1_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'admin', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'admin',
+        type: 'address',
+      },
       { indexed: false, internalType: 'bool', name: 'isAdmin', type: 'bool' },
     ],
     name: 'SetAdmin',
@@ -64,37 +99,99 @@ export const Clanker_v3_1_abi = [
   },
   {
     anonymous: false,
-    inputs: [{ indexed: false, internalType: 'bool', name: 'deprecated', type: 'bool' }],
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'bool',
+        name: 'deprecated',
+        type: 'bool',
+      },
+    ],
     name: 'SetDeprecated',
     type: 'event',
   },
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'tokenAddress', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'creatorAdmin', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'interfaceAdmin', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'creatorRewardRecipient', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'tokenAddress',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'creatorAdmin',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'interfaceAdmin',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'creatorRewardRecipient',
+        type: 'address',
+      },
       {
         indexed: false,
         internalType: 'address',
         name: 'interfaceRewardRecipient',
         type: 'address',
       },
-      { indexed: false, internalType: 'uint256', name: 'positionId', type: 'uint256' },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'positionId',
+        type: 'uint256',
+      },
       { indexed: false, internalType: 'string', name: 'name', type: 'string' },
-      { indexed: false, internalType: 'string', name: 'symbol', type: 'string' },
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'symbol',
+        type: 'string',
+      },
       {
         indexed: false,
         internalType: 'int24',
         name: 'startingTickIfToken0IsNewToken',
         type: 'int24',
       },
-      { indexed: false, internalType: 'string', name: 'metadata', type: 'string' },
-      { indexed: false, internalType: 'uint256', name: 'amountTokensBought', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'vaultDuration', type: 'uint256' },
-      { indexed: false, internalType: 'uint8', name: 'vaultPercentage', type: 'uint8' },
-      { indexed: false, internalType: 'address', name: 'msgSender', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'metadata',
+        type: 'string',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amountTokensBought',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'vaultDuration',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint8',
+        name: 'vaultPercentage',
+        type: 'uint8',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'msgSender',
+        type: 'address',
+      },
     ],
     name: 'TokenCreated',
     type: 'event',
@@ -102,8 +199,18 @@ export const Clanker_v3_1_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'oldVault', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newVault', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'oldVault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newVault',
+        type: 'address',
+      },
     ],
     name: 'VaultUpdated',
     type: 'event',
@@ -176,7 +283,11 @@ export const Clanker_v3_1_abi = [
               { internalType: 'string', name: 'image', type: 'string' },
               { internalType: 'string', name: 'metadata', type: 'string' },
               { internalType: 'string', name: 'context', type: 'string' },
-              { internalType: 'uint256', name: 'originatingChainId', type: 'uint256' },
+              {
+                internalType: 'uint256',
+                name: 'originatingChainId',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct IClanker.TokenConfig',
             name: 'tokenConfig',
@@ -185,7 +296,11 @@ export const Clanker_v3_1_abi = [
           {
             components: [
               { internalType: 'uint8', name: 'vaultPercentage', type: 'uint8' },
-              { internalType: 'uint256', name: 'vaultDuration', type: 'uint256' },
+              {
+                internalType: 'uint256',
+                name: 'vaultDuration',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct IClanker.VaultConfig',
             name: 'vaultConfig',
@@ -194,7 +309,11 @@ export const Clanker_v3_1_abi = [
           {
             components: [
               { internalType: 'address', name: 'pairedToken', type: 'address' },
-              { internalType: 'int24', name: 'tickIfToken0IsNewToken', type: 'int24' },
+              {
+                internalType: 'int24',
+                name: 'tickIfToken0IsNewToken',
+                type: 'int24',
+              },
             ],
             internalType: 'struct IClanker.PoolConfig',
             name: 'poolConfig',
@@ -202,8 +321,16 @@ export const Clanker_v3_1_abi = [
           },
           {
             components: [
-              { internalType: 'uint24', name: 'pairedTokenPoolFee', type: 'uint24' },
-              { internalType: 'uint256', name: 'pairedTokenSwapAmountOutMinimum', type: 'uint256' },
+              {
+                internalType: 'uint24',
+                name: 'pairedTokenPoolFee',
+                type: 'uint24',
+              },
+              {
+                internalType: 'uint256',
+                name: 'pairedTokenSwapAmountOutMinimum',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct IClanker.InitialBuyConfig',
             name: 'initialBuyConfig',
@@ -211,11 +338,31 @@ export const Clanker_v3_1_abi = [
           },
           {
             components: [
-              { internalType: 'uint256', name: 'creatorReward', type: 'uint256' },
-              { internalType: 'address', name: 'creatorAdmin', type: 'address' },
-              { internalType: 'address', name: 'creatorRewardRecipient', type: 'address' },
-              { internalType: 'address', name: 'interfaceAdmin', type: 'address' },
-              { internalType: 'address', name: 'interfaceRewardRecipient', type: 'address' },
+              {
+                internalType: 'uint256',
+                name: 'creatorReward',
+                type: 'uint256',
+              },
+              {
+                internalType: 'address',
+                name: 'creatorAdmin',
+                type: 'address',
+              },
+              {
+                internalType: 'address',
+                name: 'creatorRewardRecipient',
+                type: 'address',
+              },
+              {
+                internalType: 'address',
+                name: 'interfaceAdmin',
+                type: 'address',
+              },
+              {
+                internalType: 'address',
+                name: 'interfaceRewardRecipient',
+                type: 'address',
+              },
             ],
             internalType: 'struct IClanker.RewardsConfig',
             name: 'rewardsConfig',
@@ -247,7 +394,11 @@ export const Clanker_v3_1_abi = [
               { internalType: 'string', name: 'image', type: 'string' },
               { internalType: 'string', name: 'metadata', type: 'string' },
               { internalType: 'string', name: 'context', type: 'string' },
-              { internalType: 'uint256', name: 'originatingChainId', type: 'uint256' },
+              {
+                internalType: 'uint256',
+                name: 'originatingChainId',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct IClanker.TokenConfig',
             name: 'tokenConfig',
@@ -256,7 +407,11 @@ export const Clanker_v3_1_abi = [
           {
             components: [
               { internalType: 'uint8', name: 'vaultPercentage', type: 'uint8' },
-              { internalType: 'uint256', name: 'vaultDuration', type: 'uint256' },
+              {
+                internalType: 'uint256',
+                name: 'vaultDuration',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct IClanker.VaultConfig',
             name: 'vaultConfig',
@@ -265,7 +420,11 @@ export const Clanker_v3_1_abi = [
           {
             components: [
               { internalType: 'address', name: 'pairedToken', type: 'address' },
-              { internalType: 'int24', name: 'tickIfToken0IsNewToken', type: 'int24' },
+              {
+                internalType: 'int24',
+                name: 'tickIfToken0IsNewToken',
+                type: 'int24',
+              },
             ],
             internalType: 'struct IClanker.PoolConfig',
             name: 'poolConfig',
@@ -273,8 +432,16 @@ export const Clanker_v3_1_abi = [
           },
           {
             components: [
-              { internalType: 'uint24', name: 'pairedTokenPoolFee', type: 'uint24' },
-              { internalType: 'uint256', name: 'pairedTokenSwapAmountOutMinimum', type: 'uint256' },
+              {
+                internalType: 'uint24',
+                name: 'pairedTokenPoolFee',
+                type: 'uint24',
+              },
+              {
+                internalType: 'uint256',
+                name: 'pairedTokenSwapAmountOutMinimum',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct IClanker.InitialBuyConfig',
             name: 'initialBuyConfig',
@@ -282,11 +449,31 @@ export const Clanker_v3_1_abi = [
           },
           {
             components: [
-              { internalType: 'uint256', name: 'creatorReward', type: 'uint256' },
-              { internalType: 'address', name: 'creatorAdmin', type: 'address' },
-              { internalType: 'address', name: 'creatorRewardRecipient', type: 'address' },
-              { internalType: 'address', name: 'interfaceAdmin', type: 'address' },
-              { internalType: 'address', name: 'interfaceRewardRecipient', type: 'address' },
+              {
+                internalType: 'uint256',
+                name: 'creatorReward',
+                type: 'uint256',
+              },
+              {
+                internalType: 'address',
+                name: 'creatorAdmin',
+                type: 'address',
+              },
+              {
+                internalType: 'address',
+                name: 'creatorRewardRecipient',
+                type: 'address',
+              },
+              {
+                internalType: 'address',
+                name: 'interfaceAdmin',
+                type: 'address',
+              },
+              {
+                internalType: 'address',
+                name: 'interfaceRewardRecipient',
+                type: 'address',
+              },
             ],
             internalType: 'struct IClanker.RewardsConfig',
             name: 'rewardsConfig',
@@ -317,7 +504,11 @@ export const Clanker_v3_1_abi = [
           { internalType: 'string', name: 'image', type: 'string' },
           { internalType: 'string', name: 'metadata', type: 'string' },
           { internalType: 'string', name: 'context', type: 'string' },
-          { internalType: 'uint256', name: 'originatingChainId', type: 'uint256' },
+          {
+            internalType: 'uint256',
+            name: 'originatingChainId',
+            type: 'uint256',
+          },
         ],
         internalType: 'struct IClanker.TokenConfig',
         name: 'tokenConfig',
@@ -397,7 +588,13 @@ export const Clanker_v3_1_abi = [
   {
     inputs: [],
     name: 'positionManager',
-    outputs: [{ internalType: 'contract INonfungiblePositionManager', name: '', type: 'address' }],
+    outputs: [
+      {
+        internalType: 'contract INonfungiblePositionManager',
+        name: '',
+        type: 'address',
+      },
+    ],
     stateMutability: 'view',
     type: 'function',
   },

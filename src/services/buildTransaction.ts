@@ -1,15 +1,7 @@
-import {
-  CLANKER_FACTORY_V3_1,
-  DEFAULT_SUPPLY,
-  WETH_ADDRESS,
-} from '../constants.js';
+import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY, WETH_ADDRESS } from '../constants.js';
 import { encodeFunctionData, getAddress, isAddress, stringify } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
-import {
-  ClankerMetadata,
-  ClankerSocialContext,
-  DeployFormData,
-} from '../types/index.js';
+import { ClankerMetadata, ClankerSocialContext, DeployFormData } from '../types/index.js';
 import { getRelativeUnixTimestamp } from '../utils/unix-timestamp.js';
 import { findVanityAddress } from './vanityAddress.js';
 
@@ -33,8 +25,7 @@ export async function buildTransaction({
   transaction: { to: `0x${string}`; data: `0x${string}` };
   expectedAddress: `0x${string}`;
 }> {
-  const { name, symbol, imageUrl, lockupPercentage, vestingUnlockDate } =
-    formData;
+  const { name, symbol, imageUrl, lockupPercentage, vestingUnlockDate } = formData;
 
   const requestorAddress = deployerAddress;
   if (!requestorAddress) {
@@ -61,16 +52,10 @@ export async function buildTransaction({
     ...clankerMetadata,
     socialMediaUrls: [
       ...(clankerMetadata.socialMediaUrls || []),
-      ...(formData.telegramLink
-        ? [{ platform: 'telegram', url: formData.telegramLink }]
-        : []),
-      ...(formData.websiteLink
-        ? [{ platform: 'website', url: formData.websiteLink }]
-        : []),
+      ...(formData.telegramLink ? [{ platform: 'telegram', url: formData.telegramLink }] : []),
+      ...(formData.websiteLink ? [{ platform: 'website', url: formData.websiteLink }] : []),
       ...(formData.xLink ? [{ platform: 'x', url: formData.xLink }] : []),
-      ...(formData.farcasterLink
-        ? [{ platform: 'farcaster', url: formData.farcasterLink }]
-        : []),
+      ...(formData.farcasterLink ? [{ platform: 'farcaster', url: formData.farcasterLink }] : []),
     ],
   });
 
@@ -89,16 +74,7 @@ export async function buildTransaction({
 
   const admin = validateAddress(formData.creatorRewardsAdmin, requestorAddress);
   const { token: expectedAddress, salt } = await findVanityAddress(
-    [
-      name,
-      symbol,
-      DEFAULT_SUPPLY,
-      admin,
-      imageUrl || '',
-      metadata,
-      socialContext,
-      BigInt(chainId),
-    ],
+    [name, symbol, DEFAULT_SUPPLY, admin, imageUrl || '', metadata, socialContext, BigInt(chainId)],
     admin,
     '0x4b07',
     {
@@ -135,18 +111,9 @@ export async function buildTransaction({
     },
     rewardsConfig: {
       creatorReward: BigInt(Number(formData.creatorReward || 40)),
-      creatorAdmin: validateAddress(
-        formData.creatorRewardsAdmin,
-        requestorAddress
-      ),
-      creatorRewardRecipient: validateAddress(
-        formData.creatorRewardsRecipient,
-        requestorAddress
-      ),
-      interfaceAdmin: validateAddress(
-        formData.interfaceAdmin,
-        requestorAddress
-      ),
+      creatorAdmin: validateAddress(formData.creatorRewardsAdmin, requestorAddress),
+      creatorRewardRecipient: validateAddress(formData.creatorRewardsRecipient, requestorAddress),
+      interfaceAdmin: validateAddress(formData.interfaceAdmin, requestorAddress),
       interfaceRewardRecipient: validateAddress(
         formData.interfaceRewardRecipient,
         requestorAddress

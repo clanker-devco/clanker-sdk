@@ -67,9 +67,7 @@ export const getTokenAddressByPair = (pair: TokenPair): `0x${string}` => {
   return WETH_ADDRESS;
 };
 
-export const getPairedTokenInfo: (pair: TokenPair) => ITokenData = (
-  pair: TokenPair
-) => {
+export const getPairedTokenInfo: (pair: TokenPair) => ITokenData = (pair: TokenPair) => {
   if (pair === 'DEGEN') {
     return {
       address: DEGEN_ADDRESS,

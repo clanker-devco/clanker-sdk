@@ -6,7 +6,12 @@ export const UniswapV3Factory_abi = [
     anonymous: false,
     inputs: [
       { indexed: true, internalType: 'uint24', name: 'fee', type: 'uint24' },
-      { indexed: true, internalType: 'int24', name: 'tickSpacing', type: 'int24' },
+      {
+        indexed: true,
+        internalType: 'int24',
+        name: 'tickSpacing',
+        type: 'int24',
+      },
     ],
     name: 'FeeAmountEnabled',
     type: 'event',
@@ -14,8 +19,18 @@ export const UniswapV3Factory_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'oldOwner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
     name: 'OwnerChanged',
     type: 'event',
@@ -23,11 +38,31 @@ export const UniswapV3Factory_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'token0', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'token1', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token0',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token1',
+        type: 'address',
+      },
       { indexed: true, internalType: 'uint24', name: 'fee', type: 'uint24' },
-      { indexed: false, internalType: 'int24', name: 'tickSpacing', type: 'int24' },
-      { indexed: false, internalType: 'address', name: 'pool', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'int24',
+        name: 'tickSpacing',
+        type: 'int24',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'pool',
+        type: 'address',
+      },
     ],
     name: 'PoolCreated',
     type: 'event',
