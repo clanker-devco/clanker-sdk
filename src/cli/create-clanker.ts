@@ -27,6 +27,9 @@ async function createClanker() {
   const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
   const RPC_URL = process.env.RPC_URL;
 
+  // Initialize wallet with private key
+  const account = privateKeyToAccount(PRIVATE_KEY);
+
   // Helper function to safely convert address to 0x-prefixed string type
   function toHexAddress(address: string | undefined): `0x${string}` | undefined {
     if (!address) return undefined;
@@ -469,37 +472,16 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           answers.rewardsConfig.creatorReward === 'CUSTOM'
             ? Number(answers.rewardsConfig.customCreatorReward)
             : Number(answers.rewardsConfig.creatorReward),
-        ...(answers.rewardsConfig.creatorAdmin
-          ? {
-              creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin),
-            }
-          : {}),
-        ...(answers.rewardsConfig.creatorRewardRecipient
-          ? {
-              creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient),
-            }
-          : {}),
-        ...(answers.rewardsConfig.interfaceAdmin
-          ? {
-              interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin),
-            }
-          : {}),
-        ...(answers.rewardsConfig.interfaceRewardRecipient
-          ? {
-              interfaceRewardRecipient: toHexAddress(
-                answers.rewardsConfig.interfaceRewardRecipient
-              ),
-            }
-          : {}),
+        creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin || account.address) as `0x${string}`,
+        creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient || account.address) as `0x${string}`,
+        interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin || account.address) as `0x${string}`,
+        interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient || account.address) as `0x${string}`,
       },
     };
   }
 
   async function deployToken(answers: ClankerAnswers) {
     try {
-      // Initialize wallet with private key
-      const account = privateKeyToAccount(PRIVATE_KEY);
-
       // Create transport with optional custom RPC
       const transport = RPC_URL ? http(RPC_URL) : http();
 
@@ -569,18 +551,10 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             answers.rewardsConfig.creatorReward === 'CUSTOM'
               ? Number(answers.rewardsConfig.customCreatorReward)
               : Number(answers.rewardsConfig.creatorReward),
-          ...(answers.rewardsConfig.creatorAdmin && {
-            creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin),
-          }),
-          ...(answers.rewardsConfig.creatorRewardRecipient && {
-            creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient),
-          }),
-          ...(answers.rewardsConfig.interfaceAdmin && {
-            interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin),
-          }),
-          ...(answers.rewardsConfig.interfaceRewardRecipient && {
-            interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient),
-          }),
+          creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin || account.address) as `0x${string}`,
+          creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient || account.address) as `0x${string}`,
+          interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin || account.address) as `0x${string}`,
+          interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient || account.address) as `0x${string}`,
         },
       };
 
