@@ -59,8 +59,8 @@ async function main(): Promise<void> {
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
       metadata: {
-        description: 'Token with custom configuration including vesting and rewards',
-        socialMediaUrls: ['https://twitter.com/mytoken', 'https://t.me/mytoken'],
+        description: 'SDK deployment',
+        socialMediaUrls: [],
         auditUrls: ['https://clanker.gitbook.io/clanker-documentation/references/audits'],
       },
       context: {

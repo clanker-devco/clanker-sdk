@@ -1,9 +1,4 @@
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  PublicClient,
-} from 'viem';
+import { createPublicClient, createWalletClient, http, PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { Clanker } from '../src/index.js';
@@ -24,7 +19,7 @@ if (!PRIVATE_KEY) {
 }
 
 /**
- * Example showing how to deploy a v3 token using the Clanker SDK
+ * Example showing how to deploy a v3.1 token using the Clanker SDK
  * This example demonstrates:
  * - Token deployment with v3 configuration
  * - Custom metadata and social links
@@ -68,8 +63,7 @@ async function main(): Promise<void> {
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
       .withMetadata({
         description: 'SDK deployment',
-        socialMediaUrls: [
-        ],
+        socialMediaUrls: [],
         auditUrls: [],
       })
       .withContext({
@@ -105,10 +99,7 @@ async function main(): Promise<void> {
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
-    console.log(
-      'View on BaseScan:',
-      `https://sepolia.basescan.org/token/${tokenAddress}`
-    );
+    console.log('View on BaseScan:', `https://sepolia.basescan.org/token/${tokenAddress}`);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);
@@ -119,4 +110,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(console.error); 
+main().catch(console.error);
