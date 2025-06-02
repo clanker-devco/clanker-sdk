@@ -1,5 +1,5 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
-import { keccak256, encodeAbiParameters } from 'viem';
+import { encodeAbiParameters } from 'viem';
 
 export interface AirdropEntry {
   account: `0x${string}`;

@@ -132,7 +132,8 @@ export class TokenConfigV4Builder {
 
     // Validate airdrop allocation if present
     if (this.config.airdrop?.percentage) {
-      if (!isValidBps(this.config.airdrop.percentage)) {
+      const airdropBps = percentageToBps(this.config.airdrop.percentage);
+      if (!isValidBps(airdropBps)) {
         throw new Error(`Invalid airdrop percentage: ${this.config.airdrop.percentage}`);
       }
     }

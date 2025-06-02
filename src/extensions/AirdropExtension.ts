@@ -1,4 +1,4 @@
-import { type Address, encodeAbiParameters } from 'viem';
+import { encodeAbiParameters } from 'viem';
 import { IClankerExtension } from './IClankerExtension.js';
 import { CLANKER_AIRDROP_ADDRESS } from '../constants.js';
 import { createMerkleTree, getMerkleProof, type AirdropEntry } from '../utils/merkleTree.js';

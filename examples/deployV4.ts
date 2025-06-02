@@ -72,7 +72,11 @@ async function main(): Promise<void> {
         amount: BigInt('1000000000000000000'), // 1 token
       },
       {
-        account: '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+        account: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`,
+        amount: BigInt('2000000000000000000'), // 2 tokens
+      },
+      {
+        account: '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825' as `0x${string}`,
         amount: BigInt('2000000000000000000'), // 2 tokens
       },
     ];
@@ -98,16 +102,16 @@ async function main(): Promise<void> {
         id: 'TKN-1',
       })
       .withVault({
-        percentage: 30, // 30% of token supply
+        percentage: 10, // 30% of token supply
         lockupDuration: 2592000000, // 30 days in ms
         vestingDuration: 2592000000, // 30 days in ms
       })
       .withAirdrop({
         merkleRoot: root,
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
+        lockupDuration: 0, // 30 days in ms
+        vestingDuration: 0, // 30 days in ms
         entries: airdropEntries,
-        percentage: 3000, // 30%
+        percentage: 10, // 10%
       })
       .withDevBuy({
         ethAmount: '0',
