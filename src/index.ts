@@ -1,8 +1,9 @@
-import { type PublicClient, type WalletClient } from 'viem';
+import { type PublicClient, type WalletClient, type Address } from 'viem';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
 import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
-import { deployTokenV4 } from './deployment/v4.js';
+import { deployTokenV4, buildTokenV4 } from './deployment/v4.js';
+import type { BuildV4Result } from './types/v4.js';
 
 export class Clanker {
   private readonly wallet?: WalletClient;
@@ -19,6 +20,24 @@ export class Clanker {
 
     this.wallet = config.wallet;
     this.publicClient = config.publicClient;
+  }
+
+  /**
+   * Build V4 token deployment data without deploying
+   * @param cfg Token configuration for V4 deployment
+   * @returns Object containing transaction data, target address, and network info
+   */
+  public buildV4(cfg: TokenConfigV4): BuildV4Result {
+    if (!this.wallet?.account) {
+      throw new Error('Wallet account required for building deployment data');
+    }
+
+    const result = buildTokenV4(
+      cfg, 
+      this.publicClient.chain?.id || 84532
+    );
+
+    return result;
   }
 
   /**
