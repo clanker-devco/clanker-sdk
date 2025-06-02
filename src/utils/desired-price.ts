@@ -10,10 +10,7 @@ import {
   A0X_ADDRESS,
 } from '../constants.js';
 
-export const getDesiredPriceAndPairAddress = (
-  pair: TokenPair,
-  marketCap: string = '10'
-) => {
+export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: string = '10') => {
   // This is the ratio of token to paired token. In the default case it is WETH.
   // So 0.0000000001 WETH = 1 TOKEN. Since we are deploying with 100000000000 tokens,
   // Then 100000000000 * 0.0000000001 == 10 WETH. So starting market cap is 10 WETH or about 40k.
@@ -39,8 +36,7 @@ export const getDesiredPriceAndPairAddress = (
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
     const howManyClankerForDesiredMarketCap = desiredMarketCap / clankerPrice; // 166.6777
-    const pricePerTokenInClanker =
-      howManyClankerForDesiredMarketCap / totalSupplyDesired; // 0.000001666777
+    const pricePerTokenInClanker = howManyClankerForDesiredMarketCap / totalSupplyDesired; // 0.000001666777
     desiredPrice = pricePerTokenInClanker;
     pairAddress = CLANKER_ADDRESS;
   } else if (pair === 'ANON') {
@@ -48,8 +44,7 @@ export const getDesiredPriceAndPairAddress = (
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
     const howManyAnonForDesiredMarketCap = desiredMarketCap / anonPrice; // 500000
-    const pricePerTokenInAnon =
-      howManyAnonForDesiredMarketCap / totalSupplyDesired; // 0.000005
+    const pricePerTokenInAnon = howManyAnonForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInAnon;
     pairAddress = ANON_ADDRESS;
   } else if (pair === 'HIGHER') {
@@ -57,8 +52,7 @@ export const getDesiredPriceAndPairAddress = (
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
     const howManyHigherForDesiredMarketCap = desiredMarketCap / higherPrice; // 500000
-    const pricePerTokenInHigher =
-      howManyHigherForDesiredMarketCap / totalSupplyDesired; // 0.000005
+    const pricePerTokenInHigher = howManyHigherForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInHigher;
     pairAddress = HIGHER_ADDRESS;
   } else if (pair === 'BTC') {
@@ -67,8 +61,7 @@ export const getDesiredPriceAndPairAddress = (
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
     const howManyCBBTCForDesiredMarketCap = desiredMarketCap / cbBtcPrice; // ~0.095238 BTC
     // Adjust for 8 decimals vs 18 decimals (divide by 10^10)
-    const pricePerTokenInCbBtc =
-      howManyCBBTCForDesiredMarketCap / totalSupplyDesired / 10 ** 10;
+    const pricePerTokenInCbBtc = howManyCBBTCForDesiredMarketCap / totalSupplyDesired / 10 ** 10;
     desiredPrice = pricePerTokenInCbBtc;
     pairAddress = CB_BTC_ADDRESS;
   } else if (pair === 'NATIVE') {
@@ -76,8 +69,7 @@ export const getDesiredPriceAndPairAddress = (
     const desiredMarketCap = 10000; // 10k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
     const howManyNativeForDesiredMarketCap = desiredMarketCap / nativePrice; // 500000
-    const pricePerTokenInNative =
-      howManyNativeForDesiredMarketCap / totalSupplyDesired; // 0.000005
+    const pricePerTokenInNative = howManyNativeForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInNative;
     pairAddress = NATIVE_ADDRESS;
   } else if (pair === 'A0x') {
@@ -85,8 +77,7 @@ export const getDesiredPriceAndPairAddress = (
     const desiredMarketCap = 5000; // 5k
     const totalSupplyDesired = 100_000_000_000; // total coin supply (100 billion)
     const howManyA0xForDesiredMarketCap = desiredMarketCap / a0xPrice; // 500000
-    const pricePerTokenInA0x =
-      howManyA0xForDesiredMarketCap / totalSupplyDesired; // 0.000005
+    const pricePerTokenInA0x = howManyA0xForDesiredMarketCap / totalSupplyDesired; // 0.000005
     desiredPrice = pricePerTokenInA0x;
     pairAddress = A0X_ADDRESS;
   } else if (pair === 'WMON') {

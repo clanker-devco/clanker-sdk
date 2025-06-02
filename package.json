@@ -41,6 +41,7 @@
   "author": "Clanker Team",
   "license": "MIT",
   "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.8",
     "@types/inquirer": "^8.2.6",
     "dotenv": "^16.4.7",
     "inquirer": "^8.2.6",
@@ -54,6 +55,7 @@
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "tsup": "^8.4.0",
+    "tsx": "^4.19.4",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {

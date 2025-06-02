@@ -40,18 +40,78 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'creatorRecipient', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'interfaceRecipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'teamRecipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'token0', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'token1', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'creatorReward0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'creatorReward1', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'interfaceReward0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'interfaceReward1', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'teamReward0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'teamReward1', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'creatorRecipient',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'interfaceRecipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'teamRecipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'token0',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'token1',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'creatorReward0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'creatorReward1',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'interfaceReward0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'interfaceReward1',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'teamReward0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'teamReward1',
+        type: 'uint256',
+      },
     ],
     name: 'ClaimedRewards',
     type: 'event',
@@ -59,9 +119,24 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'oldAdmin', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newAdmin', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldAdmin',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newAdmin',
+        type: 'address',
+      },
     ],
     name: 'CreatorRewardRecipientAdminUpdated',
     type: 'event',
@@ -69,9 +144,24 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'oldRecipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newRecipient', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldRecipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newRecipient',
+        type: 'address',
+      },
     ],
     name: 'CreatorRewardRecipientUpdated',
     type: 'event',
@@ -79,9 +169,24 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'oldAdmin', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newAdmin', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldAdmin',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newAdmin',
+        type: 'address',
+      },
     ],
     name: 'InterfaceRewardRecipientAdminUpdated',
     type: 'event',
@@ -89,9 +194,24 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'oldRecipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newRecipient', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldRecipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newRecipient',
+        type: 'address',
+      },
     ],
     name: 'InterfaceRewardRecipientUpdated',
     type: 'event',
@@ -99,8 +219,18 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
     name: 'OwnershipTransferred',
     type: 'event',
@@ -109,7 +239,12 @@ export const LpLockerv2_abi = [
     anonymous: false,
     inputs: [
       { indexed: true, internalType: 'address', name: 'from', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
     ],
     name: 'Received',
     type: 'event',
@@ -117,9 +252,24 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'oldRecipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newRecipient', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldRecipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newRecipient',
+        type: 'address',
+      },
     ],
     name: 'TeamOverrideRewardRecipientUpdated',
     type: 'event',
@@ -127,8 +277,18 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'oldRecipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newRecipient', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldRecipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newRecipient',
+        type: 'address',
+      },
     ],
     name: 'TeamRecipientUpdated',
     type: 'event',
@@ -136,10 +296,30 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'lpTokenId', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'creatorReward', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'creator', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'interfacer', type: 'address' },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'lpTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'creatorReward',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'creator',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'interfacer',
+        type: 'address',
+      },
     ],
     name: 'TokenRewardAdded',
     type: 'event',

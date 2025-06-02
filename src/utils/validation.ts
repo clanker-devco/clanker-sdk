@@ -19,6 +19,43 @@ export function isInRange(value: number, min: number, max: number): boolean {
   return value >= min && value <= max;
 }
 
+/**
+ * Validates if a number is a valid basis point value (0-10000)
+ * @param value - The basis point value to validate
+ * @returns boolean indicating if the value is valid
+ */
+export function isValidBps(value: number): boolean {
+  return value >= 0 && value <= 10000;
+}
+
+/**
+ * Validates if a set of BPS values sum to 10000 (100%)
+ * @param values - Array of BPS values to validate
+ * @returns boolean indicating if the sum is valid
+ */
+export function validateBpsSum(values: number[]): boolean {
+  const sum = values.reduce((acc, val) => acc + val, 0);
+  return sum === 10000;
+}
+
+/**
+ * Converts a percentage to basis points
+ * @param percentage - The percentage value (0-100)
+ * @returns The equivalent basis points value
+ */
+export function percentageToBps(percentage: number): number {
+  return Math.round(percentage * 100);
+}
+
+/**
+ * Converts basis points to a percentage
+ * @param bps - The basis points value (0-10000)
+ * @returns The equivalent percentage value
+ */
+export function bpsToPercentage(bps: number): number {
+  return bps / 100;
+}
+
 // Define a generic result type for validation
 type ValidationResult = {
   success: boolean;
@@ -35,12 +72,7 @@ type ValidationResult = {
  * @returns Result with success flag and either the validated data or validation errors
  */
 export function validateConfig<T>(config: T): ValidationResult {
-  if (
-    typeof config === 'object' &&
-    config !== null &&
-    'name' in config &&
-    'symbol' in config
-  ) {
+  if (typeof config === 'object' && config !== null && 'name' in config && 'symbol' in config) {
     return tokenConfigSchema.safeParse(config);
   }
 
@@ -97,11 +129,7 @@ export function validateConfig<T>(config: T): ValidationResult {
   }
 
   // Check if it's a ClankerConfig
-  if (
-    typeof config === 'object' &&
-    config !== null &&
-    'publicClient' in config
-  ) {
+  if (typeof config === 'object' && config !== null && 'publicClient' in config) {
     return clankerConfigSchema.safeParse(config);
   }
 

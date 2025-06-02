@@ -11,9 +11,24 @@ export const UniswapV3Position_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'approved', type: 'address' },
-      { indexed: true, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'approved',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
     ],
     name: 'Approval',
     type: 'event',
@@ -21,8 +36,18 @@ export const UniswapV3Position_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'operator', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'operator',
+        type: 'address',
+      },
       { indexed: false, internalType: 'bool', name: 'approved', type: 'bool' },
     ],
     name: 'ApprovalForAll',
@@ -31,10 +56,30 @@ export const UniswapV3Position_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
-      { indexed: false, internalType: 'address', name: 'recipient', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'amount1', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount1',
+        type: 'uint256',
+      },
     ],
     name: 'Collect',
     type: 'event',
@@ -42,10 +87,30 @@ export const UniswapV3Position_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
-      { indexed: false, internalType: 'uint128', name: 'liquidity', type: 'uint128' },
-      { indexed: false, internalType: 'uint256', name: 'amount0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'amount1', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint128',
+        name: 'liquidity',
+        type: 'uint128',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount1',
+        type: 'uint256',
+      },
     ],
     name: 'DecreaseLiquidity',
     type: 'event',
@@ -53,10 +118,30 @@ export const UniswapV3Position_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
-      { indexed: false, internalType: 'uint128', name: 'liquidity', type: 'uint128' },
-      { indexed: false, internalType: 'uint256', name: 'amount0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'amount1', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint128',
+        name: 'liquidity',
+        type: 'uint128',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount1',
+        type: 'uint256',
+      },
     ],
     name: 'IncreaseLiquidity',
     type: 'event',
@@ -66,7 +151,12 @@ export const UniswapV3Position_abi = [
     inputs: [
       { indexed: true, internalType: 'address', name: 'from', type: 'address' },
       { indexed: true, internalType: 'address', name: 'to', type: 'address' },
-      { indexed: true, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
     ],
     name: 'Transfer',
     type: 'event',
@@ -307,15 +397,29 @@ export const UniswapV3Position_abi = [
       { internalType: 'int24', name: 'tickLower', type: 'int24' },
       { internalType: 'int24', name: 'tickUpper', type: 'int24' },
       { internalType: 'uint128', name: 'liquidity', type: 'uint128' },
-      { internalType: 'uint256', name: 'feeGrowthInside0LastX128', type: 'uint256' },
-      { internalType: 'uint256', name: 'feeGrowthInside1LastX128', type: 'uint256' },
+      {
+        internalType: 'uint256',
+        name: 'feeGrowthInside0LastX128',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'feeGrowthInside1LastX128',
+        type: 'uint256',
+      },
       { internalType: 'uint128', name: 'tokensOwed0', type: 'uint128' },
       { internalType: 'uint128', name: 'tokensOwed1', type: 'uint128' },
     ],
     stateMutability: 'view',
     type: 'function',
   },
-  { inputs: [], name: 'refundETH', outputs: [], stateMutability: 'payable', type: 'function' },
+  {
+    inputs: [],
+    name: 'refundETH',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
   {
     inputs: [
       { internalType: 'address', name: 'from', type: 'address' },

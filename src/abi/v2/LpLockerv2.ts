@@ -3,7 +3,11 @@ export const LpLockerv2_abi = [
     inputs: [
       { internalType: 'address', name: 'tokenFactory', type: 'address' },
       { internalType: 'address', name: 'token', type: 'address' },
-      { internalType: 'address', name: 'clankerTeamRecipient', type: 'address' },
+      {
+        internalType: 'address',
+        name: 'clankerTeamRecipient',
+        type: 'address',
+      },
       { internalType: 'uint256', name: 'clankerTeamReward', type: 'uint256' },
     ],
     stateMutability: 'nonpayable',
@@ -32,13 +36,48 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'claimer', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'token0', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'token1', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount0', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'amount1', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'totalAmount1', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'totalAmount0', type: 'uint256' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'claimer',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token0',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token1',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount0',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount1',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'totalAmount1',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'totalAmount0',
+        type: 'uint256',
+      },
     ],
     name: 'ClaimedRewards',
     type: 'event',
@@ -52,8 +91,18 @@ export const LpLockerv2_abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
     name: 'OwnershipTransferred',
     type: 'event',
@@ -62,7 +111,12 @@ export const LpLockerv2_abi = [
     anonymous: false,
     inputs: [
       { indexed: true, internalType: 'address', name: 'from', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'tokenId', type: 'uint256' },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
     ],
     name: 'Received',
     type: 'event',

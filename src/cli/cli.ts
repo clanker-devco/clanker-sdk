@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--create')) {
     const createClanker = await import('./create-clanker.js');
     await createClanker.default();
@@ -25,4 +25,4 @@ async function main() {
 main().catch((error) => {
   console.error('Error:', error);
   process.exit(1);
-}); 
+});
