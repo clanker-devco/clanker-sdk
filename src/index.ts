@@ -28,9 +28,6 @@ export class Clanker {
    * @returns Object containing transaction data, target address, and network info
    */
   public buildV4(cfg: TokenConfigV4): BuildV4Result {
-    if (!this.wallet?.account) {
-      throw new Error('Wallet account required for building deployment data');
-    }
 
     const result = buildTokenV4(
       cfg, 
