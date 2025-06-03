@@ -30,7 +30,7 @@ export function buildTokenV4(
   chainId: number
 ): BuildV4Result {
   // Get fee configuration
-  const feeConfig = cfg.feeConfig || { type: 'static', fee: 500 }; // Default to 0.05% static fee
+  const feeConfig = cfg.feeConfig || { type: 'static', fee: 10000 }; // Default to 1% static fee
   const { hook, poolData } = encodeFeeConfig(feeConfig);
 
   const deploymentConfig = {
