@@ -46,6 +46,8 @@ export interface TokenConfigV4 {
   devBuy?: DevBuyConfig;
   rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
+  pairedToken?: Address;
+  startingMcap?: string;
 }
 
 export interface ClankerMetadata {
@@ -96,12 +98,15 @@ export interface RewardsConfig {
 }
 
 export interface RewardsConfigV4 {
-  creatorReward: number;
-  creatorAdmin: Address;
-  creatorRewardRecipient: Address;
-  interfaceAdmin: Address;
-  interfaceRewardRecipient: Address;
+  creatorReward?: number;
+  creatorAdmin?: Address;
+  creatorRewardRecipient?: Address;
+  interfaceAdmin?: Address;
+  interfaceRewardRecipient?: Address;
   additionalRewardRecipients?: Address[];
   additionalRewardBps?: number[];
   additionalRewardAdmins?: Address[];
+  tickLower?: number[];
+  tickUpper?: number[];
+  positionBps?: number[];
 }

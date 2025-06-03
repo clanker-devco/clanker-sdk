@@ -16,6 +16,12 @@ import {
 } from '../constants.js';
 import type { TokenConfigV4 } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
+import { 
+  getTokenDecimals, 
+  startingMarketCapToTick,
+  marketCapRangesToTicks 
+} from '../utils/tick-math.js';
+import { parseTokenAmount } from '../utils/token-amounts.js';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -37,9 +43,61 @@ export async function deployTokenV4(
     throw new Error('Wallet account required for deployToken');
   }
 
+  // Default paired token to WETH if not specified
+  const pairedToken = cfg.pairedToken || '0x4200000000000000000000000000000000000006'; // WETH
+  
+  // Get decimals for the paired token
+  const pairedTokenDecimals = await getTokenDecimals(pairedToken, publicClient);
+  
+  // Calculate starting tick from market cap if provided, otherwise use default
+  let tickIfToken0IsClanker = -230400; // Default tick
+  if (cfg.startingMcap) {
+    // Assume token has 18 decimals (standard for Clanker tokens)
+    const tokenSupply = cfg.rewardsConfig?.tokenSupply || parseTokenAmount('1000000000'); // Default 1B tokens
+    
+    // Determine if token0 is the Clanker token (lower address)
+    // For now, assume Clanker token is always token1 (higher address) for simplicity
+    // This could be made more sophisticated by comparing addresses
+    const token0IsQuote = true; // Paired token (WETH/USDC) is typically token0
+    
+    tickIfToken0IsClanker = startingMarketCapToTick(
+      cfg.startingMcap,
+      tokenSupply,
+      18, // Clanker token decimals
+      pairedTokenDecimals,
+      token0IsQuote
+    );
+  }
+
   // Get fee configuration
   const feeConfig = cfg.feeConfig || { type: 'static', fee: 500 }; // Default to 0.05% static fee
   const { hook, poolData } = encodeFeeConfig(feeConfig);
+
+  // Handle market cap ranges in rewards config if they exist
+  let tickLower = cfg.rewardsConfig?.tickLower || [-230400];
+  let tickUpper = cfg.rewardsConfig?.tickUpper || [230400];
+  let positionBps = cfg.rewardsConfig?.positionBps || [10000];
+
+  // If we have a rewards config that uses market cap ranges (from builder), 
+  // we need to recalculate with proper decimals
+  const rewardsConfig = cfg.rewardsConfig as any;
+  if (rewardsConfig?.marketCapRanges) {
+    const tokenSupply = rewardsConfig.tokenSupply || parseTokenAmount('1000000000');
+    const { 
+      tickLower: newTickLower, 
+      tickUpper: newTickUpper, 
+      positionBps: newPositionBps 
+    } = marketCapRangesToTicks(
+      rewardsConfig.marketCapRanges,
+      tokenSupply,
+      18, // Clanker token decimals
+      pairedTokenDecimals,
+      true // token0IsQuote
+    );
+    tickLower = newTickLower;
+    tickUpper = newTickUpper;
+    positionBps = newPositionBps;
+  }
 
   const deploymentConfig = {
     tokenConfig: {
@@ -65,14 +123,14 @@ export async function deployTokenV4(
         cfg.rewardsConfig?.creatorReward || 10000,
         ...(cfg.rewardsConfig?.additionalRewardBps || []),
       ],
-      tickLower: [-230400],
-      tickUpper: [230400],
-      positionBps: [10000],
+      tickLower,
+      tickUpper,
+      positionBps,
     },
     poolConfig: {
       hook,
-      pairedToken: '0x4200000000000000000000000000000000000006',
-      tickIfToken0IsClanker: -230400,
+      pairedToken,
+      tickIfToken0IsClanker,
       tickSpacing: 200,
       poolData,
     },
@@ -141,7 +199,7 @@ export async function deployTokenV4(
                 ],
                 [
                   {
-                    currency0: '0x4200000000000000000000000000000000000006', // WETH
+                    currency0: pairedToken, // Paired token (WETH, USDC, etc.)
                     currency1: account.address, // Token being deployed
                     fee: 3000,
                     tickSpacing: 60,

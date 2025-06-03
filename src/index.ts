@@ -49,7 +49,11 @@ export class Clanker {
 // Re-export types and utilities
 export * from './types/index.js';
 export * from './utils/validation.js';
+export * from './utils/token-amounts.js';
+export * from './utils/tick-math.js';
 export * from './services/vanityAddress.js';
+export * from './config/builders.js';
+export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
 
 // Re-export commonly used types

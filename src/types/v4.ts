@@ -1,6 +1,7 @@
 import { type Address } from 'viem';
 import { RewardsConfig } from './token.js';
 import { type FeeConfig } from './fee.js';
+import { type MarketCapRange } from '../utils/tick-math.js';
 
 export interface TokenConfigV4 {
   tokenAdmin: Address;
@@ -38,6 +39,8 @@ export interface TokenConfigV4 {
   };
   rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
+  pairedToken?: Address;
+  startingMcap?: string;
 }
 
 export interface VaultConfigV4 {
@@ -50,6 +53,22 @@ export interface RewardsConfigV4 extends RewardsConfig {
   additionalRewardRecipients?: Address[];
   additionalRewardBps?: number[];
   additionalRewardAdmins?: Address[];
+  tickLower?: number[];
+  tickUpper?: number[];
+  positionBps?: number[];
+}
+
+export interface RewardsConfigByMarketCapV4 {
+  creatorReward: number;
+  creatorAdmin: Address;
+  creatorRewardRecipient: Address;
+  interfaceAdmin: Address;
+  interfaceRewardRecipient: Address;
+  additionalRewardRecipients?: Address[];
+  additionalRewardBps?: number[];
+  additionalRewardAdmins?: Address[];
+  marketCapRanges: MarketCapRange[];
+  tokenSupply?: bigint;
 }
 
 export interface PoolConfigV4 {

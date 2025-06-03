@@ -569,9 +569,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             answers.rewardsConfig.creatorReward === 'CUSTOM'
               ? Number(answers.rewardsConfig.customCreatorReward)
               : Number(answers.rewardsConfig.creatorReward),
-          ...(answers.rewardsConfig.creatorAdmin && {
-            creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin),
-          }),
+          creatorAdmin: answers.rewardsConfig.creatorAdmin 
+            ? toHexAddress(answers.rewardsConfig.creatorAdmin)
+            : account.address,
           ...(answers.rewardsConfig.creatorRewardRecipient && {
             creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient),
           }),

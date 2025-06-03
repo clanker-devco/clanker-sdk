@@ -15,6 +15,7 @@ export const CLANKER_FACTORY_V4 = '0xeBA5bCE4a0e62e8D374fa46c6914D8d8c70619f6' a
 
 // Replace the old WETH_ADDRESS constant with this one
 export const WETH_ADDRESS: `0x${string}` = '0x4200000000000000000000000000000000000006';
+export const USDC_ADDRESS: `0x${string}` = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 export const DEGEN_ADDRESS: `0x${string}` = '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed';
 export const NATIVE_ADDRESS: `0x${string}` = '0x20DD04c17AFD5c9a8b3f2cdacaa8Ee7907385BEF';
 export const CLANKER_ADDRESS: `0x${string}` = '0x1bc0c42215582d5A085795f4baDbaC3ff36d1Bcb';
@@ -32,6 +33,7 @@ export const DEFAULT_SUPPLY = 100_000_000_000_000_000_000_000_000_000n;
 
 export const VALID_TOKEN_PAIR_ADDRESS: [
   typeof WETH_ADDRESS,
+  typeof USDC_ADDRESS,
   typeof DEGEN_ADDRESS,
   typeof ANON_ADDRESS,
   typeof HIGHER_ADDRESS,
@@ -40,6 +42,7 @@ export const VALID_TOKEN_PAIR_ADDRESS: [
   typeof A0X_ADDRESS,
 ] = [
   WETH_ADDRESS,
+  USDC_ADDRESS,
   DEGEN_ADDRESS,
   ANON_ADDRESS,
   HIGHER_ADDRESS,
