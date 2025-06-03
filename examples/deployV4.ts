@@ -96,20 +96,20 @@ async function main(): Promise<void> {
         auditUrls: [],
       })
       .withContext({
-        interface: 'Clanker SDK',
-        platform: 'Clanker',
-        messageId: 'Deploy Example',
-        id: 'TKN-1',
+        interface: 'Clanker SDK', //insert your interface name here
+        platform: 'Clanker', //social platform identifier (farcaster, X, etc..)
+        messageId: 'Deploy Example', // cast hash, X URL, etc..
+        id: 'TKN-1', // social identifier (FID, X handle, etc..)
       })
       .withVault({
-        percentage: 10, // 30% of token supply
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
+        percentage: 10, // 10% of token supply
+        lockupDuration: 2592000, // 30 days in seconds
+        vestingDuration: 2592000, // 30 days in seconds
       })
       .withAirdrop({
         merkleRoot: root,
-        lockupDuration: 0, // 30 days in ms
-        vestingDuration: 0, // 30 days in ms
+        lockupDuration: 0, // 30 days in seconds
+        vestingDuration: 0, // 30 days in seconds
         entries: airdropEntries,
         percentage: 10, // 10%
       })
