@@ -45,21 +45,13 @@ export function buildTokenV4(
       originatingChainId: BigInt(chainId),
     },
     lockerConfig: {
-      rewardAdmins: [
-        cfg.rewardsConfig?.creatorAdmin || cfg.tokenAdmin,
-        ...(cfg.rewardsConfig?.additionalRewardAdmins || []),
-      ],
-      rewardRecipients: [
-        cfg.rewardsConfig?.creatorRewardRecipient || cfg.tokenAdmin,
-        ...(cfg.rewardsConfig?.additionalRewardRecipients || []),
-      ],
-      rewardBps: [
-        cfg.rewardsConfig?.creatorReward || 10000,
-        ...(cfg.rewardsConfig?.additionalRewardBps || []),
-      ],
-      tickLower: [-230400],
-      tickUpper: [230400],
-      positionBps: [10000],
+      rewardAdmins:
+        cfg.rewardsConfig?.rewardAdmins,
+      rewardRecipients: cfg.rewardsConfig?.rewardRecipients,
+      rewardBps: cfg.rewardsConfig?.rewardBps,
+      tickLower: cfg.rewardsConfig?.tickLower,
+      tickUpper: cfg.rewardsConfig?.tickUpper,
+      positionBps: cfg.rewardsConfig?.positionBps,
     },
     poolConfig: {
       hook,

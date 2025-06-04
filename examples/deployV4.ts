@@ -117,20 +117,20 @@ async function main(): Promise<void> {
         ethAmount: '0',
       })
       .withRewards({
-        creatorReward: 5000, // 50% to first address
-        creatorAdmin: account.address,
-        creatorRewardRecipient: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        interfaceAdmin: account.address,
-        interfaceRewardRecipient: account.address,
-        additionalRewardRecipients: [
+        rewardRecipients: [
+          account.address,
           '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
           '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
         ],
-        additionalRewardBps: [2500, 2500], // 50% to second address
-        additionalRewardAdmins: [
+        rewardBps: [5000, 2500, 2500],
+        rewardAdmins: [
+          account.address,
           '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
           '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
         ], // Using same admin for both
+        tickLower: [-23400, -23400, -23400],
+        tickUpper: [23400, 23400, 23400],
+        positionBps: [5000, 4000, 1000],
       })
       .withFeeConfig({
         type: 'dynamic',

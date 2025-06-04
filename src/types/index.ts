@@ -96,12 +96,10 @@ export interface RewardsConfig {
 }
 
 export interface RewardsConfigV4 {
-  creatorReward: number;
-  creatorAdmin: Address;
-  creatorRewardRecipient: Address;
-  interfaceAdmin: Address;
-  interfaceRewardRecipient: Address;
-  additionalRewardRecipients?: Address[];
-  additionalRewardBps?: number[];
-  additionalRewardAdmins?: Address[];
+  rewardRecipients: Address[];
+  rewardBps: number[];
+  rewardAdmins: Address[];
+  tickLower: number[];
+  tickUpper: number[];
+  positionBps: number[];
 }

@@ -118,10 +118,6 @@ export class TokenConfigV4Builder {
     if (!this.config.name || !this.config.symbol) {
       throw new Error('Name and symbol are required');
     }
-    if (!this.config.rewardsConfig?.creatorAdmin) {
-      throw new Error('Creator admin is required');
-    }
-
     // Validate vault allocation if present
     if (this.config.vault?.percentage) {
       const vaultBps = percentageToBps(this.config.vault.percentage);
@@ -141,35 +137,24 @@ export class TokenConfigV4Builder {
     // Validate rewards configuration
     if (this.config.rewardsConfig) {
       const {
-        creatorReward,
-        creatorAdmin,
-        creatorRewardRecipient,
-        additionalRewardRecipients = [],
-        additionalRewardBps = [],
-        additionalRewardAdmins = [],
+        rewardRecipients = [],
+        rewardBps = [],
+        rewardAdmins = [],
+        tickLower = [],
+        tickUpper = [],
+        positionBps = [],
       } = this.config.rewardsConfig;
 
-      // Validate creator reward
-      if (creatorReward && !isValidBps(creatorReward)) {
-        throw new Error(`Invalid creator reward BPS: ${creatorReward}`);
-      }
 
-      // Validate arrays have matching lengths
-      if (
-        additionalRewardRecipients.length !== additionalRewardBps.length ||
-        additionalRewardRecipients.length !== additionalRewardAdmins.length
-      ) {
-        throw new Error('Additional reward arrays must have matching lengths');
-      }
+      // Validate arrays have matching lengths // TODO
+      // Validate all tickLower and tickUpper are above or equal to starting market cap 
 
-      // Collect all reward recipients and their BPS values
-      const rewardRecipients = [creatorRewardRecipient, ...additionalRewardRecipients];
-      const rewardBps = [creatorReward, ...additionalRewardBps];
 
       // Validate number of reward recipients
       if (rewardRecipients.length > 7) {
         throw new Error('Maximum of 7 reward recipients allowed');
       }
+
 
       // Validate that reward BPS sum to 10000
       if (!validateBpsSum(rewardBps)) {
@@ -181,7 +166,7 @@ export class TokenConfigV4Builder {
 
     return {
       ...this.config,
-      tokenAdmin: this.config.rewardsConfig.creatorAdmin,
+      tokenAdmin: this.config.rewardsConfig?.rewardAdmins[0],
     } as TokenConfigV4;
   }
 }

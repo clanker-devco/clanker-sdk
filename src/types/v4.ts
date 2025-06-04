@@ -56,10 +56,13 @@ export interface VaultConfigV4 {
   vestingDuration: number;
 }
 
-export interface RewardsConfigV4 extends RewardsConfig {
-  additionalRewardRecipients?: Address[];
-  additionalRewardBps?: number[];
-  additionalRewardAdmins?: Address[];
+export interface RewardsConfigV4 {
+  rewardRecipients?: Address[];
+  rewardBps?: number[];
+  rewardAdmins?: Address[];
+  tickLower?: number[];
+  tickUpper?: number[];
+  positionBps?: number[];
 }
 
 export interface PoolConfigV4 {
