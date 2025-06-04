@@ -133,6 +133,7 @@ async function main(): Promise<void> {
         positionBps: [5000, 4000, 1000],
       })
       .withFeeConfig({
+        startingTickIfToken0IsClanker: -24400,
         type: 'dynamic',
         baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
         maxLpFee: 5000, // 0.5% maximum fee
@@ -144,6 +145,7 @@ async function main(): Promise<void> {
       })
       // .withFeeConfig({
       //   type: 'static',
+  //       startingTickIfToken0IsClanker: 23400,
       //   fee: 10000, // 1% fee
       // })
       .build();

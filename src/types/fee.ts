@@ -3,11 +3,13 @@ import { encodeAbiParameters } from 'viem';
 import { CLANKER_HOOK_STATIC_FEE_ADDRESS, CLANKER_HOOK_DYNAMIC_FEE_ADDRESS } from '../constants.js';
 
 export interface StaticFeeConfig {
+  startingTickIfToken0IsClanker: number;
   type: 'static';
   fee: number; // in basis points (e.g., 500 = 0.05%)
 }
 
 export interface DynamicFeeConfig {
+  startingTickIfToken0IsClanker: number;
   type: 'dynamic';
   baseFee: number; // minimum fee in basis points (e.g., 500 = 0.05%)
   maxLpFee: number; // maximum fee in basis points (e.g., 3000 = 0.3%)
@@ -22,11 +24,13 @@ export type FeeConfig = StaticFeeConfig | DynamicFeeConfig;
 
 export function encodeFeeConfig(config: FeeConfig): {
   hook: Address;
+  startingTickIfToken0IsClanker: number;
   poolData: `0x${string}`;
 } {
   if (config.type === 'static') {
     return {
       hook: CLANKER_HOOK_STATIC_FEE_ADDRESS,
+      startingTickIfToken0IsClanker: config.startingTickIfToken0IsClanker,
       poolData: encodeAbiParameters(
         [{ type: 'uint24' }, { type: 'uint24' }],
         [config.fee, config.fee]
@@ -35,6 +39,7 @@ export function encodeFeeConfig(config: FeeConfig): {
   } else {
     return {
       hook: CLANKER_HOOK_DYNAMIC_FEE_ADDRESS,
+      startingTickIfToken0IsClanker: config.startingTickIfToken0IsClanker,
       poolData: encodeAbiParameters(
         [
           { type: 'uint24', name: 'baseFee' },

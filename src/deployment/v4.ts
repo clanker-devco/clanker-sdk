@@ -30,7 +30,7 @@ export function buildTokenV4(
   chainId: number
 ): BuildV4Result {
   // Get fee configuration
-  const feeConfig = cfg.feeConfig || { type: 'static', fee: 10000 }; // Default to 1% static fee
+  const feeConfig = cfg.feeConfig || { type: 'static', fee: 10000, startingTickIfToken0IsClanker: -23400 }; // Default to 1% static fee
   const { hook, poolData } = encodeFeeConfig(feeConfig);
 
   const deploymentConfig = {
@@ -56,7 +56,7 @@ export function buildTokenV4(
     poolConfig: {
       hook,
       pairedToken: '0x4200000000000000000000000000000000000006',
-      tickIfToken0IsClanker: -230400,
+      tickIfToken0IsClanker: feeConfig.startingTickIfToken0IsClanker,
       tickSpacing: 200,
       poolData,
     },
