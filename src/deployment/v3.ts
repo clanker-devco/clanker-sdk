@@ -86,11 +86,17 @@ export async function deployTokenV3(
     desiredPrice: desiredPrice,
   });
 
+  const value =
+    cfg.devBuy && cfg.devBuy.ethAmount && cfg.devBuy.ethAmount !== '0'
+      ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
+      : BigInt(0);
+
   console.log('tx', tx);
   const hash = await wallet.sendTransaction({
     ...tx.transaction,
     account: wallet.account,
     chain: publicClient.chain,
+    value: value,
   });
   console.log('hash', hash);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
