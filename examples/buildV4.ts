@@ -90,8 +90,8 @@ async function main(): Promise<void> {
       })
       .withVault({
         percentage: 10, // 10% of token supply
-        lockupDuration: 2592000000, // 30 days in ms
-        vestingDuration: 2592000000, // 30 days in ms
+        lockupDuration: 2592000, // 30 days in seconds
+        vestingDuration: 2592000, // 30 days in seconds
       })
       .withAirdrop({
         merkleRoot: root,
