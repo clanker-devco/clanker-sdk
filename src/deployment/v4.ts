@@ -16,7 +16,8 @@ import {
 } from '../constants.js';
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
-import { findVanityAddress } from '../services/vanityAddress.js';
+import { findVanityAddressV4 } from '../services/vanityAddress.js';
+import { DEFAULT_SUPPLY } from '../../src/constants.js'
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -174,21 +175,21 @@ export async function withVanityAddress(
   cfg: TokenConfigV4,
   chainId: number
 ): Promise<BuildV4Result> {
-  const { token: expectedAddress, salt } = await findVanityAddress(
+  const { token: expectedAddress, salt } = await findVanityAddressV4(
     [
       cfg.name,
       cfg.symbol,
-      BigInt(0), // supply not needed for v4
+      DEFAULT_SUPPLY,
       cfg.tokenAdmin,
       cfg.image || '',
       cfg.metadata ? JSON.stringify(cfg.metadata) : '',
       cfg.context ? JSON.stringify(cfg.context) : '',
-      BigInt(chainId),
+      BigInt(chainId)
     ],
     cfg.tokenAdmin,
     '0x4b07',
     {
-      chainId: chainId,
+      chainId,
     }
   );
 
