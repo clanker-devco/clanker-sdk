@@ -133,15 +133,22 @@ async function main(): Promise<void> {
       // })
       .build();
 
+    // Add tokenAdmin to the config
+    const configWithAdmin = {
+      ...tokenConfig,
+      tokenAdmin: CREATOR_ADDRESS,
+    };
+
     // Build the deployment data without deploying
-    const deploymentData = clanker.buildV4(tokenConfig);
+    const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
+    const deploymentData = clanker.buildV4(configWithAdmin);
 
     console.log('\n📝 Deployment Data Preview:');
     console.log('Network:', deploymentData.chainId);
     console.log('Transaction To:', deploymentData.transaction.to);
     console.log('Transaction Value:', deploymentData.transaction.value.toString(), 'wei');
     console.log('Transaction Data Length:', deploymentData.transaction.data, 'bytes');
-    console.log('Expected Address (placeholder):', deploymentData.expectedAddress);
+    console.log('Expected Address:', vanityConfig.expectedAddress);
 
   } catch (error) {
     if (error instanceof Error) {
