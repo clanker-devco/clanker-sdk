@@ -148,8 +148,11 @@ async function main(): Promise<void> {
       // })
       .build();
 
-    // Deploy the token
-    const tokenAddress = await clanker.deployTokenV4(tokenConfig);
+    // Generate vanity address configuration
+    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
+
+    // Deploy the token with vanity address
+    const tokenAddress = await clanker.deployTokenV4(vanityConfig);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
