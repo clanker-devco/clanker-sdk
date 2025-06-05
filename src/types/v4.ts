@@ -2,6 +2,16 @@ import { type Address } from 'viem';
 import { RewardsConfig } from './token.js';
 import { type FeeConfig } from './fee.js';
 
+export interface BuildV4Result {
+  transaction: {
+    to: Address;
+    data: `0x${string}`;
+    value: bigint;
+  };
+  expectedAddress: `0x${string}`;
+  chainId: number;
+}
+
 export interface TokenConfigV4 {
   tokenAdmin: Address;
   name: string;

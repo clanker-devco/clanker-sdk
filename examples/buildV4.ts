@@ -1,10 +1,9 @@
 import {
   createPublicClient,
-  createWalletClient,
   http,
   PublicClient,
+  getAddress,
 } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
 import { baseSepolia } from 'viem/chains';
 import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
@@ -25,45 +24,33 @@ if (!PRIVATE_KEY) {
 }
 
 /**
- * Example showing how to deploy a v4 token using the Clanker SDK
+ * Example showing how to build V4 token deployment data without deploying
  * This example demonstrates:
- * - Token deployment with full v4 configuration
- * - Custom metadata and social links
- * - Pool configuration with static or dynamic fee hook
- * - Locker configuration
- * - MEV module configuration
- * - Extension configuration including:
- *   - Vault extension with lockup and vesting
- *   - Airdrop extension with merkle root
- *   - DevBuy extension with initial swap
+ * - Building token configuration with full v4 configuration
+ * - Getting transaction data, expected address, and network info
+ * - Previewing deployment data before actual deployment
  */
 async function main(): Promise<void> {
   try {
     console.log(`Starting main function...`);
-    // Initialize wallet with private key
-    const account = privateKeyToAccount(PRIVATE_KEY);
 
     // Create transport with optional custom RPC
     const transport = RPC_URL ? http(RPC_URL) : http();
+
+    const CREATOR_ADDRESS = '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`;
+    const INTERFACE_ADMIN_ADDRESS = '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`;
 
     const publicClient = createPublicClient({
       chain: baseSepolia,
       transport,
     }) as PublicClient;
 
-    const wallet = createWalletClient({
-      account,
-      chain: baseSepolia,
-      transport,
-    });
-
     // Initialize Clanker SDK
     const clanker = new Clanker({
-      wallet,
       publicClient,
     });
 
-    console.log('\n🚀 Deploying V4 Token\n');
+    console.log('\n🏗️ Building V4 Token Deployment Data\n');
 
     // Example airdrop entries
     const airdropEntries = [
@@ -96,10 +83,10 @@ async function main(): Promise<void> {
         auditUrls: [],
       })
       .withContext({
-        interface: 'Clanker SDK', //insert your interface name here
-        platform: 'Clanker', //social platform identifier (farcaster, X, etc..)
-        messageId: 'Deploy Example', // cast hash, X URL, etc..
-        id: 'TKN-1', // social identifier (FID, X handle, etc..)
+        interface: 'Clanker SDK',
+        platform: 'Clanker',
+        messageId: 'Build Example',
+        id: 'TKN-1',
       })
       .withVault({
         percentage: 10, // 10% of token supply
@@ -108,8 +95,8 @@ async function main(): Promise<void> {
       })
       .withAirdrop({
         merkleRoot: root,
-        lockupDuration: 0, // 30 days in seconds
-        vestingDuration: 0, // 30 days in seconds
+        lockupDuration: 0, // 30 days in ms
+        vestingDuration: 0, // 30 days in ms
         entries: airdropEntries,
         percentage: 10, // 10%
       })
@@ -118,18 +105,16 @@ async function main(): Promise<void> {
       })
       .withRewards({
         creatorReward: 5000, // 50% to first address
-        creatorAdmin: account.address,
-        creatorRewardRecipient: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        interfaceAdmin: account.address,
-        interfaceRewardRecipient: account.address,
+        creatorAdmin: CREATOR_ADDRESS,
+        creatorRewardRecipient: CREATOR_ADDRESS,
+        interfaceAdmin: INTERFACE_ADMIN_ADDRESS,
+        interfaceRewardRecipient: INTERFACE_ADMIN_ADDRESS,
         additionalRewardRecipients: [
-          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
-          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+          getAddress('0xD98124A8Fb88fC61E84575448C853d530a872674'),
         ],
-        additionalRewardBps: [2500, 2500], // 50% to second address
+        additionalRewardBps: [5000], // 50% to second address
         additionalRewardAdmins: [
-          '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+          getAddress('0xD98124A8Fb88fC61E84575448C853d530a872674'),
         ], // Using same admin for both
       })
       .withFeeConfig({
@@ -148,30 +133,28 @@ async function main(): Promise<void> {
       // })
       .build();
 
-    // Deploy the token with vanity address
-    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
-    const tokenAddress = await clanker.deployTokenV4(vanityConfig);
+    // Add tokenAdmin to the config
+    const configWithAdmin = {
+      ...tokenConfig,
+      tokenAdmin: CREATOR_ADDRESS,
+    };
 
-    console.log('Token deployed successfully!');
-    console.log('Token address:', tokenAddress);
-    console.log(
-      'View on BaseScan:',
-      `https://sepolia.basescan.org/token/${tokenAddress}`
-    );
+    // Build the deployment data without deploying
+    const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
+    const deploymentData = clanker.buildV4(configWithAdmin);
 
-    // Example of how to get a Merkle proof for claiming
-    const proof = airdropExtension.getMerkleProof(
-      tree,
-      entries,
-      airdropEntries[0].account,
-      airdropEntries[0].amount
-    );
-    console.log('Example Merkle proof for first entry:', proof);
+    console.log('\n📝 Deployment Data Preview:');
+    console.log('Network:', deploymentData.chainId);
+    console.log('Transaction To:', deploymentData.transaction.to);
+    console.log('Transaction Value:', deploymentData.transaction.value.toString(), 'wei');
+    console.log('Transaction Data Length:', deploymentData.transaction.data, 'bytes');
+    console.log('Expected Address:', vanityConfig.expectedAddress);
+
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Deployment failed:', error.message);
+      console.error('Build failed:', error.message);
     } else {
-      console.error('Deployment failed with unknown error');
+      console.error('Build failed with unknown error');
     }
     process.exit(1);
   }
