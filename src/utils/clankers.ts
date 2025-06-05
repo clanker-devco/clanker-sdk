@@ -4,6 +4,7 @@ import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';
 import { Clanker_v3_abi } from '../abi/v3/Clanker.js';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
+import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 
 export const CLANKERS = {
   clanker_v0: {
@@ -32,5 +33,10 @@ export const CLANKERS = {
     abi: Clanker_v3_1_abi,
     type: 'clanker_v3_1',
     address: '0x2A787b2362021cC3eEa3C24C4748a6cD5B687382',
+  },
+  clanker_v4: {
+    abi: Clanker_v4_abi,
+    type: 'clanker_v4',
+    address: '0xeBA5bCE4a0e62e8D374fa46c6914D8d8c70619f6',
   },
 } as const satisfies Record<string, { abi: Abi; type: string; address: `0x${string}` }>;

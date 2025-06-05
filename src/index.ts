@@ -2,7 +2,7 @@ import { type PublicClient, type WalletClient, type Address } from 'viem';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
 import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
-import { deployTokenV4, buildTokenV4 } from './deployment/v4.js';
+import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.js';
 import type { BuildV4Result } from './types/v4.js';
 
 export class Clanker {
@@ -38,11 +38,20 @@ export class Clanker {
   }
 
   /**
-   * Deploy a token using the V4 protocol
+   * Generate a vanity address for a V4 token deployment
    * @param cfg Token configuration for V4 deployment
+   * @returns Object containing transaction data, target address, and network info with vanity address
+   */
+  public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
+    return withVanityAddress(cfg, this.publicClient.chain?.id || 84532);
+  }
+
+  /**
+   * Deploy a token using the V4 protocol
+   * @param cfg Token configuration for V4 deployment or pre-built deployment data
    * @returns The address of the deployed token
    */
-  public async deployTokenV4(cfg: TokenConfigV4) {
+  public async deployTokenV4(cfg: TokenConfigV4 | BuildV4Result) {
     if (!this.wallet) {
       throw new Error('Wallet client required for deployment');
     }

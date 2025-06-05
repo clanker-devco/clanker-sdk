@@ -916,4 +916,4 @@ export const Clanker_v4_abi = [
     name: 'Unauthorized',
     inputs: [],
   },
-];
+] as const;
