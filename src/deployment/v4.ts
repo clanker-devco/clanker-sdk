@@ -16,6 +16,8 @@ import {
 } from '../constants.js';
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
+import { findVanityAddressV4 } from '../services/vanityAddress.js';
+import { DEFAULT_SUPPLY } from '../../src/constants.js'
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -27,7 +29,8 @@ const bigIntReplacer = (_key: string, value: unknown) => {
 
 export function buildTokenV4(
   cfg: TokenConfigV4,
-  chainId: number
+  chainId: number,
+  salt?: `0x${string}`
 ): BuildV4Result {
   // Get fee configuration
   const feeConfig = cfg.feeConfig || { type: 'static', fee: 10000 }; // Default to 1% static fee
@@ -38,7 +41,7 @@ export function buildTokenV4(
       tokenAdmin: cfg.tokenAdmin,
       name: cfg.name,
       symbol: cfg.symbol,
-      salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      salt: salt || '0x0000000000000000000000000000000000000000000000000000000000000000',
       image: cfg.image || '',
       metadata: cfg.metadata ? JSON.stringify(cfg.metadata) : '',
       context: cfg.context ? JSON.stringify(cfg.context) : '',
@@ -63,14 +66,14 @@ export function buildTokenV4(
     },
     poolConfig: {
       hook,
-      pairedToken: '0x4200000000000000000000000000000000000006',
+      pairedToken: '0x4200000000000000000000000000000000000006' as `0x${string}`,
       tickIfToken0IsClanker: -230400,
       tickSpacing: 200,
       poolData,
     },
     mevModuleConfig: {
       mevModule: CLANKER_MEV_MODULE_ADDRESS,
-      mevModuleData: '0x',
+      mevModuleData: '0x' as `0x${string}`,
     },
     extensionConfigs: [
       // vaulting extension
@@ -147,7 +150,7 @@ export function buildTokenV4(
           ]
         : []),
     ],
-  };
+  } as const;
 
   const deployCalldata = encodeFunctionData({
     abi: Clanker_v4_abi,
@@ -163,13 +166,47 @@ export function buildTokenV4(
         ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
         : BigInt(0),
     },
-    expectedAddress: '0x0000000000000000000000000000000000000000' as `0x${string}`, // Placeholder for now
+    expectedAddress: '0x0000000000000000000000000000000000000000' as `0x${string}`,
     chainId,
   };
 }
 
-export async function deployTokenV4(
+export async function withVanityAddress(
   cfg: TokenConfigV4,
+  chainId: number
+): Promise<BuildV4Result> {
+  const { token: expectedAddress, salt } = await findVanityAddressV4(
+    [
+      cfg.name,
+      cfg.symbol,
+      DEFAULT_SUPPLY,
+      cfg.tokenAdmin,
+      cfg.image || '',
+      cfg.metadata ? JSON.stringify(cfg.metadata) : '',
+      cfg.context ? JSON.stringify(cfg.context) : '',
+      BigInt(chainId)
+    ],
+    cfg.tokenAdmin,
+    '0x4b07',
+    {
+      chainId,
+    }
+  );
+
+  console.log('Expected address:', expectedAddress);
+  console.log('Salt:', salt);
+
+  // Build the deployment config with the vanity salt
+  const result = buildTokenV4(cfg, chainId, salt);
+
+  return {
+    ...result,
+    expectedAddress,
+  };
+}
+
+export async function deployTokenV4(
+  cfg: TokenConfigV4 | BuildV4Result,
   wallet: WalletClient,
   publicClient: PublicClient
 ): Promise<Address> {
@@ -180,7 +217,9 @@ export async function deployTokenV4(
     throw new Error('Wallet account required for deployToken');
   }
 
-  const { transaction } = buildTokenV4(cfg, CHAIN_ID || 84532);
+  const { transaction } = 'transaction' in cfg 
+    ? cfg 
+    : buildTokenV4(cfg, CHAIN_ID || 84532);
 
   console.log('Deployment config:', JSON.stringify(transaction, bigIntReplacer, 2));
 
