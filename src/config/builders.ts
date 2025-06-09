@@ -124,10 +124,11 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withStaticFeeConfig(fee: number): TokenConfigV4Builder {
+  withStaticFeeConfig(clankerFee: number, pairedFee: number): TokenConfigV4Builder {
     this.config.feeConfig = {
       type: 'static',
-      fee,
+      clankerFee: clankerFee,
+      pairedFee: pairedFee,
     };
     return this;
   }
@@ -244,9 +245,12 @@ export class TokenConfigV4Builder {
           throw new Error('Invalid max LP fee for dynamic fee config');
         }
       } else if (feeConfig.type === 'static') {
-        const { fee } = feeConfig;
-        if (typeof fee !== 'number' || !isValidBps(fee)) {
-          throw new Error('Invalid fee for static fee config');
+        const { clankerFee, pairedFee } = feeConfig;
+        if (typeof clankerFee !== 'number' || !isValidBps(clankerFee)) {
+          throw new Error('Invalid clanker fee for static fee config');
+        }
+        if (typeof pairedFee !== 'number' || !isValidBps(pairedFee)) {
+          throw new Error('Invalid paired fee for static fee config');
         }
       } else {
         throw new Error('Invalid fee config type');

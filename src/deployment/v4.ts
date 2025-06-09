@@ -13,6 +13,7 @@ import {
   CLANKER_DEVBUY_ADDRESS,
   CLANKER_VAULT_ADDRESS,
   CLANKER_MEV_MODULE_ADDRESS,
+  WETH_ADDRESS,
 } from '../constants.js';
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
@@ -27,13 +28,60 @@ const bigIntReplacer = (_key: string, value: unknown) => {
   return value;
 };
 
+// Default configuration constants
+const DEFAULT_FEE_CONFIG = { type: 'static', clankerFee: 10000, pairedFee: 10000 } as const; // 1% static fee
+const DEFAULT_PAIRED_TOKEN = WETH_ADDRESS;
+const DEFAULT_TICK_IF_TOKEN0_IS_CLANKER = -230400 as const;
+const DEFAULT_TICK_SPACING = 200 as const;
+const DEFAULT_TICK_LOWER = -230400 as const;
+const DEFAULT_TICK_UPPER = 230400 as const;
+const DEFAULT_POSITION_BPS = 10000 as const;
+const DEFAULT_SALT = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
+
+// DevBuy configuration constants
+const DEVBUY_POOL_CONFIG = {
+  currency0: '0x4200000000000000000000000000000000000006', // WETH
+  currency1: '0x4200000000000000000000000000000000000006', // paired token address if not WETH
+  fee: 3000,
+  tickSpacing: 60,
+  hooks: '0x0000000000000000000000000000000000000000',
+} as const;
+
+// ABI parameter types
+const VAULT_EXTENSION_PARAMETERS = [
+  { type: 'address' },
+  { type: 'uint256' },
+  { type: 'uint256' }
+] as const;
+
+const AIRDROP_EXTENSION_PARAMETERS = [
+  { type: 'bytes32' },
+  { type: 'uint256' },
+  { type: 'uint256' }
+] as const;
+
+const DEVBUY_EXTENSION_PARAMETERS = [
+  {
+    type: 'tuple',
+    components: [
+      { type: 'address', name: 'currency0' },
+      { type: 'address', name: 'currency1' },
+      { type: 'uint24', name: 'fee' },
+      { type: 'int24', name: 'tickSpacing' },
+      { type: 'address', name: 'hooks' },
+    ],
+  },
+  { type: 'uint128' },
+  { type: 'address' },
+] as const;
+
 export function buildTokenV4(
   cfg: TokenConfigV4,
   chainId: number,
   salt?: `0x${string}`
 ): BuildV4Result {
   // Get fee configuration
-  const feeConfig = cfg.feeConfig || { type: 'static', fee: 10000 }; // Default to 1% static fee
+  const feeConfig = cfg.feeConfig || DEFAULT_FEE_CONFIG;
   const { hook, poolData } = encodeFeeConfig(feeConfig);
 
   const deploymentConfig = {
@@ -41,7 +89,7 @@ export function buildTokenV4(
       tokenAdmin: cfg.tokenAdmin,
       name: cfg.name,
       symbol: cfg.symbol,
-      salt: salt || '0x0000000000000000000000000000000000000000000000000000000000000000',
+      salt: salt || DEFAULT_SALT,
       image: cfg.image || '',
       metadata: cfg.metadata ? JSON.stringify(cfg.metadata) : '',
       context: cfg.context ? JSON.stringify(cfg.context) : '',
@@ -51,15 +99,15 @@ export function buildTokenV4(
       rewardAdmins: cfg.lockerConfig?.admins.map(a => a.admin) || [],
       rewardRecipients: cfg.lockerConfig?.admins.map(a => a.recipient) || [],
       rewardBps: cfg.lockerConfig?.admins.map(a => a.bps) || [],
-      tickLower: cfg.lockerConfig?.positions.map(p => p.tickLower) || [-230400],
-      tickUpper: cfg.lockerConfig?.positions.map(p => p.tickUpper) || [230400],
-      positionBps: cfg.lockerConfig?.positions.map(p => p.positionBps) || [10000],
+      tickLower: cfg.lockerConfig?.positions.map(p => p.tickLower) || [DEFAULT_TICK_LOWER],
+      tickUpper: cfg.lockerConfig?.positions.map(p => p.tickUpper) || [DEFAULT_TICK_UPPER],
+      positionBps: cfg.lockerConfig?.positions.map(p => p.positionBps) || [DEFAULT_POSITION_BPS],
     },
     poolConfig: {
       hook: hook,
-      pairedToken: cfg.poolConfig?.pairedToken || '0x4200000000000000000000000000000000000006',
-      tickIfToken0IsClanker: cfg.poolConfig?.tickIfToken0IsClanker || -230400,
-      tickSpacing: cfg.poolConfig?.tickSpacing || 200,
+      pairedToken: cfg.poolConfig?.pairedToken || DEFAULT_PAIRED_TOKEN,
+      tickIfToken0IsClanker: cfg.poolConfig?.tickIfToken0IsClanker || DEFAULT_TICK_IF_TOKEN0_IS_CLANKER,
+      tickSpacing: cfg.poolConfig?.tickSpacing || DEFAULT_TICK_SPACING,
       poolData: poolData,
     },
     mevModuleConfig: {
@@ -75,7 +123,7 @@ export function buildTokenV4(
               msgValue: 0n,
               extensionBps: cfg.vault.percentage * 100,
               extensionData: encodeAbiParameters(
-                [{ type: 'address' }, { type: 'uint256' }, { type: 'uint256' }],
+                VAULT_EXTENSION_PARAMETERS,
                 [
                   cfg.tokenAdmin,
                   BigInt(cfg.vault?.lockupDuration || 0),
@@ -93,7 +141,7 @@ export function buildTokenV4(
               msgValue: 0n,
               extensionBps: cfg.airdrop.percentage,
               extensionData: encodeAbiParameters(
-                [{ type: 'bytes32' }, { type: 'uint256' }, { type: 'uint256' }],
+                AIRDROP_EXTENSION_PARAMETERS,
                 [
                   cfg.airdrop.merkleRoot,
                   BigInt(cfg.airdrop.lockupDuration),
@@ -111,28 +159,9 @@ export function buildTokenV4(
               msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
               extensionBps: 0,
               extensionData: encodeAbiParameters(
+                DEVBUY_EXTENSION_PARAMETERS,
                 [
-                  {
-                    type: 'tuple',
-                    components: [
-                      { type: 'address', name: 'currency0' },
-                      { type: 'address', name: 'currency1' },
-                      { type: 'uint24', name: 'fee' },
-                      { type: 'int24', name: 'tickSpacing' },
-                      { type: 'address', name: 'hooks' },
-                    ],
-                  },
-                  { type: 'uint128' },
-                  { type: 'address' },
-                ],
-                [
-                  {
-                    currency0: '0x4200000000000000000000000000000000000006', // WETH
-                    currency1: '0x4200000000000000000000000000000000000006', // paired token address if not WETH
-                    fee: 3000,
-                    tickSpacing: 60,
-                    hooks: '0x0000000000000000000000000000000000000000',
-                  },
+                  DEVBUY_POOL_CONFIG,
                   BigInt(0),
                   cfg.tokenAdmin,
                 ]

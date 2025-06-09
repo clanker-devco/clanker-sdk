@@ -138,7 +138,7 @@ async function main(): Promise<void> {
         decayFilterBps: 9900, // 99% decay rate for previous volatility
       })
       // Example of static fee config:
-      // .withStaticFeeConfig(10000) // 1% fee
+      // .withStaticFeeConfig(10000, 10000) // 1% fee for both clanker and paired token
       .build();
 
     // Add tokenAdmin to the config
