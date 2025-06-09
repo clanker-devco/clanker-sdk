@@ -13,6 +13,7 @@ export * from './v4.js';
 
 import type { Address, PublicClient, WalletClient } from 'viem';
 import type { FeeConfig } from './fee.js';
+import { LockerConfigV4 } from './v4.js';
 
 export interface ClankerConfig {
   wallet?: WalletClient;
@@ -46,6 +47,8 @@ export interface TokenConfigV4 {
   devBuy?: DevBuyConfig;
   rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
+  lockerConfig?: LockerConfigV4;
+  poolConfig?: PoolConfigV4;
 }
 
 export interface ClankerMetadata {
@@ -78,7 +81,7 @@ export interface AirdropConfig {
   vestingDuration: number;
   entries: Array<{
     account: `0x${string}`;
-    amount: bigint;
+    amount: number;
   }>;
   percentage: number;
 }
@@ -104,4 +107,13 @@ export interface RewardsConfigV4 {
   additionalRewardRecipients?: Address[];
   additionalRewardBps?: number[];
   additionalRewardAdmins?: Address[];
+}
+
+
+export interface PoolConfigV4 {
+  hook: Address;
+  pairedToken: Address;
+  tickIfToken0IsClanker: number;
+  tickSpacing: number;
+  poolData: `0x${string}`;
 }

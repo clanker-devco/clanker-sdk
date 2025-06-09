@@ -6,9 +6,11 @@ import type {
   VaultConfig,
   DevBuyConfig,
   RewardsConfig,
+  LockerConfigV4,
 } from '../types/index.js';
-import type { FeeConfig } from '../types/fee.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
+import { type Address } from 'viem';
+import { CLANKER_HOOK_STATIC_FEE_ADDRESS } from '../constants.js';
 
 export class TokenConfigBuilder {
   private config: Partial<TokenConfig> = {};
@@ -109,17 +111,51 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withFeeConfig(feeConfig: FeeConfig): TokenConfigV4Builder {
-    this.config.feeConfig = feeConfig;
+  withBasicPoolConfig(config: {
+    pairedToken: Address;
+    tickIfToken0IsClanker: number;
+    tickSpacing: number;
+  }): TokenConfigV4Builder {
+    this.config.poolConfig = {
+      ...config,
+      hook: CLANKER_HOOK_STATIC_FEE_ADDRESS, // Default hook, will be overridden by fee config
+      poolData: '0x', // Default empty data, will be overridden by fee config
+    };
+    return this;
+  }
+
+  withStaticFeeConfig(fee: number): TokenConfigV4Builder {
+    this.config.feeConfig = {
+      type: 'static',
+      fee,
+    };
+    return this;
+  }
+
+  withDynamicFeeConfig(config: {
+    baseFee: number;
+    maxLpFee: number;
+    referenceTickFilterPeriod: number;
+    resetPeriod: number;
+    resetTickFilter: number;
+    feeControlNumerator: number;
+    decayFilterBps: number;
+  }): TokenConfigV4Builder {
+    this.config.feeConfig = {
+      type: 'dynamic',
+      ...config,
+    };
+    return this;
+  }
+
+  withLockerConfig(lockerConfig: LockerConfigV4): TokenConfigV4Builder {
+    this.config.lockerConfig = lockerConfig;
     return this;
   }
 
   build(): TokenConfigV4 {
     if (!this.config.name || !this.config.symbol) {
       throw new Error('Name and symbol are required');
-    }
-    if (!this.config.rewardsConfig?.creatorAdmin) {
-      throw new Error('Creator admin is required');
     }
 
     // Validate vault allocation if present
@@ -138,50 +174,84 @@ export class TokenConfigV4Builder {
       }
     }
 
-    // Validate rewards configuration
-    if (this.config.rewardsConfig) {
-      const {
-        creatorReward,
-        creatorAdmin,
-        creatorRewardRecipient,
-        additionalRewardRecipients = [],
-        additionalRewardBps = [],
-        additionalRewardAdmins = [],
-      } = this.config.rewardsConfig;
+    // Validate locker config if present
+    if (this.config.lockerConfig) {
+      const { admins, positions } = this.config.lockerConfig;
 
-      // Validate creator reward
-      if (creatorReward && !isValidBps(creatorReward)) {
-        throw new Error(`Invalid creator reward BPS: ${creatorReward}`);
+      // Validate admins array
+      if (!admins || admins.length === 0) {
+        throw new Error('At least one admin is required in locker config');
       }
 
-      // Validate arrays have matching lengths
-      if (
-        additionalRewardRecipients.length !== additionalRewardBps.length ||
-        additionalRewardRecipients.length !== additionalRewardAdmins.length
-      ) {
-        throw new Error('Additional reward arrays must have matching lengths');
+      // Validate admin BPS values
+      const adminBps = admins.map(admin => admin.bps);
+      if (!validateBpsSum(adminBps)) {
+        throw new Error('Admin BPS values must sum to 10000 (100%)');
       }
 
-      // Collect all reward recipients and their BPS values
-      const rewardRecipients = [creatorRewardRecipient, ...additionalRewardRecipients];
-      const rewardBps = [creatorReward, ...additionalRewardBps];
-
-      // Validate number of reward recipients
-      if (rewardRecipients.length > 7) {
-        throw new Error('Maximum of 7 reward recipients allowed');
+      // Validate positions array
+      if (!positions || positions.length === 0) {
+        throw new Error('At least one position is required in locker config');
       }
 
-      // Validate that reward BPS sum to 10000
-      if (!validateBpsSum(rewardBps)) {
-        throw new Error(
-          `Total reward allocation must be 100% (10000 basis points). Current allocation: ${rewardBps.reduce((a, b) => a + b, 0)} basis points.`
-        );
+      // Validate position arrays have matching lengths
+      for (const position of positions) {
+        if (
+          position.tickLower.length !== position.tickUpper.length ||
+          position.tickLower.length !== position.positionBps.length
+        ) {
+          throw new Error('Position arrays must have matching lengths');
+        }
+
+        // Validate position BPS values
+        if (!validateBpsSum(position.positionBps)) {
+          throw new Error('Position BPS values must sum to 10000 (100%)');
+        }
+      }
+    }
+
+    // Validate pool config if present
+    if (this.config.poolConfig) {
+      const { hook, pairedToken, tickIfToken0IsClanker, tickSpacing } = this.config.poolConfig;
+      
+      if (!hook || !pairedToken) {
+        throw new Error('Hook and paired token addresses are required in pool config');
+      }
+
+      if (typeof tickIfToken0IsClanker !== 'number') {
+        throw new Error('Tick if token0 is Clanker must be a number');
+      }
+
+      if (typeof tickSpacing !== 'number' || tickSpacing <= 0) {
+        throw new Error('Tick spacing must be a positive number');
+      }
+    }
+
+    // Validate fee config if present
+    if (this.config.feeConfig) {
+      const feeConfig = this.config.feeConfig;
+
+      if (feeConfig.type === 'dynamic') {
+        const { baseFee, maxLpFee } = feeConfig;
+        if (typeof baseFee !== 'number' || !isValidBps(baseFee)) {
+          throw new Error('Invalid base fee for dynamic fee config');
+        }
+        if (typeof maxLpFee !== 'number' || !isValidBps(maxLpFee)) {
+          throw new Error('Invalid max LP fee for dynamic fee config');
+        }
+      } else if (feeConfig.type === 'static') {
+        const { fee } = feeConfig;
+        if (typeof fee !== 'number' || !isValidBps(fee)) {
+          throw new Error('Invalid fee for static fee config');
+        }
+      } else {
+        throw new Error('Invalid fee config type');
       }
     }
 
     return {
       ...this.config,
-      tokenAdmin: this.config.rewardsConfig.creatorAdmin,
+      tokenAdmin: this.config.rewardsConfig?.creatorAdmin,
     } as TokenConfigV4;
   }
 }

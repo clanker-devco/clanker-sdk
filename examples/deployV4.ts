@@ -10,6 +10,7 @@ import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
+import { WETH_ADDRESS } from '../src/constants.js';
 
 // Load environment variables
 dotenv.config();
@@ -69,15 +70,15 @@ async function main(): Promise<void> {
     const airdropEntries = [
       {
         account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        amount: BigInt('1000000000000000000'), // 1 token
+        amount: 1, // 1 token
       },
       {
         account: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`,
-        amount: BigInt('2000000000000000000'), // 2 tokens
+        amount: 2, // 2 tokens
       },
       {
         account: '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825' as `0x${string}`,
-        amount: BigInt('2000000000000000000'), // 2 tokens
+        amount: 2, // 2 tokens
       },
     ];
 
@@ -116,40 +117,53 @@ async function main(): Promise<void> {
       .withDevBuy({
         ethAmount: '0',
       })
-      .withRewards({
-        creatorReward: 5000, // 50% to first address
-        creatorAdmin: account.address,
-        creatorRewardRecipient: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        interfaceAdmin: account.address,
-        interfaceRewardRecipient: account.address,
-        additionalRewardRecipients: [
-          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
-          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
+      .withLockerConfig({
+        admins: [
+          {
+            admin: account.address,
+            recipient: account.address,
+            bps: 5000,
+          },
+          {
+            admin: account.address,
+            recipient: account.address,
+            bps: 5000,
+          },
         ],
-        additionalRewardBps: [2500, 2500], // 50% to second address
-        additionalRewardAdmins: [
-          '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-          '0xD98124a9Fb88fC61E84575448C853d530a872674' as `0x${string}`,
-        ], // Using same admin for both
+        positions: [{
+          tickLower: [-230400],
+          tickUpper: [230400],
+          positionBps: [10000],
+        }],
       })
-      .withFeeConfig({
-        type: 'dynamic',
-        baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
-        maxLpFee: 5000, // 0.5% maximum fee
-        referenceTickFilterPeriod: 300, // 5 minutes
-        resetPeriod: 3600, // 1 hour
-        resetTickFilter: 50, // 0.5% price movement
-        feeControlNumerator: 100000, // Controls how quickly fees increase with volatility
-        decayFilterBps: 9900, // 99% decay rate for previous volatility
+      // Basic pool configuration
+      .withBasicPoolConfig({
+        pairedToken: WETH_ADDRESS,
+        tickIfToken0IsClanker: -230400,
+        tickSpacing: 200,
       })
-      // .withFeeConfig({
-      //   type: 'static',
-      //   fee: 10000, // 1% fee
+      // Dynamic fee configuration
+      // .withDynamicFeeConfig({
+      //   baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
+      //   maxLpFee: 5000, // 0.5% maximum fee
+      //   referenceTickFilterPeriod: 300, // 5 minutes
+      //   resetPeriod: 3600, // 1 hour
+      //   resetTickFilter: 50, // 0.5% price movement
+      //   feeControlNumerator: 100000, // Controls how quickly fees increase with volatility
+      //   decayFilterBps: 9900, // 99% decay rate for previous volatility
       // })
+      // Alternative static fee configuration (commented out):
+      .withStaticFeeConfig(10000) // 1% static fee
       .build();
 
+    // Add tokenAdmin to the config
+    const configWithAdmin = {
+      ...tokenConfig,
+      tokenAdmin: account.address,
+    };
+
     // Deploy the token with vanity address
-    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
+    const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
     const tokenAddress = await clanker.deployTokenV4(vanityConfig);
 
     console.log('Token deployed successfully!');
