@@ -131,13 +131,19 @@ async function main(): Promise<void> {
           },
         ],
         positions: [{
-          tickLower: [-230400],
-          tickUpper: [230400],
-          positionBps: [10000],
-        }],
+          tickLower: -230400,
+          tickUpper: 230400,
+          positionBps: 5000,
+        },
+        {
+          tickLower: -230400,
+          tickUpper: 230400,
+          positionBps: 5000,
+        },
+      ],
       })
       // Basic pool configuration
-      .withBasicPoolConfig({
+      .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,

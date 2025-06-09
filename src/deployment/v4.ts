@@ -51,9 +51,9 @@ export function buildTokenV4(
       rewardAdmins: cfg.lockerConfig?.admins.map(a => a.admin) || [],
       rewardRecipients: cfg.lockerConfig?.admins.map(a => a.recipient) || [],
       rewardBps: cfg.lockerConfig?.admins.map(a => a.bps) || [],
-      tickLower: cfg.lockerConfig?.positions[0]?.tickLower || [-230400],
-      tickUpper: cfg.lockerConfig?.positions[0]?.tickUpper || [230400],
-      positionBps: cfg.lockerConfig?.positions[0]?.positionBps || [10000],
+      tickLower: cfg.lockerConfig?.positions.map(p => p.tickLower) || [-230400],
+      tickUpper: cfg.lockerConfig?.positions.map(p => p.tickUpper) || [230400],
+      positionBps: cfg.lockerConfig?.positions.map(p => p.positionBps) || [10000],
     },
     poolConfig: {
       hook: hook,

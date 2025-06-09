@@ -79,9 +79,9 @@ export interface LockerConfigV4 {
     bps: number;
   }[];
   positions: {
-    tickLower: number[];
-    tickUpper: number[];
-    positionBps: number[];
+    tickLower: number;
+    tickUpper: number;
+    positionBps: number;
   }[];
 }
 

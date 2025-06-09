@@ -111,7 +111,7 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withBasicPoolConfig(config: {
+  withPoolConfig(config: {
     pairedToken: Address;
     tickIfToken0IsClanker: number;
     tickSpacing: number;
@@ -194,19 +194,23 @@ export class TokenConfigV4Builder {
         throw new Error('At least one position is required in locker config');
       }
 
-      // Validate position arrays have matching lengths
+      // Validate each position object
       for (const position of positions) {
-        if (
-          position.tickLower.length !== position.tickUpper.length ||
-          position.tickLower.length !== position.positionBps.length
-        ) {
-          throw new Error('Position arrays must have matching lengths');
+        if (typeof position.tickLower !== 'number' || 
+            typeof position.tickUpper !== 'number' || 
+            typeof position.positionBps !== 'number') {
+          throw new Error('Position must have valid tickLower, tickUpper, and positionBps values');
         }
 
-        // Validate position BPS values
-        if (!validateBpsSum(position.positionBps)) {
-          throw new Error('Position BPS values must sum to 10000 (100%)');
+        if (!isValidBps(position.positionBps)) {
+          throw new Error(`Invalid position BPS value: ${position.positionBps}`);
         }
+      }
+
+      // Validate total position BPS
+      const totalPositionBps = positions.reduce((sum, pos) => sum + pos.positionBps, 0);
+      if (!validateBpsSum([totalPositionBps])) {
+        throw new Error('Total position BPS values must sum to 10000 (100%)');
       }
     }
 
