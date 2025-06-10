@@ -12,7 +12,7 @@ export const CLANKER_FACTORY_V3_1: `0x${string}` = '0x2A787b2362021cC3eEa3C24C47
 export const LP_LOCKER_V3_1: `0x${string}` = '0x33e2Eda238edcF470309b8c6D228986A1204c8f9';
 export const CLANKER_VAULT_V3_1: `0x${string}` = '0x42A95190B4088C88Dd904d930c79deC1158bF09D';
 export const CLANKER_FACTORY_V4 = '0x8608Ed9A6C2897678501FA01c47f9CC248457F94' as `0x${string}`;
-export const CLANKER_LOCKER_V4 = '0xc95C9621Ad911fa79b6f532f2822c7450bF66CC3' as `0x${string}`; // TODO: Replace with actual address
+export const CLANKER_LOCKER_V4 = '0x057DA2d99D57FDc9B0316Fa1eC073E05d6f4c063' as `0x${string}`; // TODO: Replace with actual address
 
 // Replace the old WETH_ADDRESS constant with this one
 export const WETH_ADDRESS: `0x${string}` = '0x4200000000000000000000000000000000000006';
