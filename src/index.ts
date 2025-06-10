@@ -1,4 +1,4 @@
-import { type PublicClient, type WalletClient, type Address } from 'viem';
+import { type PublicClient, type WalletClient } from 'viem';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
 import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';

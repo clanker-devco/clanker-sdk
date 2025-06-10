@@ -106,11 +106,6 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withRewards(rewardsConfig: TokenConfigV4['rewardsConfig']): TokenConfigV4Builder {
-    this.config.rewardsConfig = rewardsConfig;
-    return this;
-  }
-
   withPoolConfig(config: {
     pairedToken: Address;
     tickIfToken0IsClanker: number;
@@ -259,7 +254,7 @@ export class TokenConfigV4Builder {
 
     return {
       ...this.config,
-      tokenAdmin: this.config.rewardsConfig?.creatorAdmin,
+      tokenAdmin: this.config?.lockerConfig?.admins[0]?.admin,
     } as TokenConfigV4;
   }
 }

@@ -45,7 +45,6 @@ export interface TokenConfigV4 {
   vault?: VaultConfigV4;
   airdrop?: AirdropConfig;
   devBuy?: DevBuyConfig;
-  rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
   lockerConfig?: LockerConfigV4;
   poolConfig?: PoolConfigV4;

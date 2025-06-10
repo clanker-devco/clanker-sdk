@@ -149,13 +149,14 @@ async function main(): Promise<void> {
 
     // Build the deployment data without deploying
     const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
-    const deploymentData = clanker.buildV4(configWithAdmin);
+    // without vanity address
+    // const deploymentData = clanker.buildV4(configWithAdmin);
 
     console.log('\n📝 Deployment Data Preview:');
-    console.log('Network:', deploymentData.chainId);
-    console.log('Transaction To:', deploymentData.transaction.to);
-    console.log('Transaction Value:', deploymentData.transaction.value.toString(), 'wei');
-    console.log('Transaction Data Length:', deploymentData.transaction.data, 'bytes');
+    console.log('Network:', vanityConfig.chainId);
+    console.log('Transaction To:', vanityConfig.transaction.to);
+    console.log('Transaction Value:', vanityConfig.transaction.value.toString(), 'wei');
+    console.log('Transaction Data Length:', vanityConfig.transaction.data, 'bytes');
     console.log('Expected Address:', vanityConfig.expectedAddress);
 
   } catch (error) {
