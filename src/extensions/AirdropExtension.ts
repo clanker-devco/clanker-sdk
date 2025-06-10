@@ -67,7 +67,7 @@ export class AirdropExtension implements IClankerExtension {
     tree: ReturnType<typeof createMerkleTree>['tree'],
     entries: ReturnType<typeof createMerkleTree>['entries'],
     account: `0x${string}`,
-    amount: bigint
+    amount: number
   ) {
     return getMerkleProof(tree, entries, account, amount);
   }

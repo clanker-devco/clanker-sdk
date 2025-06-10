@@ -54,7 +54,7 @@ export const tokenConfigSchema = z.object({
       entries: z.array(
         z.object({
           account: z.string().refine(isAddressRefinement),
-          amount: z.bigint().min(0n),
+          amount: z.number().min(0),
         })
       ),
       percentage: z.number().min(0).max(10000).refine(isValidBps, {

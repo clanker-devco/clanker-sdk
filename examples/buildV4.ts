@@ -2,13 +2,13 @@ import {
   createPublicClient,
   http,
   PublicClient,
-  getAddress,
 } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
+import { WETH_ADDRESS } from '../src/constants.js';
 
 // Load environment variables
 dotenv.config();
@@ -56,15 +56,15 @@ async function main(): Promise<void> {
     const airdropEntries = [
       {
         account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        amount: BigInt('1000000000000000000'), // 1 token
+        amount: 1, // 1 token
       },
       {
         account: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`,
-        amount: BigInt('2000000000000000000'), // 2 tokens
+        amount: 2, // 2 tokens
       },
       {
         account: '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825' as `0x${string}`,
-        amount: BigInt('2000000000000000000'), // 2 tokens
+        amount: 2, // 2 tokens
       },
     ];
 
@@ -103,22 +103,32 @@ async function main(): Promise<void> {
       .withDevBuy({
         ethAmount: '0',
       })
-      .withRewards({
-        creatorReward: 5000, // 50% to first address
-        creatorAdmin: CREATOR_ADDRESS,
-        creatorRewardRecipient: CREATOR_ADDRESS,
-        interfaceAdmin: INTERFACE_ADMIN_ADDRESS,
-        interfaceRewardRecipient: INTERFACE_ADMIN_ADDRESS,
-        additionalRewardRecipients: [
-          getAddress('0xD98124A8Fb88fC61E84575448C853d530a872674'),
-        ],
-        additionalRewardBps: [5000], // 50% to second address
-        additionalRewardAdmins: [
-          getAddress('0xD98124A8Fb88fC61E84575448C853d530a872674'),
-        ], // Using same admin for both
+      .withLockerConfig({
+        admins: [
+        {
+          admin: CREATOR_ADDRESS,
+          recipient: CREATOR_ADDRESS,
+          bps: 5000,
+        },
+        {
+          admin: INTERFACE_ADMIN_ADDRESS,
+          recipient: INTERFACE_ADMIN_ADDRESS,
+          bps: 5000,
+        },
+      ],
+      positions: [{
+        tickLower: -230400,
+        tickUpper: 230400,
+        positionBps: 10000,
+      }],
+    })
+      .withPoolConfig({
+        pairedToken: WETH_ADDRESS,
+        tickIfToken0IsClanker: -230400,
+        tickSpacing: 200,
       })
-      .withFeeConfig({
-        type: 'dynamic',
+      // example of dynamic fee config
+      .withDynamicFeeConfig({
         baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
         maxLpFee: 5000, // 0.5% maximum fee
         referenceTickFilterPeriod: 300, // 5 minutes
@@ -127,10 +137,8 @@ async function main(): Promise<void> {
         feeControlNumerator: 100000, // Controls how quickly fees increase with volatility
         decayFilterBps: 9900, // 99% decay rate for previous volatility
       })
-      // .withFeeConfig({
-      //   type: 'static',
-      //   fee: 10000, // 1% fee
-      // })
+      // Example of static fee config:
+      // .withStaticFeeConfig(10000, 10000) // 1% fee for both clanker and paired token
       .build();
 
     // Add tokenAdmin to the config
@@ -141,13 +149,14 @@ async function main(): Promise<void> {
 
     // Build the deployment data without deploying
     const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
-    const deploymentData = clanker.buildV4(configWithAdmin);
+    // without vanity address
+    // const deploymentData = clanker.buildV4(configWithAdmin);
 
     console.log('\n📝 Deployment Data Preview:');
-    console.log('Network:', deploymentData.chainId);
-    console.log('Transaction To:', deploymentData.transaction.to);
-    console.log('Transaction Value:', deploymentData.transaction.value.toString(), 'wei');
-    console.log('Transaction Data Length:', deploymentData.transaction.data, 'bytes');
+    console.log('Network:', vanityConfig.chainId);
+    console.log('Transaction To:', vanityConfig.transaction.to);
+    console.log('Transaction Value:', vanityConfig.transaction.value.toString(), 'wei');
+    console.log('Transaction Data Length:', vanityConfig.transaction.data, 'bytes');
     console.log('Expected Address:', vanityConfig.expectedAddress);
 
   } catch (error) {

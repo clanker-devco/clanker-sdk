@@ -39,7 +39,7 @@ export interface TokenConfigV4 {
     vestingDuration: number;
     entries: Array<{
       account: `0x${string}`;
-      amount: bigint;
+      amount: number;
     }>;
     percentage: number;
   };
@@ -48,6 +48,8 @@ export interface TokenConfigV4 {
   };
   rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
+  lockerConfig?: LockerConfigV4;
+  poolConfig?: PoolConfigV4;
 }
 
 export interface VaultConfigV4 {
@@ -71,12 +73,16 @@ export interface PoolConfigV4 {
 }
 
 export interface LockerConfigV4 {
-  rewardAdmins: Address[];
-  rewardRecipients: Address[];
-  rewardBps: number[];
-  tickLower: number[];
-  tickUpper: number[];
-  positionBps: number[];
+  admins: {
+    admin: Address;
+    recipient: Address;
+    bps: number;
+  }[];
+  positions: {
+    tickLower: number;
+    tickUpper: number;
+    positionBps: number;
+  }[];
 }
 
 export interface ExtensionConfigV4 {
@@ -97,12 +103,6 @@ export interface DeploymentConfigV4 {
   lockerConfig: LockerConfigV4;
   mevModuleConfig: MevModuleConfigV4;
   extensionConfigs: ExtensionConfigV4[];
-}
-
-export interface DeploymentInfoV4 {
-  token: Address;
-  hook: Address;
-  extensions: Address[];
 }
 
 export interface DevBuyExtensionDataV4 {
