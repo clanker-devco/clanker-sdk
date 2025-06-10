@@ -472,10 +472,18 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           answers.rewardsConfig.creatorReward === 'CUSTOM'
             ? Number(answers.rewardsConfig.customCreatorReward)
             : Number(answers.rewardsConfig.creatorReward),
-        creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin || account.address) as `0x${string}`,
-        creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient || account.address) as `0x${string}`,
-        interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin || account.address) as `0x${string}`,
-        interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient || account.address) as `0x${string}`,
+        creatorAdmin: toHexAddress(
+          answers.rewardsConfig.creatorAdmin || account.address
+        ) as `0x${string}`,
+        creatorRewardRecipient: toHexAddress(
+          answers.rewardsConfig.creatorRewardRecipient || account.address
+        ) as `0x${string}`,
+        interfaceAdmin: toHexAddress(
+          answers.rewardsConfig.interfaceAdmin || account.address
+        ) as `0x${string}`,
+        interfaceRewardRecipient: toHexAddress(
+          answers.rewardsConfig.interfaceRewardRecipient || account.address
+        ) as `0x${string}`,
       },
     };
   }
@@ -551,10 +559,18 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             answers.rewardsConfig.creatorReward === 'CUSTOM'
               ? Number(answers.rewardsConfig.customCreatorReward)
               : Number(answers.rewardsConfig.creatorReward),
-          creatorAdmin: toHexAddress(answers.rewardsConfig.creatorAdmin || account.address) as `0x${string}`,
-          creatorRewardRecipient: toHexAddress(answers.rewardsConfig.creatorRewardRecipient || account.address) as `0x${string}`,
-          interfaceAdmin: toHexAddress(answers.rewardsConfig.interfaceAdmin || account.address) as `0x${string}`,
-          interfaceRewardRecipient: toHexAddress(answers.rewardsConfig.interfaceRewardRecipient || account.address) as `0x${string}`,
+          creatorAdmin: toHexAddress(
+            answers.rewardsConfig.creatorAdmin || account.address
+          ) as `0x${string}`,
+          creatorRewardRecipient: toHexAddress(
+            answers.rewardsConfig.creatorRewardRecipient || account.address
+          ) as `0x${string}`,
+          interfaceAdmin: toHexAddress(
+            answers.rewardsConfig.interfaceAdmin || account.address
+          ) as `0x${string}`,
+          interfaceRewardRecipient: toHexAddress(
+            answers.rewardsConfig.interfaceRewardRecipient || account.address
+          ) as `0x${string}`,
         },
       };
 

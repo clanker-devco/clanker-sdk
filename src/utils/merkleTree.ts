@@ -14,7 +14,7 @@ const TOKEN_DECIMALS = 18n;
  * @returns The amount in token decimals as a bigint
  */
 export function toTokenDecimals(amount: number): bigint {
-  return BigInt(amount) * (10n ** TOKEN_DECIMALS);
+  return BigInt(amount) * 10n ** TOKEN_DECIMALS;
 }
 
 export function createMerkleTree(entries: AirdropEntry[]): {
@@ -25,7 +25,7 @@ export function createMerkleTree(entries: AirdropEntry[]): {
   // Convert entries to the format expected by OpenZeppelin's MerkleTree
   const values = entries.map((entry) => [
     entry.account.toLowerCase(),
-    toTokenDecimals(entry.amount).toString()
+    toTokenDecimals(entry.amount).toString(),
   ]) as [string, string][];
 
   // Create the Merkle tree

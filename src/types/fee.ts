@@ -24,10 +24,7 @@ export interface DynamicFeeConfig {
 export type FeeConfig = StaticFeeConfig | DynamicFeeConfig;
 
 // Static fee encoding parameters
-const STATIC_FEE_PARAMETERS = [
-  { type: 'uint24' },
-  { type: 'uint24' }
-] as const;
+const STATIC_FEE_PARAMETERS = [{ type: 'uint24' }, { type: 'uint24' }] as const;
 
 // Dynamic fee encoding parameters
 const DYNAMIC_FEE_PARAMETERS = [
@@ -37,7 +34,7 @@ const DYNAMIC_FEE_PARAMETERS = [
   { type: 'uint256', name: 'resetPeriod' },
   { type: 'int24', name: 'resetTickFilter' },
   { type: 'uint256', name: 'feeControlNumerator' },
-  { type: 'uint24', name: 'decayFilterBps' }
+  { type: 'uint24', name: 'decayFilterBps' },
 ] as const;
 
 export function encodeFeeConfig(config: FeeConfig): {
@@ -47,26 +44,20 @@ export function encodeFeeConfig(config: FeeConfig): {
   if (config.type === 'static') {
     return {
       hook: CLANKER_HOOK_STATIC_FEE_ADDRESS,
-      poolData: encodeAbiParameters(
-        STATIC_FEE_PARAMETERS,
-        [config.clankerFee, config.pairedFee]
-      ),
+      poolData: encodeAbiParameters(STATIC_FEE_PARAMETERS, [config.clankerFee, config.pairedFee]),
     };
   } else {
     return {
       hook: CLANKER_HOOK_DYNAMIC_FEE_ADDRESS,
-      poolData: encodeAbiParameters(
-        DYNAMIC_FEE_PARAMETERS,
-        [
-          config.baseFee,
-          config.maxLpFee,
-          BigInt(config.referenceTickFilterPeriod),
-          BigInt(config.resetPeriod),
-          config.resetTickFilter,
-          BigInt(config.feeControlNumerator),
-          config.decayFilterBps,
-        ]
-      ),
+      poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
+        config.baseFee,
+        config.maxLpFee,
+        BigInt(config.referenceTickFilterPeriod),
+        BigInt(config.resetPeriod),
+        config.resetTickFilter,
+        BigInt(config.feeControlNumerator),
+        config.decayFilterBps,
+      ]),
     };
   }
 }

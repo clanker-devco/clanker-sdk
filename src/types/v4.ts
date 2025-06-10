@@ -85,7 +85,6 @@ export interface LockerConfigV4 {
   }[];
 }
 
-
 export interface ExtensionConfigV4 {
   extension: Address;
   msgValue: bigint;

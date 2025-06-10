@@ -180,7 +180,7 @@ export class TokenConfigV4Builder {
       }
 
       // Validate admin BPS values
-      const adminBps = admins.map(admin => admin.bps);
+      const adminBps = admins.map((admin) => admin.bps);
       if (!validateBpsSum(adminBps)) {
         throw new Error('Admin BPS values must sum to 10000 (100%)');
       }
@@ -192,9 +192,11 @@ export class TokenConfigV4Builder {
 
       // Validate each position object
       for (const position of positions) {
-        if (typeof position.tickLower !== 'number' || 
-            typeof position.tickUpper !== 'number' || 
-            typeof position.positionBps !== 'number') {
+        if (
+          typeof position.tickLower !== 'number' ||
+          typeof position.tickUpper !== 'number' ||
+          typeof position.positionBps !== 'number'
+        ) {
           throw new Error('Position must have valid tickLower, tickUpper, and positionBps values');
         }
 
@@ -213,7 +215,7 @@ export class TokenConfigV4Builder {
     // Validate pool config if present
     if (this.config.poolConfig) {
       const { hook, pairedToken, tickIfToken0IsClanker, tickSpacing } = this.config.poolConfig;
-      
+
       if (!hook || !pairedToken) {
         throw new Error('Hook and paired token addresses are required in pool config');
       }

@@ -28,11 +28,7 @@ export class Clanker {
    * @returns Object containing transaction data, target address, and network info
    */
   public buildV4(cfg: TokenConfigV4): BuildV4Result {
-
-    const result = buildTokenV4(
-      cfg, 
-      this.publicClient.chain?.id || 84532
-    );
+    const result = buildTokenV4(cfg, this.publicClient.chain?.id || 84532);
 
     return result;
   }
@@ -77,7 +73,12 @@ export * from './utils/validation.js';
 export * from './services/vanityAddress.js';
 export { AirdropExtension } from './extensions/index.js';
 export { TokenConfigV4Builder } from './config/builders.js';
-export { type AirdropEntry, createMerkleTree, getMerkleProof, encodeAirdropData } from './utils/merkleTree.js';
+export {
+  type AirdropEntry,
+  createMerkleTree,
+  getMerkleProof,
+  encodeAirdropData,
+} from './utils/merkleTree.js';
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';

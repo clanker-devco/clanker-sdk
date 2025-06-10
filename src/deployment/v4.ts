@@ -18,7 +18,7 @@ import {
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
-import { DEFAULT_SUPPLY } from '../../src/constants.js'
+import { DEFAULT_SUPPLY } from '../../src/constants.js';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -51,13 +51,13 @@ const DEVBUY_POOL_CONFIG = {
 const VAULT_EXTENSION_PARAMETERS = [
   { type: 'address' },
   { type: 'uint256' },
-  { type: 'uint256' }
+  { type: 'uint256' },
 ] as const;
 
 const AIRDROP_EXTENSION_PARAMETERS = [
   { type: 'bytes32' },
   { type: 'uint256' },
-  { type: 'uint256' }
+  { type: 'uint256' },
 ] as const;
 
 const DEVBUY_EXTENSION_PARAMETERS = [
@@ -96,17 +96,18 @@ export function buildTokenV4(
       originatingChainId: BigInt(chainId),
     },
     lockerConfig: {
-      rewardAdmins: cfg.lockerConfig?.admins.map(a => a.admin) || [],
-      rewardRecipients: cfg.lockerConfig?.admins.map(a => a.recipient) || [],
-      rewardBps: cfg.lockerConfig?.admins.map(a => a.bps) || [],
-      tickLower: cfg.lockerConfig?.positions.map(p => p.tickLower) || [DEFAULT_TICK_LOWER],
-      tickUpper: cfg.lockerConfig?.positions.map(p => p.tickUpper) || [DEFAULT_TICK_UPPER],
-      positionBps: cfg.lockerConfig?.positions.map(p => p.positionBps) || [DEFAULT_POSITION_BPS],
+      rewardAdmins: cfg.lockerConfig?.admins.map((a) => a.admin) || [],
+      rewardRecipients: cfg.lockerConfig?.admins.map((a) => a.recipient) || [],
+      rewardBps: cfg.lockerConfig?.admins.map((a) => a.bps) || [],
+      tickLower: cfg.lockerConfig?.positions.map((p) => p.tickLower) || [DEFAULT_TICK_LOWER],
+      tickUpper: cfg.lockerConfig?.positions.map((p) => p.tickUpper) || [DEFAULT_TICK_UPPER],
+      positionBps: cfg.lockerConfig?.positions.map((p) => p.positionBps) || [DEFAULT_POSITION_BPS],
     },
     poolConfig: {
       hook: hook,
       pairedToken: cfg.poolConfig?.pairedToken || DEFAULT_PAIRED_TOKEN,
-      tickIfToken0IsClanker: cfg.poolConfig?.tickIfToken0IsClanker || DEFAULT_TICK_IF_TOKEN0_IS_CLANKER,
+      tickIfToken0IsClanker:
+        cfg.poolConfig?.tickIfToken0IsClanker || DEFAULT_TICK_IF_TOKEN0_IS_CLANKER,
       tickSpacing: cfg.poolConfig?.tickSpacing || DEFAULT_TICK_SPACING,
       poolData: poolData,
     },
@@ -122,14 +123,11 @@ export function buildTokenV4(
               extension: CLANKER_VAULT_ADDRESS,
               msgValue: 0n,
               extensionBps: cfg.vault.percentage * 100,
-              extensionData: encodeAbiParameters(
-                VAULT_EXTENSION_PARAMETERS,
-                [
-                  cfg.tokenAdmin,
-                  BigInt(cfg.vault?.lockupDuration || 0),
-                  BigInt(cfg.vault?.vestingDuration || 0),
-                ]
-              ),
+              extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
+                cfg.tokenAdmin,
+                BigInt(cfg.vault?.lockupDuration || 0),
+                BigInt(cfg.vault?.vestingDuration || 0),
+              ]),
             },
           ]
         : []),
@@ -140,14 +138,11 @@ export function buildTokenV4(
               extension: CLANKER_AIRDROP_ADDRESS,
               msgValue: 0n,
               extensionBps: cfg.airdrop.percentage,
-              extensionData: encodeAbiParameters(
-                AIRDROP_EXTENSION_PARAMETERS,
-                [
-                  cfg.airdrop.merkleRoot,
-                  BigInt(cfg.airdrop.lockupDuration),
-                  BigInt(cfg.airdrop.vestingDuration),
-                ]
-              ),
+              extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
+                cfg.airdrop.merkleRoot,
+                BigInt(cfg.airdrop.lockupDuration),
+                BigInt(cfg.airdrop.vestingDuration),
+              ]),
             },
           ]
         : []),
@@ -158,14 +153,11 @@ export function buildTokenV4(
               extension: CLANKER_DEVBUY_ADDRESS,
               msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
               extensionBps: 0,
-              extensionData: encodeAbiParameters(
-                DEVBUY_EXTENSION_PARAMETERS,
-                [
-                  DEVBUY_POOL_CONFIG,
-                  BigInt(0),
-                  cfg.tokenAdmin,
-                ]
-              ),
+              extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
+                DEVBUY_POOL_CONFIG,
+                BigInt(0),
+                cfg.tokenAdmin,
+              ]),
             },
           ]
         : []),
@@ -182,9 +174,10 @@ export function buildTokenV4(
     transaction: {
       to: CLANKER_FACTORY_V4,
       data: deployCalldata,
-      value: cfg.devBuy && cfg.devBuy.ethAmount !== '0' 
-        ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
-        : BigInt(0),
+      value:
+        cfg.devBuy && cfg.devBuy.ethAmount !== '0'
+          ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
+          : BigInt(0),
     },
     expectedAddress: '0x0000000000000000000000000000000000000000' as `0x${string}`,
     chainId,
@@ -204,7 +197,7 @@ export async function withVanityAddress(
       cfg.image || '',
       cfg.metadata ? JSON.stringify(cfg.metadata) : '',
       cfg.context ? JSON.stringify(cfg.context) : '',
-      BigInt(chainId)
+      BigInt(chainId),
     ],
     cfg.tokenAdmin,
     '0x4b07',
@@ -237,9 +230,7 @@ export async function deployTokenV4(
     throw new Error('Wallet account required for deployToken');
   }
 
-  const { transaction } = 'transaction' in cfg 
-    ? cfg 
-    : buildTokenV4(cfg, CHAIN_ID || 84532);
+  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, CHAIN_ID || 84532);
 
   console.log('Deployment config:', JSON.stringify(transaction, bigIntReplacer, 2));
 

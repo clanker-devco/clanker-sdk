@@ -108,7 +108,6 @@ export interface RewardsConfigV4 {
   additionalRewardAdmins?: Address[];
 }
 
-
 export interface PoolConfigV4 {
   hook: Address;
   pairedToken: Address;
