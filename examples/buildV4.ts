@@ -32,23 +32,13 @@ if (!PRIVATE_KEY) {
  */
 async function main(): Promise<void> {
   try {
-    console.log(`Starting main function...`);
-
-    // Create transport with optional custom RPC
-    const transport = RPC_URL ? http(RPC_URL) : http();
+    console.log(`Starting clanker function...`);
 
     const CREATOR_ADDRESS = '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`;
     const INTERFACE_ADMIN_ADDRESS = '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`;
 
-    const publicClient = createPublicClient({
-      chain: baseSepolia,
-      transport,
-    }) as PublicClient;
-
     // Initialize Clanker SDK
-    const clanker = new Clanker({
-      publicClient,
-    });
+    const clanker = new Clanker();
 
     console.log('\n🏗️ Building V4 Token Deployment Data\n');
 
@@ -156,7 +146,7 @@ async function main(): Promise<void> {
     console.log('Network:', vanityConfig.chainId);
     console.log('Transaction To:', vanityConfig.transaction.to);
     console.log('Transaction Value:', vanityConfig.transaction.value.toString(), 'wei');
-    console.log('Transaction Data Length:', vanityConfig.transaction.data, 'bytes');
+    console.log('Transaction Data:', vanityConfig.transaction.data);
     console.log('Expected Address:', vanityConfig.expectedAddress);
 
   } catch (error) {

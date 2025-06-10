@@ -9,7 +9,7 @@ const isAddressRefinement = (val: string) => isAddress(val as Address);
 
 // ClankerConfig Schema
 export const clankerConfigSchema = z.object({
-  publicClient: z.any({ message: 'Public client is required' }),
+  publicClient: z.any().optional(),
   wallet: z.any().optional(),
 });
 

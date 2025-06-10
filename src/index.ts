@@ -7,19 +7,21 @@ import type { BuildV4Result } from './types/v4.js';
 
 export class Clanker {
   private readonly wallet?: WalletClient;
-  private readonly publicClient: PublicClient;
+  private readonly publicClient?: PublicClient;
 
-  constructor(config: ClankerConfig) {
-    // Validate the ClankerConfig
-    const validationResult = validateConfig(config);
-    if (!validationResult.success) {
-      throw new Error(
-        `Invalid Clanker configuration: ${JSON.stringify(validationResult.error?.format())}`
-      );
+  constructor(config?: ClankerConfig) {
+    if (config) {
+      // Validate the ClankerConfig
+      const validationResult = validateConfig(config);
+      if (!validationResult.success) {
+        throw new Error(
+          `Invalid Clanker configuration: ${JSON.stringify(validationResult.error?.format())}`
+        );
+      }
+
+      this.wallet = config.wallet;
+      this.publicClient = config.publicClient;
     }
-
-    this.wallet = config.wallet;
-    this.publicClient = config.publicClient;
   }
 
   /**
@@ -28,8 +30,8 @@ export class Clanker {
    * @returns Object containing transaction data, target address, and network info
    */
   public buildV4(cfg: TokenConfigV4): BuildV4Result {
-    const result = buildTokenV4(cfg, this.publicClient.chain?.id || 84532);
-
+    const chainId = this.publicClient?.chain?.id || 84532;
+    const result = buildTokenV4(cfg, chainId);
     return result;
   }
 
@@ -39,7 +41,8 @@ export class Clanker {
    * @returns Object containing transaction data, target address, and network info with vanity address
    */
   public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
-    return withVanityAddress(cfg, this.publicClient.chain?.id || 84532);
+    const chainId = this.publicClient?.chain?.id || 84532;
+    return withVanityAddress(cfg, chainId);
   }
 
   /**
@@ -50,6 +53,9 @@ export class Clanker {
   public async deployTokenV4(cfg: TokenConfigV4 | BuildV4Result) {
     if (!this.wallet) {
       throw new Error('Wallet client required for deployment');
+    }
+    if (!this.publicClient) {
+      throw new Error('Public client required for deployment');
     }
     return deployTokenV4(cfg, this.wallet, this.publicClient);
   }
@@ -62,6 +68,9 @@ export class Clanker {
   public async deployToken(cfg: TokenConfig) {
     if (!this.wallet) {
       throw new Error('Wallet client required for deployment');
+    }
+    if (!this.publicClient) {
+      throw new Error('Public client required for deployment');
     }
     return deployTokenV3(cfg, this.wallet, this.publicClient);
   }

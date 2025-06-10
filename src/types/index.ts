@@ -1,9 +1,6 @@
 // Export all token-related types
 export * from './token.js';
 
-// Export configuration types
-export * from './config.js';
-
 // Export validation types
 export * from '../utils/validation.js';
 export * from '../utils/validation-schema.js';
@@ -17,7 +14,7 @@ import { LockerConfigV4 } from './v4.js';
 
 export interface ClankerConfig {
   wallet?: WalletClient;
-  publicClient: PublicClient;
+  publicClient?: PublicClient;
 }
 
 export interface TokenConfig {
