@@ -1,919 +1,436 @@
 export const Clanker_v4_abi = [
   {
-    type: 'constructor',
-    inputs: [
-      {
-        name: 'owner_',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
+    inputs: [{ internalType: 'address', name: 'owner_', type: 'address' }],
     stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  { inputs: [], name: 'Deprecated', type: 'error' },
+  { inputs: [], name: 'ExtensionMsgValueMismatch', type: 'error' },
+  { inputs: [], name: 'ExtensionNotEnabled', type: 'error' },
+  { inputs: [], name: 'HookNotEnabled', type: 'error' },
+  { inputs: [], name: 'InvalidExtension', type: 'error' },
+  { inputs: [], name: 'InvalidHook', type: 'error' },
+  { inputs: [], name: 'InvalidLocker', type: 'error' },
+  { inputs: [], name: 'InvalidMevModule', type: 'error' },
+  { inputs: [], name: 'LockerNotEnabled', type: 'error' },
+  { inputs: [], name: 'MaxExtensionBpsExceeded', type: 'error' },
+  { inputs: [], name: 'MaxExtensionsExceeded', type: 'error' },
+  { inputs: [], name: 'MevModuleNotEnabled', type: 'error' },
+  { inputs: [], name: 'NotFound', type: 'error' },
+  { inputs: [], name: 'OnlyNonOriginatingChains', type: 'error' },
+  { inputs: [], name: 'OnlyOriginatingChain', type: 'error' },
+  {
+    inputs: [{ internalType: 'address', name: 'owner', type: 'address' }],
+    name: 'OwnableInvalidOwner',
+    type: 'error',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
+  },
+  { inputs: [], name: 'ReentrancyGuardReentrantCall', type: 'error' },
+  { inputs: [], name: 'Unauthorized', type: 'error' },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'recipient', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'ClaimTeamFees',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'extension', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'extensionSupply', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'msgValue', type: 'uint256' },
+    ],
+    name: 'ExtensionTriggered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
+    ],
+    name: 'OwnershipTransferred',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'admin', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
+    name: 'SetAdmin',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'bool', name: 'deprecated', type: 'bool' }],
+    name: 'SetDeprecated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'extension', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
+    name: 'SetExtension',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'hook', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
+    name: 'SetHook',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'locker', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'pool', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
+    name: 'SetLocker',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'mevModule', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
+    name: 'SetMevModule',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldTeamFeeRecipient', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newTeamFeeRecipient', type: 'address' },
+    ],
+    name: 'SetTeamFeeRecipient',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'msgSender', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'tokenAddress', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'tokenAdmin', type: 'address' },
+      { indexed: false, internalType: 'string', name: 'tokenImage', type: 'string' },
+      { indexed: false, internalType: 'string', name: 'tokenName', type: 'string' },
+      { indexed: false, internalType: 'string', name: 'tokenSymbol', type: 'string' },
+      { indexed: false, internalType: 'string', name: 'tokenMetadata', type: 'string' },
+      { indexed: false, internalType: 'string', name: 'tokenContext', type: 'string' },
+      { indexed: false, internalType: 'int24', name: 'startingTick', type: 'int24' },
+      { indexed: false, internalType: 'address', name: 'poolHook', type: 'address' },
+      { indexed: false, internalType: 'PoolId', name: 'poolId', type: 'bytes32' },
+      { indexed: false, internalType: 'address', name: 'pairedToken', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'locker', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'mevModule', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'extensionsSupply', type: 'uint256' },
+      { indexed: false, internalType: 'address[]', name: 'extensions', type: 'address[]' },
+    ],
+    name: 'TokenCreated',
+    type: 'event',
+  },
+  {
+    inputs: [],
     name: 'BPS',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [],
     name: 'MAX_EXTENSIONS',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [],
     name: 'MAX_EXTENSION_BPS',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint16',
-        internalType: 'uint16',
-      },
-    ],
+    outputs: [{ internalType: 'uint16', name: '', type: 'uint16' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [],
     name: 'TOKEN_SUPPLY',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'address', name: '', type: 'address' }],
     name: 'admins',
-    inputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
     name: 'claimTeamFees',
-    inputs: [
-      {
-        name: 'token',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
-    name: 'deployToken',
     inputs: [
       {
-        name: 'deploymentConfig',
-        type: 'tuple',
-        internalType: 'struct IClanker.DeploymentConfig',
         components: [
           {
+            components: [
+              { internalType: 'address', name: 'tokenAdmin', type: 'address' },
+              { internalType: 'string', name: 'name', type: 'string' },
+              { internalType: 'string', name: 'symbol', type: 'string' },
+              { internalType: 'bytes32', name: 'salt', type: 'bytes32' },
+              { internalType: 'string', name: 'image', type: 'string' },
+              { internalType: 'string', name: 'metadata', type: 'string' },
+              { internalType: 'string', name: 'context', type: 'string' },
+              { internalType: 'uint256', name: 'originatingChainId', type: 'uint256' },
+            ],
+            internalType: 'struct IClanker.TokenConfig',
             name: 'tokenConfig',
             type: 'tuple',
-            internalType: 'struct IClanker.TokenConfig',
-            components: [
-              {
-                name: 'tokenAdmin',
-                type: 'address',
-                internalType: 'address',
-              },
-              {
-                name: 'name',
-                type: 'string',
-                internalType: 'string',
-              },
-              {
-                name: 'symbol',
-                type: 'string',
-                internalType: 'string',
-              },
-              {
-                name: 'salt',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'image',
-                type: 'string',
-                internalType: 'string',
-              },
-              {
-                name: 'metadata',
-                type: 'string',
-                internalType: 'string',
-              },
-              {
-                name: 'context',
-                type: 'string',
-                internalType: 'string',
-              },
-              {
-                name: 'originatingChainId',
-                type: 'uint256',
-                internalType: 'uint256',
-              },
-            ],
           },
           {
+            components: [
+              { internalType: 'address', name: 'hook', type: 'address' },
+              { internalType: 'address', name: 'pairedToken', type: 'address' },
+              { internalType: 'int24', name: 'tickIfToken0IsClanker', type: 'int24' },
+              { internalType: 'int24', name: 'tickSpacing', type: 'int24' },
+              { internalType: 'bytes', name: 'poolData', type: 'bytes' },
+            ],
+            internalType: 'struct IClanker.PoolConfig',
             name: 'poolConfig',
             type: 'tuple',
-            internalType: 'struct IClanker.PoolConfig',
-            components: [
-              {
-                name: 'hook',
-                type: 'address',
-                internalType: 'address',
-              },
-              {
-                name: 'pairedToken',
-                type: 'address',
-                internalType: 'address',
-              },
-              {
-                name: 'tickIfToken0IsClanker',
-                type: 'int24',
-                internalType: 'int24',
-              },
-              {
-                name: 'tickSpacing',
-                type: 'int24',
-                internalType: 'int24',
-              },
-              {
-                name: 'poolData',
-                type: 'bytes',
-                internalType: 'bytes',
-              },
-            ],
           },
           {
+            components: [
+              { internalType: 'address', name: 'locker', type: 'address' },
+              { internalType: 'address[]', name: 'rewardAdmins', type: 'address[]' },
+              { internalType: 'address[]', name: 'rewardRecipients', type: 'address[]' },
+              { internalType: 'uint16[]', name: 'rewardBps', type: 'uint16[]' },
+              { internalType: 'int24[]', name: 'tickLower', type: 'int24[]' },
+              { internalType: 'int24[]', name: 'tickUpper', type: 'int24[]' },
+              { internalType: 'uint16[]', name: 'positionBps', type: 'uint16[]' },
+              { internalType: 'bytes', name: 'lockerData', type: 'bytes' },
+            ],
+            internalType: 'struct IClanker.LockerConfig',
             name: 'lockerConfig',
             type: 'tuple',
-            internalType: 'struct IClanker.LockerConfig',
-            components: [
-              {
-                name: 'rewardAdmins',
-                type: 'address[]',
-                internalType: 'address[]',
-              },
-              {
-                name: 'rewardRecipients',
-                type: 'address[]',
-                internalType: 'address[]',
-              },
-              {
-                name: 'rewardBps',
-                type: 'uint16[]',
-                internalType: 'uint16[]',
-              },
-              {
-                name: 'tickLower',
-                type: 'int24[]',
-                internalType: 'int24[]',
-              },
-              {
-                name: 'tickUpper',
-                type: 'int24[]',
-                internalType: 'int24[]',
-              },
-              {
-                name: 'positionBps',
-                type: 'uint16[]',
-                internalType: 'uint16[]',
-              },
-            ],
           },
           {
+            components: [
+              { internalType: 'address', name: 'mevModule', type: 'address' },
+              { internalType: 'bytes', name: 'mevModuleData', type: 'bytes' },
+            ],
+            internalType: 'struct IClanker.MevModuleConfig',
             name: 'mevModuleConfig',
             type: 'tuple',
-            internalType: 'struct IClanker.MevModuleConfig',
-            components: [
-              {
-                name: 'mevModule',
-                type: 'address',
-                internalType: 'address',
-              },
-              {
-                name: 'mevModuleData',
-                type: 'bytes',
-                internalType: 'bytes',
-              },
-            ],
           },
           {
+            components: [
+              { internalType: 'address', name: 'extension', type: 'address' },
+              { internalType: 'uint256', name: 'msgValue', type: 'uint256' },
+              { internalType: 'uint16', name: 'extensionBps', type: 'uint16' },
+              { internalType: 'bytes', name: 'extensionData', type: 'bytes' },
+            ],
+            internalType: 'struct IClanker.ExtensionConfig[]',
             name: 'extensionConfigs',
             type: 'tuple[]',
-            internalType: 'struct IClanker.ExtensionConfig[]',
-            components: [
-              {
-                name: 'extension',
-                type: 'address',
-                internalType: 'address',
-              },
-              {
-                name: 'msgValue',
-                type: 'uint256',
-                internalType: 'uint256',
-              },
-              {
-                name: 'extensionBps',
-                type: 'uint16',
-                internalType: 'uint16',
-              },
-              {
-                name: 'extensionData',
-                type: 'bytes',
-                internalType: 'bytes',
-              },
-            ],
           },
         ],
+        internalType: 'struct IClanker.DeploymentConfig',
+        name: 'deploymentConfig',
+        type: 'tuple',
       },
     ],
-    outputs: [
-      {
-        name: 'tokenAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
+    name: 'deployToken',
+    outputs: [{ internalType: 'address', name: 'tokenAddress', type: 'address' }],
     stateMutability: 'payable',
+    type: 'function',
   },
   {
-    type: 'function',
-    name: 'deployTokenZeroSupply',
     inputs: [
       {
+        components: [
+          { internalType: 'address', name: 'tokenAdmin', type: 'address' },
+          { internalType: 'string', name: 'name', type: 'string' },
+          { internalType: 'string', name: 'symbol', type: 'string' },
+          { internalType: 'bytes32', name: 'salt', type: 'bytes32' },
+          { internalType: 'string', name: 'image', type: 'string' },
+          { internalType: 'string', name: 'metadata', type: 'string' },
+          { internalType: 'string', name: 'context', type: 'string' },
+          { internalType: 'uint256', name: 'originatingChainId', type: 'uint256' },
+        ],
+        internalType: 'struct IClanker.TokenConfig',
         name: 'tokenConfig',
         type: 'tuple',
-        internalType: 'struct IClanker.TokenConfig',
-        components: [
-          {
-            name: 'tokenAdmin',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'name',
-            type: 'string',
-            internalType: 'string',
-          },
-          {
-            name: 'symbol',
-            type: 'string',
-            internalType: 'string',
-          },
-          {
-            name: 'salt',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'image',
-            type: 'string',
-            internalType: 'string',
-          },
-          {
-            name: 'metadata',
-            type: 'string',
-            internalType: 'string',
-          },
-          {
-            name: 'context',
-            type: 'string',
-            internalType: 'string',
-          },
-          {
-            name: 'originatingChainId',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-        ],
       },
     ],
-    outputs: [
-      {
-        name: 'tokenAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
+    name: 'deployTokenZeroSupply',
+    outputs: [{ internalType: 'address', name: 'tokenAddress', type: 'address' }],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
     name: 'deploymentInfoForToken',
-    inputs: [
-      {
-        name: 'token',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
     outputs: [
-      {
-        name: 'token',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'hook',
-        type: 'address',
-        internalType: 'address',
-      },
+      { internalType: 'address', name: 'token', type: 'address' },
+      { internalType: 'address', name: 'hook', type: 'address' },
+      { internalType: 'address', name: 'locker', type: 'address' },
     ],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [],
     name: 'deprecated',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
+    inputs: [
+      { internalType: 'address', name: 'locker', type: 'address' },
+      { internalType: 'address', name: 'pool', type: 'address' },
+    ],
+    name: 'enabledLockers',
+    outputs: [{ internalType: 'bool', name: 'enabled', type: 'bool' }],
+    stateMutability: 'view',
     type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'teamFeeRecipient_', type: 'address' }],
     name: 'initialize',
-    inputs: [
-      {
-        name: 'locker_',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'teamFeeRecipient_',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [],
     name: 'owner',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [],
     name: 'renounceOwnership',
-    inputs: [],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [
+      { internalType: 'address', name: 'admin', type: 'address' },
+      { internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
     name: 'setAdmin',
-    inputs: [
-      {
-        name: 'admin',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'bool', name: 'deprecated_', type: 'bool' }],
     name: 'setDeprecated',
-    inputs: [
-      {
-        name: 'deprecated_',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [
+      { internalType: 'address', name: 'extension', type: 'address' },
+      { internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
     name: 'setExtension',
-    inputs: [
-      {
-        name: 'extension',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [
+      { internalType: 'address', name: 'hook', type: 'address' },
+      { internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
     name: 'setHook',
-    inputs: [
-      {
-        name: 'hook',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
+    inputs: [
+      { internalType: 'address', name: 'locker', type: 'address' },
+      { internalType: 'address', name: 'pool', type: 'address' },
+      { internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
+    name: 'setLocker',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'mevModule', type: 'address' },
+      { internalType: 'bool', name: 'enabled', type: 'bool' },
+    ],
     name: 'setMevModule',
-    inputs: [
-      {
-        name: 'mevModule',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'address', name: 'teamFeeRecipient_', type: 'address' }],
     name: 'setTeamFeeRecipient',
-    inputs: [
-      {
-        name: 'teamFeeRecipient_',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    type: 'function',
-    name: 'teamFeeRecipient',
     inputs: [],
+    name: 'teamFeeRecipient',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
+    name: 'tokenDeploymentInfo',
     outputs: [
       {
+        components: [
+          { internalType: 'address', name: 'token', type: 'address' },
+          { internalType: 'address', name: 'hook', type: 'address' },
+          { internalType: 'address', name: 'locker', type: 'address' },
+          { internalType: 'address[]', name: 'extensions', type: 'address[]' },
+        ],
+        internalType: 'struct IClanker.DeploymentInfo',
         name: '',
-        type: 'address',
-        internalType: 'address',
+        type: 'tuple',
       },
     ],
     stateMutability: 'view',
+    type: 'function',
   },
   {
-    type: 'function',
+    inputs: [{ internalType: 'address', name: 'newOwner', type: 'address' }],
     name: 'transferOwnership',
-    inputs: [
-      {
-        name: 'newOwner',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
   },
-  {
-    type: 'event',
-    name: 'ClaimTeamFees',
-    inputs: [
-      {
-        name: 'token',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'recipient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'ExtensionTriggered',
-    inputs: [
-      {
-        name: 'extension',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'extensionSupply',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'msgValue',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'OwnershipTransferred',
-    inputs: [
-      {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SetAdmin',
-    inputs: [
-      {
-        name: 'admin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SetDeprecated',
-    inputs: [
-      {
-        name: 'deprecated',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SetExtension',
-    inputs: [
-      {
-        name: 'extension',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SetHook',
-    inputs: [
-      {
-        name: 'hook',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SetMevModule',
-    inputs: [
-      {
-        name: 'mevModule',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'enabled',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SetTeamFeeRecipient',
-    inputs: [
-      {
-        name: 'oldTeamFeeRecipient',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'newTeamFeeRecipient',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'TokenCreated',
-    inputs: [
-      {
-        name: 'msgSender',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'tokenAddress',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'tokenAdmin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'tokenImage',
-        type: 'string',
-        indexed: false,
-        internalType: 'string',
-      },
-      {
-        name: 'tokenName',
-        type: 'string',
-        indexed: false,
-        internalType: 'string',
-      },
-      {
-        name: 'tokenSymbol',
-        type: 'string',
-        indexed: false,
-        internalType: 'string',
-      },
-      {
-        name: 'tokenMetadata',
-        type: 'string',
-        indexed: false,
-        internalType: 'string',
-      },
-      {
-        name: 'tokenContext',
-        type: 'string',
-        indexed: false,
-        internalType: 'string',
-      },
-      {
-        name: 'startingTick',
-        type: 'int24',
-        indexed: false,
-        internalType: 'int24',
-      },
-      {
-        name: 'poolHook',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'poolId',
-        type: 'bytes32',
-        indexed: false,
-        internalType: 'PoolId',
-      },
-      {
-        name: 'pairedToken',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'mevModule',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'extensionsSupply',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'extensions',
-        type: 'address[]',
-        indexed: false,
-        internalType: 'address[]',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'error',
-    name: 'AlreadyInitialized',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'Deprecated',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'ExtensionMsgValueMismatch',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'ExtensionNotEnabled',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'HookNotEnabled',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidExtension',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidHook',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidLocker',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidMevModule',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'MaxExtensionBpsExceeded',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'MaxExtensionsExceeded',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'MevModuleNotEnabled',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NotFound',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'OnlyNonOriginatingChains',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'OnlyOriginatingChain',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'OwnableInvalidOwner',
-    inputs: [
-      {
-        name: 'owner',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-  },
-  {
-    type: 'error',
-    name: 'OwnableUnauthorizedAccount',
-    inputs: [
-      {
-        name: 'account',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-  },
-  {
-    type: 'error',
-    name: 'ReentrancyGuardReentrantCall',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'Unauthorized',
-    inputs: [],
-  },
-] as const;
+];

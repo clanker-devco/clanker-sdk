@@ -10,7 +10,7 @@ import type {
 } from '../types/index.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 import { type Address } from 'viem';
-import { CLANKER_HOOK_STATIC_FEE_ADDRESS } from '../constants.js';
+import { CLANKER_HOOK_STATIC_FEE_ADDRESS, CLANKER_LOCKER_V4 } from '../constants.js';
 
 export class TokenConfigBuilder {
   private config: Partial<TokenConfig> = {};
@@ -144,8 +144,12 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withLockerConfig(lockerConfig: LockerConfigV4): TokenConfigV4Builder {
-    this.config.lockerConfig = lockerConfig;
+  withLockerConfig(lockerConfig: Omit<LockerConfigV4, 'locker' | 'lockerData'>): TokenConfigV4Builder {
+    this.config.lockerConfig = {
+      locker: CLANKER_LOCKER_V4,
+      lockerData: '0x',
+      ...lockerConfig,
+    };
     return this;
   }
 

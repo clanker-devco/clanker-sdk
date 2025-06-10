@@ -73,6 +73,7 @@ export interface PoolConfigV4 {
 }
 
 export interface LockerConfigV4 {
+  locker: `0x${string}`;
   admins: {
     admin: Address;
     recipient: Address;
@@ -83,6 +84,7 @@ export interface LockerConfigV4 {
     tickUpper: number;
     positionBps: number;
   }[];
+  lockerData: `0x${string}`;
 }
 
 export interface ExtensionConfigV4 {

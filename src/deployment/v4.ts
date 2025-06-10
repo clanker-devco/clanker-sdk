@@ -13,6 +13,7 @@ import {
   CLANKER_DEVBUY_ADDRESS,
   CLANKER_VAULT_ADDRESS,
   CLANKER_MEV_MODULE_ADDRESS,
+  CLANKER_LOCKER_V4,
   WETH_ADDRESS,
 } from '../constants.js';
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
@@ -96,12 +97,14 @@ export function buildTokenV4(
       originatingChainId: BigInt(chainId),
     },
     lockerConfig: {
+      locker: CLANKER_LOCKER_V4,
       rewardAdmins: cfg.lockerConfig?.admins.map((a) => a.admin) || [],
       rewardRecipients: cfg.lockerConfig?.admins.map((a) => a.recipient) || [],
       rewardBps: cfg.lockerConfig?.admins.map((a) => a.bps) || [],
       tickLower: cfg.lockerConfig?.positions.map((p) => p.tickLower) || [DEFAULT_TICK_LOWER],
       tickUpper: cfg.lockerConfig?.positions.map((p) => p.tickUpper) || [DEFAULT_TICK_UPPER],
       positionBps: cfg.lockerConfig?.positions.map((p) => p.positionBps) || [DEFAULT_POSITION_BPS],
+      lockerData: '0x' as `0x${string}`,
     },
     poolConfig: {
       hook: hook,

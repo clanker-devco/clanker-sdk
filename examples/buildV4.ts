@@ -101,7 +101,7 @@ async function main(): Promise<void> {
         percentage: 10, // 10%
       })
       .withDevBuy({
-        ethAmount: '0',
+        ethAmount: '0.001',
       })
       .withLockerConfig({
         admins: [

@@ -109,7 +109,7 @@ async function main(): Promise<void> {
       })
       .withAirdrop({
         merkleRoot: root,
-        lockupDuration: 0, // 30 days in seconds
+        lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 0, // 30 days in seconds
         entries: airdropEntries,
         percentage: 10, // 10%
