@@ -153,24 +153,6 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withDefaultLockerConfig(admin: Address, recipient: Address, bps: number = 10000): TokenConfigV4Builder {
-    this.config.lockerConfig = {
-      locker: CLANKER_LOCKER_V4,
-      admins: [{
-        admin,
-        recipient,
-        bps,
-      }],
-      positions: [{
-        tickLower: -230400,
-        tickUpper: 230400,
-        positionBps: 10000,
-      }],
-      lockerData: '0x',
-    };
-    return this;
-  }
-
   build(): TokenConfigV4 {
     if (!this.config.name || !this.config.symbol) {
       throw new Error('Name and symbol are required');
