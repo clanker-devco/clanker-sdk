@@ -108,11 +108,27 @@ export class TokenConfigV4Builder {
 
   withPoolConfig(config: {
     pairedToken: Address;
-    tickIfToken0IsClanker: number;
+    tickIfToken0IsClanker?: number;
     tickSpacing: number;
+    startingMarketCapInETH?: number;
   }): TokenConfigV4Builder {
+    let tickIfToken0IsClanker = config.tickIfToken0IsClanker;
+    
+    if (config.startingMarketCapInETH !== undefined) {
+      const desiredPrice = config.startingMarketCapInETH * 0.00000000001; // Convert market cap to price
+      const logBase = 1.0001;
+      const rawTick = Math.log(desiredPrice) / Math.log(logBase);
+      tickIfToken0IsClanker = Math.floor(rawTick / config.tickSpacing) * config.tickSpacing;
+    }
+
+    if (tickIfToken0IsClanker === undefined) {
+      throw new Error('Either tickIfToken0IsClanker or startingMarketCapInETH must be provided');
+    }
+
     this.config.poolConfig = {
-      ...config,
+      pairedToken: config.pairedToken,
+      tickIfToken0IsClanker,
+      tickSpacing: config.tickSpacing,
       hook: CLANKER_HOOK_STATIC_FEE_ADDRESS, // Default hook, will be overridden by fee config
       poolData: '0x', // Default empty data, will be overridden by fee config
     };
