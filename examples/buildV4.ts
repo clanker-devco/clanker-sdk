@@ -114,8 +114,9 @@ async function main(): Promise<void> {
     })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        tickIfToken0IsClanker: -230400,
+        // tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
+        startingMarketCapInETH: 10,
       })
       // example of dynamic fee config
       .withDynamicFeeConfig({
