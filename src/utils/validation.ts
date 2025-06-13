@@ -20,12 +20,12 @@ export function isInRange(value: number, min: number, max: number): boolean {
 }
 
 /**
- * Validates if a number is a valid basis point value (0-10000)
+ * Validates if a number is a valid basis point value (0-100000)
  * @param value - The basis point value to validate
  * @returns boolean indicating if the value is valid
  */
 export function isValidBps(value: number): boolean {
-  return value >= 0 && value <= 10000;
+  return value >= 0 && value <= 100000;
 }
 
 /**
