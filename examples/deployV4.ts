@@ -134,14 +134,13 @@ async function main(): Promise<void> {
       })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        // tickIfToken0IsClanker: -230400,
         startingMarketCapInETH: 10,
         positions: [...STANDARD_POOL_POSITIONS], // [...PROJECT_POOL_POSITIONS]
       })
       // Dynamic fee configuration
       .withDynamicFeeConfig(BASIC_DYNAMIC_FEE_CONFIG) // .withDynamicFeeConfig(AGGRESSIVE_DYNAMIC_FEE_CONFIG)
       // Alternative static fee configuration:
-      .withStaticFeeConfig(10000, 10000) // 1% static fee for both clanker and paired token
+      // .withStaticFeeConfig(10000, 10000) // 1% static fee for both clanker and paired token
       .build();
 
     // Deploy the token with vanity address
