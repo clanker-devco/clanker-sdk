@@ -68,9 +68,9 @@ async function main(): Promise<void> {
       })
       .withContext({
         interface: 'Clanker SDK',
-        platform: 'Clanker',
-        messageId: 'Build Example',
-        id: 'TKN-1',
+        platform: '',
+        messageId: '',
+        id: '',
       })
       .withTokenAdmin(CREATOR_ADDRESS)
       .withVault({

@@ -98,9 +98,9 @@ async function main(): Promise<void> {
       })
       .withContext({
         interface: 'Clanker SDK', //insert your interface name here
-        platform: 'Clanker', //social platform identifier (farcaster, X, etc..)
-        messageId: 'Deploy Example', // cast hash, X URL, etc..
-        id: 'TKN-1', // social identifier (FID, X handle, etc..)
+        platform: '', //social platform identifier (farcaster, X, etc..)
+        messageId: '', // cast hash, X URL, etc..
+        id: '', // social identifier (FID, X handle, etc..)
       })
       .withVault({
         percentage: 10, // 10% of token supply
