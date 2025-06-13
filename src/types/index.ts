@@ -43,10 +43,17 @@ export interface TokenConfigV4 {
   airdrop?: AirdropConfig;
   devBuy?: DevBuyConfig;
   feeConfig?: FeeConfig;
-  lockerConfig?: LockerConfigV4;
+  rewardsConfig?: RewardsConfigV4;
   poolConfig?: PoolConfigV4;
 }
 
+export interface RewardsConfigV4 {
+  admins: {
+    admin: Address;
+    recipient: Address;
+    bps: number;
+  }[];
+}
 export interface ClankerMetadata {
   description?: string;
   socialMediaUrls?: string[];
@@ -94,21 +101,15 @@ export interface RewardsConfig {
   interfaceRewardRecipient: Address;
 }
 
-export interface RewardsConfigV4 {
-  creatorReward: number;
-  creatorAdmin: Address;
-  creatorRewardRecipient: Address;
-  interfaceAdmin: Address;
-  interfaceRewardRecipient: Address;
-  additionalRewardRecipients?: Address[];
-  additionalRewardBps?: number[];
-  additionalRewardAdmins?: Address[];
-}
-
 export interface PoolConfigV4 {
   hook: Address;
   pairedToken: Address;
   tickIfToken0IsClanker: number;
   tickSpacing: number;
   poolData: `0x${string}`;
+  positions: {
+    tickLower: number;
+    tickUpper: number;
+    positionBps: number;
+  }[];
 }

@@ -6,11 +6,11 @@ import type {
   VaultConfig,
   DevBuyConfig,
   RewardsConfig,
-  LockerConfigV4,
+  RewardsConfigV4,
 } from '../types/index.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 import { type Address } from 'viem';
-import { CLANKER_HOOK_STATIC_FEE_ADDRESS, CLANKER_LOCKER_V4 } from '../constants.js';
+import { CLANKER_HOOK_STATIC_FEE_ADDRESS } from '../constants.js';
 
 export class TokenConfigBuilder {
   private config: Partial<TokenConfig> = {};
@@ -106,19 +106,30 @@ export class TokenConfigV4Builder {
     return this;
   }
 
+  withTokenAdmin(tokenAdmin: Address): TokenConfigV4Builder {
+    this.config.tokenAdmin = tokenAdmin;
+    return this;
+  }
+
   withPoolConfig(config: {
     pairedToken: Address;
     tickIfToken0IsClanker?: number;
-    tickSpacing: number;
     startingMarketCapInETH?: number;
+    positions?: {
+      tickLower: number;
+      tickUpper: number;
+      positionBps: number;
+    }[];
   }): TokenConfigV4Builder {
     let tickIfToken0IsClanker = config.tickIfToken0IsClanker;
-    
+    const tickSpacing = 200;
+
+    // TODO: extract out into new function, with decimals as param
     if (config.startingMarketCapInETH !== undefined) {
       const desiredPrice = config.startingMarketCapInETH * 0.00000000001; // Convert market cap to price
       const logBase = 1.0001;
       const rawTick = Math.log(desiredPrice) / Math.log(logBase);
-      tickIfToken0IsClanker = Math.floor(rawTick / config.tickSpacing) * config.tickSpacing;
+      tickIfToken0IsClanker = Math.floor(rawTick / tickSpacing) * tickSpacing;
     }
 
     if (tickIfToken0IsClanker === undefined) {
@@ -128,7 +139,8 @@ export class TokenConfigV4Builder {
     this.config.poolConfig = {
       pairedToken: config.pairedToken,
       tickIfToken0IsClanker,
-      tickSpacing: config.tickSpacing,
+      tickSpacing,
+      positions: config.positions || [],
       hook: CLANKER_HOOK_STATIC_FEE_ADDRESS, // Default hook, will be overridden by fee config
       poolData: '0x', // Default empty data, will be overridden by fee config
     };
@@ -160,12 +172,8 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withLockerConfig(lockerConfig: Omit<LockerConfigV4, 'locker' | 'lockerData'>): TokenConfigV4Builder {
-    this.config.lockerConfig = {
-      locker: CLANKER_LOCKER_V4,
-      lockerData: '0x',
-      ...lockerConfig,
-    };
+  withRewardsConfig(rewardsConfig: RewardsConfigV4): TokenConfigV4Builder {
+    this.config.rewardsConfig = rewardsConfig;
     return this;
   }
 
@@ -190,9 +198,9 @@ export class TokenConfigV4Builder {
       }
     }
 
-    // Validate locker config if present
-    if (this.config.lockerConfig) {
-      const { admins, positions } = this.config.lockerConfig;
+    // Validate rewards config if present
+    if (this.config.rewardsConfig) {
+      const { admins } = this.config.rewardsConfig;
 
       // Validate admins array
       if (!admins || admins.length === 0) {
@@ -203,6 +211,20 @@ export class TokenConfigV4Builder {
       const adminBps = admins.map((admin) => admin.bps);
       if (!validateBpsSum(adminBps)) {
         throw new Error('Admin BPS values must sum to 10000 (100%)');
+      }
+    }
+
+    // Validate pool config if present
+    if (this.config.poolConfig) {
+      const { hook, pairedToken, tickIfToken0IsClanker, positions } = this.config.poolConfig;
+      console.log('positions', positions);
+
+      if (!hook || !pairedToken) {
+        throw new Error('Hook and paired token addresses are required in pool config');
+      }
+
+      if (typeof tickIfToken0IsClanker !== 'number') {
+        throw new Error('Tick if token0 is Clanker must be a number');
       }
 
       // Validate positions array
@@ -229,23 +251,6 @@ export class TokenConfigV4Builder {
       const totalPositionBps = positions.reduce((sum, pos) => sum + pos.positionBps, 0);
       if (!validateBpsSum([totalPositionBps])) {
         throw new Error('Total position BPS values must sum to 10000 (100%)');
-      }
-    }
-
-    // Validate pool config if present
-    if (this.config.poolConfig) {
-      const { hook, pairedToken, tickIfToken0IsClanker, tickSpacing } = this.config.poolConfig;
-
-      if (!hook || !pairedToken) {
-        throw new Error('Hook and paired token addresses are required in pool config');
-      }
-
-      if (typeof tickIfToken0IsClanker !== 'number') {
-        throw new Error('Tick if token0 is Clanker must be a number');
-      }
-
-      if (typeof tickSpacing !== 'number' || tickSpacing <= 0) {
-        throw new Error('Tick spacing must be a positive number');
       }
     }
 
@@ -276,7 +281,7 @@ export class TokenConfigV4Builder {
 
     return {
       ...this.config,
-      tokenAdmin: this.config?.lockerConfig?.admins[0]?.admin,
+      tokenAdmin: this.config.tokenAdmin,
     } as TokenConfigV4;
   }
 }

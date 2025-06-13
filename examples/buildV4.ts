@@ -1,9 +1,3 @@
-import {
-  createPublicClient,
-  http,
-  PublicClient,
-} from 'viem';
-import { baseSepolia } from 'viem/chains';
 import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
@@ -64,7 +58,7 @@ async function main(): Promise<void> {
 
     // Build token configuration using the builder pattern
     const tokenConfig = new TokenConfigV4Builder()
-      .withName(`My Token224-${Math.floor(Math.random() * 10000) + 1}`) // for salt
+      .withName(`My Token`) // for salt
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
       .withMetadata({
@@ -78,6 +72,7 @@ async function main(): Promise<void> {
         messageId: 'Build Example',
         id: 'TKN-1',
       })
+      .withTokenAdmin(CREATOR_ADDRESS)
       .withVault({
         percentage: 10, // 10% of token supply
         lockupDuration: 2592000, // 30 days in seconds
@@ -85,38 +80,40 @@ async function main(): Promise<void> {
       })
       .withAirdrop({
         merkleRoot: root,
-        lockupDuration: 0, // 30 days in ms
-        vestingDuration: 0, // 30 days in ms
+        lockupDuration: 0, // 30 days in seconds
+        vestingDuration: 0, // 30 days in seconds
         entries: airdropEntries,
         percentage: 10, // 10%
       })
       .withDevBuy({
         ethAmount: '0.001',
       })
-      .withLockerConfig({
+      .withTokenAdmin(CREATOR_ADDRESS)
+      .withRewardsConfig({
         admins: [
-        {
-          admin: CREATOR_ADDRESS,
-          recipient: CREATOR_ADDRESS,
-          bps: 5000,
-        },
-        {
-          admin: INTERFACE_ADMIN_ADDRESS,
-          recipient: INTERFACE_ADMIN_ADDRESS,
-          bps: 5000,
-        },
-      ],
-      positions: [{
-        tickLower: -230400,
-        tickUpper: 230400,
-        positionBps: 10000,
-      }],
-    })
+          {
+            admin: CREATOR_ADDRESS,
+            recipient: CREATOR_ADDRESS,
+            bps: 5000,
+          },
+          {
+            admin: INTERFACE_ADMIN_ADDRESS,
+            recipient: INTERFACE_ADMIN_ADDRESS,
+            bps: 5000,
+          },
+        ],
+      })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        // tickIfToken0IsClanker: -230400,
-        tickSpacing: 200,
-        startingMarketCapInETH: 10,
+        tickIfToken0IsClanker: -230400,
+        positions: [
+          {
+            tickLower: -230400,
+            tickUpper: 230400,
+            positionBps: 10000,
+          },
+        ],
+        // startingMarketCapInETH: 10,
       })
       // example of dynamic fee config
       .withDynamicFeeConfig({
@@ -132,14 +129,8 @@ async function main(): Promise<void> {
       // .withStaticFeeConfig(10000, 10000) // 1% fee for both clanker and paired token
       .build();
 
-    // Add tokenAdmin to the config
-    const configWithAdmin = {
-      ...tokenConfig,
-      tokenAdmin: CREATOR_ADDRESS,
-    };
-
     // Build the deployment data without deploying
-    const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
+    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
     // without vanity address
     // const deploymentData = clanker.buildV4(configWithAdmin);
 
@@ -149,7 +140,6 @@ async function main(): Promise<void> {
     console.log('Transaction Value:', vanityConfig.transaction.value.toString(), 'wei');
     console.log('Transaction Data:', vanityConfig.transaction.data);
     console.log('Expected Address:', vanityConfig.expectedAddress);
-
   } catch (error) {
     if (error instanceof Error) {
       console.error('Build failed:', error.message);

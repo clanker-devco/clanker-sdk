@@ -1,6 +1,7 @@
 import { type Address } from 'viem';
 import { RewardsConfig } from './token.js';
 import { type FeeConfig } from './fee.js';
+import { RewardsConfigV4 } from './index.js';
 
 export interface BuildV4Result {
   transaction: {
@@ -46,10 +47,10 @@ export interface TokenConfigV4 {
   devBuy?: {
     ethAmount: string;
   };
-  rewardsConfig?: RewardsConfigV4;
   feeConfig?: FeeConfig;
   lockerConfig?: LockerConfigV4;
   poolConfig?: PoolConfigV4;
+  rewardsConfig?: RewardsConfigV4;
 }
 
 export interface VaultConfigV4 {
@@ -58,11 +59,6 @@ export interface VaultConfigV4 {
   vestingDuration: number;
 }
 
-export interface RewardsConfigV4 extends RewardsConfig {
-  additionalRewardRecipients?: Address[];
-  additionalRewardBps?: number[];
-  additionalRewardAdmins?: Address[];
-}
 
 export interface PoolConfigV4 {
   hook: Address;
@@ -70,6 +66,11 @@ export interface PoolConfigV4 {
   tickIfToken0IsClanker: number;
   tickSpacing: number;
   poolData: `0x${string}`;
+  positions: {
+    tickLower: number;
+    tickUpper: number;
+    positionBps: number;
+  }[];
 }
 
 export interface LockerConfigV4 {
@@ -78,11 +79,6 @@ export interface LockerConfigV4 {
     admin: Address;
     recipient: Address;
     bps: number;
-  }[];
-  positions: {
-    tickLower: number;
-    tickUpper: number;
-    positionBps: number;
   }[];
   lockerData: `0x${string}`;
 }
