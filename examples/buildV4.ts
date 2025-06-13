@@ -2,7 +2,7 @@ import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import { WETH_ADDRESS } from '../src/constants.js';
+import { BASIC_DYNAMIC_FEE_CONFIG, STANDARD_POOL_POSITIONS, WETH_ADDRESS } from '../src/constants.js';
 
 // Load environment variables
 dotenv.config();
@@ -106,25 +106,11 @@ async function main(): Promise<void> {
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         tickIfToken0IsClanker: -230400,
-        positions: [
-          {
-            tickLower: -230400,
-            tickUpper: 230400,
-            positionBps: 10000,
-          },
-        ],
+        positions: [...STANDARD_POOL_POSITIONS], // [...PROJECT_POOL_POSITIONS]
         // startingMarketCapInETH: 10,
       })
       // example of dynamic fee config
-      .withDynamicFeeConfig({
-        baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
-        maxLpFee: 5000, // 0.5% maximum fee
-        referenceTickFilterPeriod: 300, // 5 minutes
-        resetPeriod: 3600, // 1 hour
-        resetTickFilter: 50, // 0.5% price movement
-        feeControlNumerator: 100000, // Controls how quickly fees increase with volatility
-        decayFilterBps: 9900, // 99% decay rate for previous volatility
-      })
+      .withDynamicFeeConfig(BASIC_DYNAMIC_FEE_CONFIG) // .withDynamicFeeConfig(AGGRESSIVE_DYNAMIC_FEE_CONFIG)
       // Example of static fee config:
       // .withStaticFeeConfig(10000, 10000) // 1% fee for both clanker and paired token
       .build();

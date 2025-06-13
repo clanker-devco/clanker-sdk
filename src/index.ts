@@ -80,6 +80,7 @@ export class Clanker {
 export * from './types/index.js';
 export * from './utils/validation.js';
 export * from './services/vanityAddress.js';
+export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
 export { TokenConfigV4Builder } from './config/builders.js';
 export {
