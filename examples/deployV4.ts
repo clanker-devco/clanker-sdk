@@ -10,7 +10,7 @@ import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import { BASIC_DYNAMIC_FEE_CONFIG, STANDARD_POOL_POSITIONS, WETH_ADDRESS } from '../src/constants.js';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
 
 // Load environment variables
 dotenv.config();
@@ -88,7 +88,7 @@ async function main(): Promise<void> {
 
     // Build token configuration using the builder pattern
     const tokenConfig = new TokenConfigV4Builder()
-      .withName(`My Token224-${Math.floor(Math.random() * 10000) + 1}`) // for salt
+      .withName(`My Token`)
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
       .withMetadata({
@@ -118,27 +118,23 @@ async function main(): Promise<void> {
       .withDevBuy({
         ethAmount: '0',
       })
-      .withRewardsConfig({
-        admins: [
-          {
-            admin: account.address,
-            recipient: account.address,
-            bps: 5000,
-          },
-          {
-            admin: account.address,
-            recipient: account.address,
-            bps: 5000,
-          },
-        ],
-      })
+      .withRewardsRecipients([
+        {
+          recipient: account.address,
+          bps: 5000,
+        },
+        {
+          recipient: account.address,
+          bps: 5000,
+        },
+      ])
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         startingMarketCapInETH: 10,
-        positions: [...STANDARD_POOL_POSITIONS], // [...PROJECT_POOL_POSITIONS]
+        positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
-      .withDynamicFeeConfig(BASIC_DYNAMIC_FEE_CONFIG) // .withDynamicFeeConfig(AGGRESSIVE_DYNAMIC_FEE_CONFIG)
+      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // Alternative static fee configuration:
       // .withStaticFeeConfig(10000, 10000) // 1% static fee for both clanker and paired token
       .build();

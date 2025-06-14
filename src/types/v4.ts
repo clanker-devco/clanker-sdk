@@ -1,5 +1,4 @@
 import { type Address } from 'viem';
-import { RewardsConfig } from './token.js';
 import { type FeeConfig } from './fee.js';
 import { RewardsConfigV4 } from './index.js';
 

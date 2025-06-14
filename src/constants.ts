@@ -59,56 +59,66 @@ export const CLANKER_HOOK_STATIC_FEE_ADDRESS =
 export const CLANKER_HOOK_DYNAMIC_FEE_ADDRESS =
   '0x7665C5C018bE1B27E910F8068328692B7d69E8cC' as const;
 
+export enum PoolPositions {
+  Standard = 'Standard',
+  Project = 'Project'
+}
 
-export const BASIC_DYNAMIC_FEE_CONFIG = {
-  baseFee: 5000, // 0.5% minimum fee
-  maxLpFee: 50000, // 5% maximum fee
-  referenceTickFilterPeriod: 10, // 10 seconds
-  resetPeriod: 120, // 2 minutes
-  resetTickFilter: 200, // 2% price movement
-  feeControlNumerator: 100000, // Constant for scaling variable fee component
-  decayFilterBps: 7500, // 75% decay after filter period
-} as const;
+export enum FeeConfigs {
+  DynamicBasic = 'DynamicBasic',
+  DynamicAggressive = 'DynamicAggressive'
+}
 
-export const AGGRESSIVE_DYNAMIC_FEE_CONFIG = {
-  baseFee: 10000, // 1% minimum fee
-  maxLpFee: 100000, // 10% maximum fee
-  referenceTickFilterPeriod: 20, // 20 seconds
-  resetPeriod: 300, // 5 minutes
-  resetTickFilter: 200, // 2% price movement
-  feeControlNumerator: 125000, // Constant for scaling variable fee component
-  decayFilterBps: 5000, // 50% decay after filter period
-} as const;
-
-export const STANDARD_POOL_POSITIONS = [{
-  tickLower: -230400, // ~$27,000
-  tickUpper: -120000, // ~$1.5B
-  positionBps: 10000, // All tokens in one LP position
-}] as const;
-
-export const PROJECT_POOL_POSITIONS = [{
-  tickLower: -230400, // ~$27K
-  tickUpper: -214000, // ~$130K
-  positionBps: 1000, // 10% of LP
-},
-{
-  tickLower: -214000, // ~$130K
-  tickUpper: -155000, // ~$50M
-  positionBps: 5000, // 50% of LP
-},
-{
-  tickLower: -202000, // ~$450K
-  tickUpper: -155000, // ~$50M
-  positionBps: 1500, // 15% of LP
-},
-{
-  tickLower: -155000, // ~$50M
-  tickUpper: -120000, // ~$1.5B
-  positionBps: 2000, // 20% of LP
-},
-{
-  tickLower: -141000, // ~$200M
-  tickUpper: -120000, // ~$1.5B
-  positionBps: 500, // 5% of LP
+export const POOL_POSITIONS = {
+  [PoolPositions.Standard]: [{
+    tickLower: -230400, // ~$27,000
+    tickUpper: -120000, // ~$1.5B
+    positionBps: 10000, // All tokens in one LP position
+  }] as const,
+  [PoolPositions.Project]: [{
+    tickLower: -230400, // ~$27K
+    tickUpper: -214000, // ~$130K
+    positionBps: 1000, // 10% of LP
   },
-] as const;
+  {
+    tickLower: -214000, // ~$130K
+    tickUpper: -155000, // ~$50M
+    positionBps: 5000, // 50% of LP
+  },
+  {
+    tickLower: -202000, // ~$450K
+    tickUpper: -155000, // ~$50M
+    positionBps: 1500, // 15% of LP
+  },
+  {
+    tickLower: -155000, // ~$50M
+    tickUpper: -120000, // ~$1.5B
+    positionBps: 2000, // 20% of LP
+  },
+  {
+    tickLower: -141000, // ~$200M
+    tickUpper: -120000, // ~$1.5B
+    positionBps: 500, // 5% of LP
+  }] as const
+} as const;
+
+export const FEE_CONFIGS = {
+  [FeeConfigs.DynamicBasic]: {
+    baseFee: 5000, // 0.5% minimum fee
+    maxLpFee: 50000, // 5% maximum fee
+    referenceTickFilterPeriod: 10, // 10 seconds
+    resetPeriod: 120, // 2 minutes
+    resetTickFilter: 200, // 2% price movement
+    feeControlNumerator: 100000, // Constant for scaling variable fee component
+    decayFilterBps: 7500, // 75% decay after filter period
+  } as const,
+  [FeeConfigs.DynamicAggressive]: {
+    baseFee: 10000, // 1% minimum fee
+    maxLpFee: 100000, // 10% maximum fee
+    referenceTickFilterPeriod: 20, // 20 seconds
+    resetPeriod: 300, // 5 minutes
+    resetTickFilter: 200, // 2% price movement
+    feeControlNumerator: 125000, // Constant for scaling variable fee component
+    decayFilterBps: 5000, // 50% decay after filter period
+  } as const
+} as const;

@@ -6,7 +6,6 @@ import type {
   VaultConfig,
   DevBuyConfig,
   RewardsConfig,
-  RewardsConfigV4,
 } from '../types/index.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 import { type Address } from 'viem';
@@ -172,8 +171,14 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withRewardsConfig(rewardsConfig: RewardsConfigV4): TokenConfigV4Builder {
-    this.config.rewardsConfig = rewardsConfig;
+  withRewardsRecipients(recipients: { recipient: Address; bps: number }[]): TokenConfigV4Builder {
+    // Convert recipients to admins format where admin and recipient are the same
+    const admins = recipients.map(({ recipient, bps }) => ({
+      admin: recipient,
+      recipient,
+      bps,
+    }));
+    this.config.rewardsConfig = { admins };
     return this;
   }
 
