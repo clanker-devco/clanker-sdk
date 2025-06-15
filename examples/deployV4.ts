@@ -10,7 +10,7 @@ import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import { WETH_ADDRESS } from '../src/constants.js';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
 
 // Load environment variables
 dotenv.config();
@@ -88,7 +88,7 @@ async function main(): Promise<void> {
 
     // Build token configuration using the builder pattern
     const tokenConfig = new TokenConfigV4Builder()
-      .withName(`My Token224-${Math.floor(Math.random() * 10000) + 1}`) // for salt
+      .withName(`My Token`)
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
       .withMetadata({
@@ -98,9 +98,9 @@ async function main(): Promise<void> {
       })
       .withContext({
         interface: 'Clanker SDK', //insert your interface name here
-        platform: 'Clanker', //social platform identifier (farcaster, X, etc..)
-        messageId: 'Deploy Example', // cast hash, X URL, etc..
-        id: 'TKN-1', // social identifier (FID, X handle, etc..)
+        platform: '', //social platform identifier (farcaster, X, etc..)
+        messageId: '', // cast hash, X URL, etc..
+        id: '', // social identifier (FID, X handle, etc..)
       })
       .withVault({
         percentage: 10, // 10% of token supply
@@ -114,63 +114,33 @@ async function main(): Promise<void> {
         entries: airdropEntries,
         percentage: 10, // 10%
       })
+      .withTokenAdmin(account.address)
       .withDevBuy({
         ethAmount: '0',
       })
-      .withLockerConfig({
-        admins: [
-          {
-            admin: account.address,
-            recipient: account.address,
-            bps: 5000,
-          },
-          {
-            admin: account.address,
-            recipient: account.address,
-            bps: 5000,
-          },
-        ],
-        positions: [{
-          tickLower: -230400,
-          tickUpper: 230400,
-          positionBps: 5000,
+      .withRewardsRecipients([
+        {
+          recipient: account.address,
+          bps: 5000,
         },
         {
-          tickLower: -230400,
-          tickUpper: 230400,
-          positionBps: 5000,
+          recipient: account.address,
+          bps: 5000,
         },
-      ],
-      })
-      // Basic pool configuration
+      ])
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        // tickIfToken0IsClanker: -230400,
-        tickSpacing: 200,
         startingMarketCapInETH: 10,
+        positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
-      // .withDynamicFeeConfig({
-      //   baseFee: 2500, // 0.025% minimum fee (meets MIN_BASE_FEE requirement)
-      //   maxLpFee: 5000, // 0.5% maximum fee
-      //   referenceTickFilterPeriod: 300, // 5 minutes
-      //   resetPeriod: 3600, // 1 hour
-      //   resetTickFilter: 50, // 0.5% price movement
-      //   feeControlNumerator: 100000, // Controls how quickly fees increase with volatility
-      //   decayFilterBps: 9900, // 99% decay rate for previous volatility
-      // })
-      // Alternative static fee configuration (commented out):
-      .withStaticFeeConfig(10000, 10000) // 1% static fee for both clanker and paired token
+      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
+      // Alternative static fee configuration:
+      // .withStaticFeeConfig(10000, 10000) // 1% static fee for both clanker and paired token
       .build();
 
-    // Add tokenAdmin to the config
-    const configWithAdmin = {
-      ...tokenConfig,
-      tokenAdmin: account.address,
-    };
-
     // Deploy the token with vanity address
-    const vanityConfig = await clanker.withVanityAddress(configWithAdmin);
+    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
     const tokenAddress = await clanker.deployTokenV4(vanityConfig);
 
     console.log('Token deployed successfully!');

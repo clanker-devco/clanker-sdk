@@ -98,12 +98,12 @@ export function buildTokenV4(
     },
     lockerConfig: {
       locker: CLANKER_LOCKER_V4,
-      rewardAdmins: cfg.lockerConfig?.admins.map((a) => a.admin) || [],
-      rewardRecipients: cfg.lockerConfig?.admins.map((a) => a.recipient) || [],
-      rewardBps: cfg.lockerConfig?.admins.map((a) => a.bps) || [],
-      tickLower: cfg.lockerConfig?.positions.map((p) => p.tickLower) || [DEFAULT_TICK_LOWER],
-      tickUpper: cfg.lockerConfig?.positions.map((p) => p.tickUpper) || [DEFAULT_TICK_UPPER],
-      positionBps: cfg.lockerConfig?.positions.map((p) => p.positionBps) || [DEFAULT_POSITION_BPS],
+      rewardAdmins: cfg.rewardsConfig?.admins.map((a) => a.admin) || [],
+      rewardRecipients: cfg.rewardsConfig?.admins.map((a) => a.recipient) || [],
+      rewardBps: cfg.rewardsConfig?.admins.map((a) => a.bps) || [],
+      tickLower: cfg.poolConfig?.positions.map((p) => p.tickLower) || [DEFAULT_TICK_LOWER],
+      tickUpper: cfg.poolConfig?.positions.map((p) => p.tickUpper) || [DEFAULT_TICK_UPPER],
+      positionBps: cfg.poolConfig?.positions.map((p) => p.positionBps) || [DEFAULT_POSITION_BPS],
       lockerData: '0x' as `0x${string}`,
     },
     poolConfig: {
