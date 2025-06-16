@@ -550,7 +550,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         devBuy:
           answers.devBuy.ethAmount !== '0'
             ? {
-                ethAmount: answers.devBuy.ethAmount,
+                ethAmount: Number(answers.devBuy.ethAmount),
                 maxSlippage: answers.devBuy.maxSlippage,
               }
             : undefined,
