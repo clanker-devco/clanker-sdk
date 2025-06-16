@@ -50,7 +50,7 @@ export class Clanker {
    * @returns Promise resolving to an object containing transaction data, target address, and network info with vanity address
    */
   public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
-    const chainId = this.publicClient?.chain?.id || 8453;
+    const chainId = this.publicClient?.chain?.id || 8453; // do we want people to be able to set this even when they don't have a client connected?
     return withVanityAddress(cfg, chainId);
   }
 
