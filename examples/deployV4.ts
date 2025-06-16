@@ -5,7 +5,7 @@ import {
   PublicClient,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
+import { baseSepolia, base } from 'viem/chains';
 import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
@@ -48,13 +48,13 @@ async function main(): Promise<void> {
     const transport = RPC_URL ? http(RPC_URL) : http();
 
     const publicClient = createPublicClient({
-      chain: base,
+      chain: baseSepolia,
       transport,
     }) as PublicClient;
 
     const wallet = createWalletClient({
       account,
-      chain: base,
+      chain: baseSepolia,
       transport,
     });
 

@@ -1,17 +1,23 @@
 import { type PublicClient, type WalletClient } from 'viem';
+import { base, baseSepolia } from 'viem/chains';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
-import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.js';
 import type { BuildV4Result } from './types/v4.js';
+
+type SupportedChainId = typeof base.id | typeof baseSepolia.id;
+
+function isSupportedChain(chainId: number | undefined): chainId is SupportedChainId {
+  return chainId === base.id || chainId === baseSepolia.id;
+}
 
 /**
  * Main class for interacting with the Clanker SDK
  * Provides methods for deploying and building tokens using V3 and V4 protocols
  */
 export class Clanker {
-  private readonly wallet?: WalletClient;
-  private readonly publicClient?: PublicClient;
+  private wallet?: WalletClient;
+  private publicClient?: PublicClient;
 
   /**
    * Creates a new instance of the Clanker SDK
@@ -20,14 +26,6 @@ export class Clanker {
    */
   constructor(config?: ClankerConfig) {
     if (config) {
-      // Validate the ClankerConfig
-      const validationResult = validateConfig(config);
-      if (!validationResult.success) {
-        throw new Error(
-          `Invalid Clanker configuration: ${JSON.stringify(validationResult.error?.format())}`
-        );
-      }
-
       this.wallet = config.wallet;
       this.publicClient = config.publicClient;
     }
@@ -36,10 +34,13 @@ export class Clanker {
   /**
    * Builds V4 token deployment data without actually deploying
    * @param cfg - Token configuration for V4 deployment
+   * @param chainId - Optional chain ID (defaults to Base mainnet)
    * @returns Object containing transaction data, target address, and network info
    */
-  public buildV4(cfg: TokenConfigV4): BuildV4Result {
-    const chainId = this.publicClient?.chain?.id || 8453;
+  public buildV4(cfg: TokenConfigV4, chainId: SupportedChainId = base.id): BuildV4Result {
+    if (!isSupportedChain(chainId)) {
+      throw new Error('Unsupported chain. Please use Base mainnet or Base Sepolia');
+    }
     const result = buildTokenV4(cfg, chainId);
     return result;
   }
@@ -47,20 +48,23 @@ export class Clanker {
   /**
    * Generates a vanity address for a V4 token deployment
    * @param cfg - Token configuration for V4 deployment
+   * @param chainId - Optional chain ID (defaults to Base mainnet)
    * @returns Promise resolving to an object containing transaction data, target address, and network info with vanity address
    */
-  public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
-    const chainId = this.publicClient?.chain?.id || 8453;
+  public async withVanityAddress(cfg: TokenConfigV4, chainId: SupportedChainId = base.id): Promise<BuildV4Result> {
+    if (!isSupportedChain(chainId)) {
+      throw new Error('Unsupported chain. Please use Base mainnet or Base Sepolia');
+    }
     return withVanityAddress(cfg, chainId);
   }
 
   /**
-   * Deploys a token using the V4 protocol
-   * @param cfg - Token configuration for V4 deployment or pre-built deployment data
-   * @returns Promise resolving to the address of the deployed token
+   * Deploys a V4 token
+   * @param cfg - Token configuration or pre-built deployment data
+   * @returns Promise resolving to the deployed token address
    * @throws {Error} If wallet client or public client is not configured
    */
-  public async deployTokenV4(cfg: TokenConfigV4 | BuildV4Result) {
+  public async deployTokenV4(cfg: TokenConfigV4 | BuildV4Result): Promise<`0x${string}`> {
     if (!this.wallet) {
       throw new Error('Wallet client required for deployment');
     }
