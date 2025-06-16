@@ -6,6 +6,7 @@ import type {
   VaultConfig,
   DevBuyConfig,
   RewardsConfig,
+  RewardRecipient,
 } from '../types/index.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 import { type Address } from 'viem';
@@ -213,15 +214,15 @@ export class TokenConfigV4Builder {
    * @param config - The pool configuration object containing:
    * @param config.pairedToken - The address of the paired token
    * @param config.tickIfToken0IsClanker - Optional tick value if Clanker is token0
-   * @param config.startingMarketCapInETH - Optional starting market cap in ETH
+   * @param config.startingMarketCapInPairedToken - Optional starting market cap in ETH or paired token
    * @param config.positions - Optional array of position configurations
    * @returns The builder instance for method chaining
-   * @throws {Error} If neither tickIfToken0IsClanker nor startingMarketCapInETH is provided
+   * @throws {Error} If neither tickIfToken0IsClanker nor startingMarketCapInPairedToken is provided
    */
   withPoolConfig(config: {
     pairedToken: Address;
     tickIfToken0IsClanker?: number;
-    startingMarketCapInETH?: number;
+    startingMarketCapInPairedToken?: number;
     positions?: {
       tickLower: number;
       tickUpper: number;
@@ -232,15 +233,15 @@ export class TokenConfigV4Builder {
     const tickSpacing = 200;
 
     // TODO: extract out into new function, with decimals as param
-    if (config.startingMarketCapInETH !== undefined) {
-      const desiredPrice = config.startingMarketCapInETH * 0.00000000001; // Convert market cap to price
+    if (config.startingMarketCapInPairedToken !== undefined) {
+      const desiredPrice = config.startingMarketCapInPairedToken * 0.00000000001; // Convert market cap to price
       const logBase = 1.0001;
       const rawTick = Math.log(desiredPrice) / Math.log(logBase);
       tickIfToken0IsClanker = Math.floor(rawTick / tickSpacing) * tickSpacing;
     }
 
     if (tickIfToken0IsClanker === undefined) {
-      throw new Error('Either tickIfToken0IsClanker or startingMarketCapInETH must be provided');
+      throw new Error('Either tickIfToken0IsClanker or startingMarketCapInPairedToken must be provided');
     }
 
     this.config.poolConfig = {
@@ -260,11 +261,11 @@ export class TokenConfigV4Builder {
    * @param pairedFee - The fee percentage for the paired token
    * @returns The builder instance for method chaining
    */
-  withStaticFeeConfig(clankerFee: number, pairedFee: number): TokenConfigV4Builder {
+  withStaticFeeConfig(config: { clankerFeeBps: number; pairedFeeBps: number }): TokenConfigV4Builder {
     this.config.feeConfig = {
       type: 'static',
-      clankerFee: clankerFee,
-      pairedFee: pairedFee,
+      clankerFee: config.clankerFeeBps * 100,
+      pairedFee: config.pairedFeeBps * 100,
     };
     return this;
   }
@@ -304,14 +305,8 @@ export class TokenConfigV4Builder {
    * @param recipients.bps - The basis points allocation for the recipient
    * @returns The builder instance for method chaining
    */
-  withRewardsRecipients(recipients: { recipient: Address; bps: number }[]): TokenConfigV4Builder {
-    // Convert recipients to admins format where admin and recipient are the same
-    const admins = recipients.map(({ recipient, bps }) => ({
-      admin: recipient,
-      recipient,
-      bps,
-    }));
-    this.config.rewardsConfig = { admins };
+  withRewardsRecipients(recipients: { recipients: RewardRecipient[] }): TokenConfigV4Builder {
+    this.config.rewardsConfig = recipients;
     return this;
   }
 
@@ -323,6 +318,10 @@ export class TokenConfigV4Builder {
   build(): TokenConfigV4 {
     if (!this.config.name || !this.config.symbol) {
       throw new Error('Name and symbol are required');
+    }
+
+    if (!this.config.tokenAdmin || !this.config.tokenAdmin.length) {
+      throw new Error('.withTokenAdmin(address) is required');
     }
 
     // Validate vault allocation if present
@@ -343,18 +342,29 @@ export class TokenConfigV4Builder {
 
     // Validate rewards config if present
     if (this.config.rewardsConfig) {
-      const { admins } = this.config.rewardsConfig;
+      const rewardsConfig = this.config.rewardsConfig;
 
       // Validate admins array
-      if (!admins || admins.length === 0) {
+      if (rewardsConfig.recipients.length === 0) {
         throw new Error('At least one admin is required in locker config');
       }
 
       // Validate admin BPS values
-      const adminBps = admins.map((admin) => admin.bps);
-      if (!validateBpsSum(adminBps)) {
+      const rewardsBps = rewardsConfig.recipients.map((reward) => reward.bps);
+      if (!validateBpsSum(rewardsBps)) {
         throw new Error('Admin BPS values must sum to 10000 (100%)');
       }
+    } else {
+      // Default rewards config to 100% to token admin
+      this.config.rewardsConfig = {
+        recipients: [
+          {
+            admin: this.config.tokenAdmin,
+            recipient: this.config.tokenAdmin,
+            bps: 10000,
+          },
+        ],
+      };
     }
 
     // Validate pool config if present

@@ -64,7 +64,7 @@ export const tokenConfigSchema = z.object({
     .optional(),
   devBuy: z
     .object({
-      ethAmount: z.string().optional(),
+      ethAmount: z.number().optional(),
     })
     .optional(),
   rewardsConfig: z.object({
@@ -110,7 +110,7 @@ export const poolConfigSchema = z.object({
 export const initialBuyConfigSchema = z.object({
   pairedTokenPoolFee: z.number(),
   pairedTokenSwapAmountOutMinimum: z.bigint(),
-  ethAmount: z.bigint().optional(),
+  ethAmount: z.number().optional(),
 });
 
 // Rewards Config Schema

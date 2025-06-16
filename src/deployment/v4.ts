@@ -98,9 +98,9 @@ export function buildTokenV4(
     },
     lockerConfig: {
       locker: CLANKER_LOCKER_V4,
-      rewardAdmins: cfg.rewardsConfig?.admins.map((a) => a.admin) || [],
-      rewardRecipients: cfg.rewardsConfig?.admins.map((a) => a.recipient) || [],
-      rewardBps: cfg.rewardsConfig?.admins.map((a) => a.bps) || [],
+      rewardAdmins: cfg.rewardsConfig?.recipients.map((reward) => reward.admin) || [],
+      rewardRecipients: cfg.rewardsConfig?.recipients.map((reward) => reward.recipient) || [],
+      rewardBps: cfg.rewardsConfig?.recipients.map((reward) => reward.bps) || [],
       tickLower: cfg.poolConfig?.positions.map((p) => p.tickLower) || [DEFAULT_TICK_LOWER],
       tickUpper: cfg.poolConfig?.positions.map((p) => p.tickUpper) || [DEFAULT_TICK_UPPER],
       positionBps: cfg.poolConfig?.positions.map((p) => p.positionBps) || [DEFAULT_POSITION_BPS],
@@ -150,11 +150,11 @@ export function buildTokenV4(
           ]
         : []),
       // devBuy extension
-      ...(cfg.devBuy && cfg.devBuy.ethAmount !== '0'
+      ...(cfg.devBuy && cfg.devBuy.ethAmount !== 0
         ? [
             {
               extension: CLANKER_DEVBUY_V4,
-              msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
+              msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
               extensionBps: 0,
               extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
                 DEVBUY_POOL_CONFIG,
@@ -178,8 +178,8 @@ export function buildTokenV4(
       to: CLANKER_FACTORY_V4,
       data: deployCalldata,
       value:
-        cfg.devBuy && cfg.devBuy.ethAmount !== '0'
-          ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
+        cfg.devBuy && cfg.devBuy.ethAmount !== 0
+          ? BigInt(cfg.devBuy.ethAmount * 1e18)
           : BigInt(0),
     },
     expectedAddress: '0x0000000000000000000000000000000000000000' as `0x${string}`,

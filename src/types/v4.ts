@@ -44,7 +44,7 @@ export interface TokenConfigV4 {
     percentage: number;
   };
   devBuy?: {
-    ethAmount: string;
+    ethAmount: number;
   };
   feeConfig?: FeeConfig;
   lockerConfig?: LockerConfigV4;
