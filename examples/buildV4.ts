@@ -60,7 +60,7 @@ async function main(): Promise<void> {
       })
       .withTokenAdmin(CREATOR_ADDRESS)
       .withVault({
-        percentage: 10, // 10% of token supply
+        percentage: 10, // 10% of token supply // did we say we wanted to use BPS to avoid multiplication?
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
       })
@@ -72,11 +72,12 @@ async function main(): Promise<void> {
       //   percentage: 10, // 10%
       // })
       .withDevBuy({
-        ethAmount: '0',
+        ethAmount: '0', // nit: why is this a string? 
       })
-      .withTokenAdmin(CREATOR_ADDRESS)
+      .withTokenAdmin(CREATOR_ADDRESS) // nit: this is also defined above
+      // what was the thinking behind removing the admin? can users override this?
       .withRewardsRecipients([
-        {
+        { 
           recipient: CREATOR_ADDRESS,
           bps: 5000,
         },
@@ -88,11 +89,12 @@ async function main(): Promise<void> {
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
-        startingMarketCapInETH: 10,
+        startingMarketCapInETH: 10, // the name 'inETH' is confusing if the token is not ETH, wdyt about 'startingMarketCapInPairedToken'
       })
       // example of dynamic fee config
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // Example of static fee config:
+      // can this be named somehow? like: {clankerFee: 10000, pairedFee: 10000}
       // .withStaticFeeConfig(10000, 10000) // 1% fee for both clanker and paired token
       .build();
 

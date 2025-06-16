@@ -60,6 +60,7 @@ export const CLANKER_HOOK_DYNAMIC_FEE_V4 =
   '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC' as `0x${string}`;
 
 // base sepolia
+// the most up to date addresses changed: https://github.com/clanker-devco/v4.0-contracts/tree/main?tab=readme-ov-file#v400-base-sepolia 
 export const CLANKER_FACTORY_V4_SEPOLIA =
   '0x8608Ed9A6C2897678501FA01c47f9CC248457F94' as `0x${string}`;
 export const CLANKER_LOCKER_V4_SEPOLIA =
