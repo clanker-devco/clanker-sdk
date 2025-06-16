@@ -5,7 +5,7 @@ import {
   PublicClient,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { baseSepolia } from 'viem/chains';
+import { base } from 'viem/chains';
 import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import * as dotenv from 'dotenv';
@@ -48,13 +48,13 @@ async function main(): Promise<void> {
     const transport = RPC_URL ? http(RPC_URL) : http();
 
     const publicClient = createPublicClient({
-      chain: baseSepolia,
+      chain: base,
       transport,
     }) as PublicClient;
 
     const wallet = createWalletClient({
       account,
-      chain: baseSepolia,
+      chain: base,
       transport,
     });
 
@@ -107,13 +107,13 @@ async function main(): Promise<void> {
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
       })
-      .withAirdrop({
-        merkleRoot: root,
-        lockupDuration: 2592000, // 30 days in seconds
-        vestingDuration: 0, // 30 days in seconds
-        entries: airdropEntries,
-        percentage: 10, // 10%
-      })
+      // .withAirdrop({
+      //   merkleRoot: root,
+      //   lockupDuration: 2592000, // 30 days in seconds
+      //   vestingDuration: 0, // 30 days in seconds
+      //   entries: airdropEntries,
+      //   percentage: 10, // 10%
+      // })
       .withTokenAdmin(account.address)
       .withDevBuy({
         ethAmount: '0',
@@ -147,7 +147,7 @@ async function main(): Promise<void> {
     console.log('Token address:', tokenAddress);
     console.log(
       'View on BaseScan:',
-      `https://sepolia.basescan.org/token/${tokenAddress}`
+      `https://basescan.org/token/${tokenAddress}`
     );
 
     // Example of how to get a Merkle proof for claiming

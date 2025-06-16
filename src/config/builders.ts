@@ -9,7 +9,7 @@ import type {
 } from '../types/index.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 import { type Address } from 'viem';
-import { CLANKER_HOOK_STATIC_FEE_ADDRESS } from '../constants.js';
+import { CLANKER_HOOK_STATIC_FEE_V4 } from '../constants.js';
 
 /**
  * Builder class for creating TokenConfig objects
@@ -248,7 +248,7 @@ export class TokenConfigV4Builder {
       tickIfToken0IsClanker,
       tickSpacing,
       positions: config.positions || [],
-      hook: CLANKER_HOOK_STATIC_FEE_ADDRESS, // Default hook, will be overridden by fee config
+      hook: CLANKER_HOOK_STATIC_FEE_V4, // Default hook, will be overridden by fee config
       poolData: '0x', // Default empty data, will be overridden by fee config
     };
     return this;

@@ -39,7 +39,7 @@ export class Clanker {
    * @returns Object containing transaction data, target address, and network info
    */
   public buildV4(cfg: TokenConfigV4): BuildV4Result {
-    const chainId = this.publicClient?.chain?.id || 84532;
+    const chainId = this.publicClient?.chain?.id || 8453;
     const result = buildTokenV4(cfg, chainId);
     return result;
   }
@@ -50,7 +50,7 @@ export class Clanker {
    * @returns Promise resolving to an object containing transaction data, target address, and network info with vanity address
    */
   public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
-    const chainId = this.publicClient?.chain?.id || 84532;
+    const chainId = this.publicClient?.chain?.id || 8453;
     return withVanityAddress(cfg, chainId);
   }
 

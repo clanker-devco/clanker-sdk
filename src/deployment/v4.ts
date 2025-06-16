@@ -5,14 +5,14 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   parseEventLogs,
-} from 'viem';
+} from 'viem';  
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import {
   CLANKER_FACTORY_V4,
-  CLANKER_AIRDROP_ADDRESS,
-  CLANKER_DEVBUY_ADDRESS,
-  CLANKER_VAULT_ADDRESS,
-  CLANKER_MEV_MODULE_ADDRESS,
+  CLANKER_AIRDROP_V4,
+  CLANKER_DEVBUY_V4,
+  CLANKER_VAULT_V4,
+  CLANKER_MEV_MODULE_V4,
   CLANKER_LOCKER_V4,
   WETH_ADDRESS,
 } from '../constants.js';
@@ -115,7 +115,7 @@ export function buildTokenV4(
       poolData: poolData,
     },
     mevModuleConfig: {
-      mevModule: CLANKER_MEV_MODULE_ADDRESS,
+      mevModule: CLANKER_MEV_MODULE_V4,
       mevModuleData: '0x' as `0x${string}`,
     },
     extensionConfigs: [
@@ -123,7 +123,7 @@ export function buildTokenV4(
       ...(cfg.vault?.percentage
         ? [
             {
-              extension: CLANKER_VAULT_ADDRESS,
+              extension: CLANKER_VAULT_V4,
               msgValue: 0n,
               extensionBps: cfg.vault.percentage * 100,
               extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
@@ -138,7 +138,7 @@ export function buildTokenV4(
       ...(cfg.airdrop
         ? [
             {
-              extension: CLANKER_AIRDROP_ADDRESS,
+              extension: CLANKER_AIRDROP_V4,
               msgValue: 0n,
               extensionBps: cfg.airdrop.percentage,
               extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
@@ -153,7 +153,7 @@ export function buildTokenV4(
       ...(cfg.devBuy && cfg.devBuy.ethAmount !== '0'
         ? [
             {
-              extension: CLANKER_DEVBUY_ADDRESS,
+              extension: CLANKER_DEVBUY_V4,
               msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
               extensionBps: 0,
               extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
@@ -233,15 +233,37 @@ export async function deployTokenV4(
     throw new Error('Wallet account required for deployToken');
   }
 
-  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, CHAIN_ID || 84532);
+  // Check wallet balance
+  const balance = await publicClient.getBalance({ address: account.address });
+  console.log('Wallet balance:', balance.toString(), 'wei');
+  console.log('Wallet balance in ETH:', Number(balance) / 1e18, 'ETH');
+
+  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, CHAIN_ID || 8453);
 
   console.log('Deployment config:', JSON.stringify(transaction, bigIntReplacer, 2));
+
+  // Estimate gas for the transaction
+  const gasEstimate = await publicClient.estimateGas({
+    account: account.address,
+    to: transaction.to,
+    data: transaction.data,
+    value: transaction.value,
+  });
+
+  console.log('Estimated gas required:', gasEstimate.toString());
+  
+  // Add 20% buffer to the gas estimate
+  const gasWithBuffer = (gasEstimate * 120n) / 100n;
+  console.log('Gas with 20% buffer:', gasWithBuffer.toString());
 
   const tx = await wallet.sendTransaction({
     ...transaction,
     account: account,
     chain: publicClient.chain,
     value: transaction.value,
+    gas: gasWithBuffer,
+    maxFeePerGas: 100000000n,
+    maxPriorityFeePerGas: 100000000n,
   });
 
   console.log('Transaction hash:', tx);
