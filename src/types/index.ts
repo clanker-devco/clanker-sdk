@@ -48,11 +48,13 @@ export interface TokenConfigV4 {
 }
 
 export interface RewardsConfigV4 {
-  admins: {
-    admin: Address;
-    recipient: Address;
-    bps: number;
-  }[];
+  recipients: RewardRecipient[];
+}
+
+export interface RewardRecipient {
+  admin: Address;
+  recipient: Address;
+  bps: number;
 }
 export interface ClankerMetadata {
   description?: string;
@@ -90,7 +92,7 @@ export interface AirdropConfig {
 }
 
 export interface DevBuyConfig {
-  ethAmount: string;
+  ethAmount: number;
 }
 
 export interface RewardsConfig {

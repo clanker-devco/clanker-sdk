@@ -47,6 +47,7 @@ async function main(): Promise<void> {
       .withName(`My Token`)
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
+      .withTokenAdmin(CREATOR_ADDRESS)
       .withMetadata({
         description: 'Token with custom configuration including vesting and rewards',
         socialMediaUrls: [],
@@ -58,7 +59,6 @@ async function main(): Promise<void> {
         messageId: '',
         id: '',
       })
-      .withTokenAdmin(CREATOR_ADDRESS)
       .withVault({
         percentage: 10, // 10% of token supply
         lockupDuration: 2592000, // 30 days in seconds
@@ -71,29 +71,31 @@ async function main(): Promise<void> {
       //   entries: airdropEntries,
       //   percentage: 10, // 10%
       // })
-      .withDevBuy({
-        ethAmount: '0',
-      })
-      .withTokenAdmin(CREATOR_ADDRESS)
-      .withRewardsRecipients([
+      // .withDevBuy({
+      //   ethAmount: 0.0001,
+      // })
+      .withRewardsRecipients({
+        recipients: [
         {
           recipient: CREATOR_ADDRESS,
+          admin: CREATOR_ADDRESS,
           bps: 5000,
         },
         {
           recipient: INTERFACE_ADMIN_ADDRESS,
+          admin: INTERFACE_ADMIN_ADDRESS,
           bps: 5000,
         },
-      ])
+      ]})
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
-        startingMarketCapInETH: 10,
+        startingMarketCapInPairedToken: 10,
       })
       // example of dynamic fee config
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // Example of static fee config:
-      // .withStaticFeeConfig(10000, 10000) // 1% fee for both clanker and paired token
+      // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 
     // Build the deployment data without deploying

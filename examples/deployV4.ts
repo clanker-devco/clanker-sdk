@@ -91,6 +91,7 @@ async function main(): Promise<void> {
       .withName(`My Token`)
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
+      .withTokenAdmin(account.address)
       .withMetadata({
         description: 'Token with custom configuration including vesting and rewards',
         socialMediaUrls: [],
@@ -114,29 +115,31 @@ async function main(): Promise<void> {
       //   entries: airdropEntries,
       //   percentage: 10, // 10%
       // })
-      .withTokenAdmin(account.address)
       .withDevBuy({
-        ethAmount: '0',
+        ethAmount: 0,
       })
-      .withRewardsRecipients([
+      .withRewardsRecipients({
+        recipients: [
         {
           recipient: account.address,
+          admin: account.address,
           bps: 5000,
         },
         {
           recipient: account.address,
+          admin: account.address,
           bps: 5000,
         },
-      ])
+      ]})
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        startingMarketCapInETH: 10,
+        startingMarketCapInPairedToken: 1,
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // Alternative static fee configuration:
-      // .withStaticFeeConfig(10000, 10000) // 1% static fee for both clanker and paired token
+      // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% static fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (100 bps = 10%)
       .build();
 
     // Deploy the token with vanity address
