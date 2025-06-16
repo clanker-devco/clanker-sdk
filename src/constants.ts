@@ -11,8 +11,6 @@ export const LP_LOCKER_V3: `0x${string}` = '0x5eC4f99F342038c67a312a166Ff56e6D70
 export const CLANKER_FACTORY_V3_1: `0x${string}` = '0x2A787b2362021cC3eEa3C24C4748a6cD5B687382';
 export const LP_LOCKER_V3_1: `0x${string}` = '0x33e2Eda238edcF470309b8c6D228986A1204c8f9';
 export const CLANKER_VAULT_V3_1: `0x${string}` = '0x42A95190B4088C88Dd904d930c79deC1158bF09D';
-export const CLANKER_FACTORY_V4 = '0x8608Ed9A6C2897678501FA01c47f9CC248457F94' as `0x${string}`;
-export const CLANKER_LOCKER_V4 = '0x057DA2d99D57FDc9B0316Fa1eC073E05d6f4c063' as `0x${string}`; // TODO: Replace with actual address
 
 // Replace the old WETH_ADDRESS constant with this one
 export const WETH_ADDRESS: `0x${string}` = '0x4200000000000000000000000000000000000006';
@@ -49,57 +47,80 @@ export const VALID_TOKEN_PAIR_ADDRESS: [
   A0X_ADDRESS,
 ];
 
+//base mainnet
+export const CLANKER_FACTORY_V4 = '0xE85A59c628F7d27878ACeB4bf3b35733630083a9' as `0x${string}`;
+export const CLANKER_LOCKER_V4 = '0x29d17C1A8D851d7d4cA97FAe97AcAdb398D9cCE0' as `0x${string}`;
+export const CLANKER_VAULT_V4 = '0x8E845EAd15737bF71904A30BdDD3aEE76d6ADF6C' as `0x${string}`;
+export const CLANKER_AIRDROP_V4 = '0x56Fa0Da89eD94822e46734e736d34Cab72dF344F' as `0x${string}`;
+export const CLANKER_DEVBUY_V4 = '0x1331f0788F9c08C8F38D52c7a1152250A9dE00be' as `0x${string}`;
+export const CLANKER_MEV_MODULE_V4 = '0xE143f9872A33c955F23cF442BB4B1EFB3A7402A2' as `0x${string}`;
+export const CLANKER_HOOK_STATIC_FEE_V4 =
+  '0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC' as `0x${string}`;
+export const CLANKER_HOOK_DYNAMIC_FEE_V4 =
+  '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC' as `0x${string}`;
+
+// base sepolia
+export const CLANKER_FACTORY_V4_SEPOLIA =
+  '0x8608Ed9A6C2897678501FA01c47f9CC248457F94' as `0x${string}`;
+export const CLANKER_LOCKER_V4_SEPOLIA =
+  '0x057DA2d99D57FDc9B0316Fa1eC073E05d6f4c063' as `0x${string}`;
 // Extension contract addresses
-export const CLANKER_VAULT_ADDRESS = '0xf3A75c2F8a4E1df00a371620a5F712468A3a5139' as const;
-export const CLANKER_AIRDROP_ADDRESS = '0xF6EeDF44454247A9A5E59779d099b158c5166303' as const;
-export const CLANKER_DEVBUY_ADDRESS = '0xf03Fd1eA5b2452D0F0F124790C2351a77a09Bdf8' as const;
-export const CLANKER_MEV_MODULE_ADDRESS = '0xeFB8da7f8724507Fe7d57824CF58695f336df1be' as const;
-export const CLANKER_HOOK_STATIC_FEE_ADDRESS =
+export const CLANKER_VAULT_ADDRESS_SEPOLIA = '0xf3A75c2F8a4E1df00a371620a5F712468A3a5139' as const;
+export const CLANKER_AIRDROP_ADDRESS_SEPOLIA =
+  '0xF6EeDF44454247A9A5E59779d099b158c5166303' as const;
+export const CLANKER_DEVBUY_ADDRESS_SEPOLIA = '0xf03Fd1eA5b2452D0F0F124790C2351a77a09Bdf8' as const;
+export const CLANKER_MEV_MODULE_ADDRESS_SEPOLIA =
+  '0xeFB8da7f8724507Fe7d57824CF58695f336df1be' as const;
+export const CLANKER_HOOK_STATIC_FEE_ADDRESS_SEPOLIA =
   '0x2b1D1C231bC4A759C3048D0e196057a2F9e6E8CC' as const;
-export const CLANKER_HOOK_DYNAMIC_FEE_ADDRESS =
+export const CLANKER_HOOK_DYNAMIC_FEE_ADDRESS_SEPOLIA =
   '0x7665C5C018bE1B27E910F8068328692B7d69E8cC' as const;
 
 export enum PoolPositions {
   Standard = 'Standard',
-  Project = 'Project'
+  Project = 'Project',
 }
 
 export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
-  DynamicAggressive = 'DynamicAggressive'
+  DynamicAggressive = 'DynamicAggressive',
 }
 
 export const POOL_POSITIONS = {
-  [PoolPositions.Standard]: [{
-    tickLower: -230400, // ~$27,000
-    tickUpper: -120000, // ~$1.5B
-    positionBps: 10000, // All tokens in one LP position
-  }] as const,
-  [PoolPositions.Project]: [{
-    tickLower: -230400, // ~$27K
-    tickUpper: -214000, // ~$130K
-    positionBps: 1000, // 10% of LP
-  },
-  {
-    tickLower: -214000, // ~$130K
-    tickUpper: -155000, // ~$50M
-    positionBps: 5000, // 50% of LP
-  },
-  {
-    tickLower: -202000, // ~$450K
-    tickUpper: -155000, // ~$50M
-    positionBps: 1500, // 15% of LP
-  },
-  {
-    tickLower: -155000, // ~$50M
-    tickUpper: -120000, // ~$1.5B
-    positionBps: 2000, // 20% of LP
-  },
-  {
-    tickLower: -141000, // ~$200M
-    tickUpper: -120000, // ~$1.5B
-    positionBps: 500, // 5% of LP
-  }] as const
+  [PoolPositions.Standard]: [
+    {
+      tickLower: -230400, // ~$27,000
+      tickUpper: -120000, // ~$1.5B
+      positionBps: 10000, // All tokens in one LP position
+    },
+  ] as const,
+  [PoolPositions.Project]: [
+    {
+      tickLower: -230400, // ~$27K
+      tickUpper: -214000, // ~$130K
+      positionBps: 1000, // 10% of LP
+    },
+    {
+      tickLower: -214000, // ~$130K
+      tickUpper: -155000, // ~$50M
+      positionBps: 5000, // 50% of LP
+    },
+    {
+      tickLower: -202000, // ~$450K
+      tickUpper: -155000, // ~$50M
+      positionBps: 1500, // 15% of LP
+    },
+    {
+      tickLower: -155000, // ~$50M
+      tickUpper: -120000, // ~$1.5B
+      positionBps: 2000, // 20% of LP
+    },
+    {
+      tickLower: -141000, // ~$200M
+      tickUpper: -120000, // ~$1.5B
+      positionBps: 500, // 5% of LP
+    },
+  ] as const,
 } as const;
 
 export const FEE_CONFIGS = {
@@ -120,5 +141,5 @@ export const FEE_CONFIGS = {
     resetTickFilter: 200, // 2% price movement
     feeControlNumerator: 125000, // Constant for scaling variable fee component
     decayFilterBps: 5000, // 50% decay after filter period
-  } as const
+  } as const,
 } as const;

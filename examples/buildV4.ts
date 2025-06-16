@@ -1,21 +1,7 @@
 import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
-import * as dotenv from 'dotenv';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
 import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
-
-// Load environment variables
-dotenv.config();
-
-// Validate environment variables
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-const RPC_URL = process.env.RPC_URL;
-
-if (!PRIVATE_KEY) {
-  throw new Error(
-    'Missing required environment variables. Please create a .env file with PRIVATE_KEY'
-  );
-}
 
 /**
  * Example showing how to build V4 token deployment data without deploying
@@ -78,15 +64,15 @@ async function main(): Promise<void> {
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
       })
-      .withAirdrop({
-        merkleRoot: root,
-        lockupDuration: 0, // 30 days in seconds
-        vestingDuration: 0, // 30 days in seconds
-        entries: airdropEntries,
-        percentage: 10, // 10%
-      })
+      // .withAirdrop({
+      //   merkleRoot: root,
+      //   lockupDuration: 0, // 30 days in seconds
+      //   vestingDuration: 0, // 30 days in seconds
+      //   entries: airdropEntries,
+      //   percentage: 10, // 10%
+      // })
       .withDevBuy({
-        ethAmount: '0.001',
+        ethAmount: '0',
       })
       .withTokenAdmin(CREATOR_ADDRESS)
       .withRewardsRecipients([
@@ -113,7 +99,7 @@ async function main(): Promise<void> {
     // Build the deployment data without deploying
     const vanityConfig = await clanker.withVanityAddress(tokenConfig);
     // without vanity address
-    // const deploymentData = clanker.buildV4(configWithAdmin);
+    // const deploymentData = clanker.buildV4(tokenConfig);
 
     console.log('\n📝 Deployment Data Preview:');
     console.log('Network:', vanityConfig.chainId);

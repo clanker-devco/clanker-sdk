@@ -1,6 +1,6 @@
 import { encodeAbiParameters } from 'viem';
 import { IClankerExtension } from './IClankerExtension.js';
-import { CLANKER_AIRDROP_ADDRESS } from '../constants.js';
+import { CLANKER_AIRDROP_V4 } from '../constants.js';
 import { createMerkleTree, getMerkleProof, type AirdropEntry } from '../utils/merkleTree.js';
 
 export type { AirdropEntry };
@@ -14,7 +14,7 @@ export interface AirdropExtensionData {
 }
 
 export class AirdropExtension implements IClankerExtension {
-  readonly address = CLANKER_AIRDROP_ADDRESS;
+  readonly address = CLANKER_AIRDROP_V4;
   readonly name = 'Airdrop';
   readonly description = 'Airdrops tokens to recipients based on a merkle root';
   readonly maxAllocationPercentage = 90;

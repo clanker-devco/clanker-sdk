@@ -1,6 +1,6 @@
 import { type Address } from 'viem';
 import { encodeAbiParameters } from 'viem';
-import { CLANKER_HOOK_STATIC_FEE_ADDRESS, CLANKER_HOOK_DYNAMIC_FEE_ADDRESS } from '../constants.js';
+import { CLANKER_HOOK_STATIC_FEE_V4, CLANKER_HOOK_DYNAMIC_FEE_V4 } from '../constants.js';
 
 // Static fee configuration types
 export interface StaticFeeConfig {
@@ -43,12 +43,12 @@ export function encodeFeeConfig(config: FeeConfig): {
 } {
   if (config.type === 'static') {
     return {
-      hook: CLANKER_HOOK_STATIC_FEE_ADDRESS,
+      hook: CLANKER_HOOK_STATIC_FEE_V4,
       poolData: encodeAbiParameters(STATIC_FEE_PARAMETERS, [config.clankerFee, config.pairedFee]),
     };
   } else {
     return {
-      hook: CLANKER_HOOK_DYNAMIC_FEE_ADDRESS,
+      hook: CLANKER_HOOK_DYNAMIC_FEE_V4,
       poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
         config.baseFee,
         config.maxLpFee,

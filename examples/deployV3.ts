@@ -99,7 +99,7 @@ async function main(): Promise<void> {
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
-    console.log('View on BaseScan:', `https://sepolia.basescan.org/token/${tokenAddress}`);
+    console.log('View on BaseScan:', `https://basescan.org/token/${tokenAddress}`);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);
