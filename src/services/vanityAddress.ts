@@ -6,7 +6,7 @@ import {
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
 } from '../abi/v3.1/ClankerToken.js';
-import { monadTestnet } from 'viem/chains';
+import { monadTestnet, base, baseSepolia } from 'viem/chains';
 import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
 
 export const findVanityAddress = async (
@@ -45,7 +45,7 @@ export const findVanityAddressV4 = async (
   admin: `0x${string}`,
   suffix: `0x${string}` = '0x4b07',
   options?: {
-    chainId?: number;
+    chainId?: typeof base.id | typeof baseSepolia.id;
   }
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {
   const data = encodeDeployData({

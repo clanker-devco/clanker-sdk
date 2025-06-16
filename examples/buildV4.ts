@@ -2,6 +2,7 @@ import { Clanker } from '../src/index.js';
 import { TokenConfigV4Builder } from '../src/config/builders.js';
 import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
 import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
+import { base } from 'viem/chains';
 
 /**
  * Example showing how to build V4 token deployment data without deploying
@@ -97,9 +98,9 @@ async function main(): Promise<void> {
       .build();
 
     // Build the deployment data without deploying
-    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
+    const vanityConfig = await clanker.withVanityAddress(tokenConfig, base.id);
     // without vanity address
-    // const deploymentData = clanker.buildV4(tokenConfig);
+    // const deploymentData = clanker.buildV4(tokenConfig, base.id);
 
     console.log('\n📝 Deployment Data Preview:');
     console.log('Network:', vanityConfig.chainId);

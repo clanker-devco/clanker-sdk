@@ -8,18 +8,14 @@ import {
 } from 'viem';  
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import {
-  CLANKER_FACTORY_V4,
-  CLANKER_AIRDROP_V4,
-  CLANKER_DEVBUY_V4,
-  CLANKER_VAULT_V4,
-  CLANKER_MEV_MODULE_V4,
-  CLANKER_LOCKER_V4,
   WETH_ADDRESS,
 } from '../constants.js';
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import { DEFAULT_SUPPLY } from '../../src/constants.js';
+import { base, baseSepolia } from 'viem/chains';
+import { BASE_MAINNET, BASE_SEPOLIA } from '../constants.js';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -76,14 +72,23 @@ const DEVBUY_EXTENSION_PARAMETERS = [
   { type: 'address' },
 ] as const;
 
+type SupportedChainId = typeof base.id | typeof baseSepolia.id;
+
+function isSupportedChain(chainId: number | undefined): chainId is SupportedChainId {
+  return chainId === base.id || chainId === baseSepolia.id;
+}
+
 export function buildTokenV4(
   cfg: TokenConfigV4,
-  chainId: number,
+  chainId: typeof base.id | typeof baseSepolia.id,
   salt?: `0x${string}`
 ): BuildV4Result {
   // Get fee configuration
   const feeConfig = cfg.feeConfig || DEFAULT_FEE_CONFIG;
   const { hook, poolData } = encodeFeeConfig(feeConfig);
+
+  // Select contract addresses based on chain
+  const contracts = chainId === baseSepolia.id ? BASE_SEPOLIA : BASE_MAINNET;
 
   const deploymentConfig = {
     tokenConfig: {
@@ -97,7 +102,7 @@ export function buildTokenV4(
       originatingChainId: BigInt(chainId),
     },
     lockerConfig: {
-      locker: CLANKER_LOCKER_V4,
+      locker: contracts.locker,
       rewardAdmins: cfg.rewardsConfig?.admins.map((a) => a.admin) || [],
       rewardRecipients: cfg.rewardsConfig?.admins.map((a) => a.recipient) || [],
       rewardBps: cfg.rewardsConfig?.admins.map((a) => a.bps) || [],
@@ -115,7 +120,7 @@ export function buildTokenV4(
       poolData: poolData,
     },
     mevModuleConfig: {
-      mevModule: CLANKER_MEV_MODULE_V4,
+      mevModule: contracts.mevModule,
       mevModuleData: '0x' as `0x${string}`,
     },
     extensionConfigs: [
@@ -123,7 +128,7 @@ export function buildTokenV4(
       ...(cfg.vault?.percentage
         ? [
             {
-              extension: CLANKER_VAULT_V4,
+              extension: contracts.vault,
               msgValue: 0n,
               extensionBps: cfg.vault.percentage * 100,
               extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
@@ -138,7 +143,7 @@ export function buildTokenV4(
       ...(cfg.airdrop
         ? [
             {
-              extension: CLANKER_AIRDROP_V4,
+              extension: contracts.airdrop,
               msgValue: 0n,
               extensionBps: cfg.airdrop.percentage,
               extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
@@ -153,7 +158,7 @@ export function buildTokenV4(
       ...(cfg.devBuy && cfg.devBuy.ethAmount !== '0'
         ? [
             {
-              extension: CLANKER_DEVBUY_V4,
+              extension: contracts.devBuy,
               msgValue: BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18),
               extensionBps: 0,
               extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
@@ -175,7 +180,7 @@ export function buildTokenV4(
 
   return {
     transaction: {
-      to: CLANKER_FACTORY_V4,
+      to: contracts.factory,
       data: deployCalldata,
       value:
         cfg.devBuy && cfg.devBuy.ethAmount !== '0'
@@ -189,7 +194,7 @@ export function buildTokenV4(
 
 export async function withVanityAddress(
   cfg: TokenConfigV4,
-  chainId: number
+  chainId: typeof base.id | typeof baseSepolia.id
 ): Promise<BuildV4Result> {
   const { token: expectedAddress, salt } = await findVanityAddressV4(
     [
@@ -233,14 +238,19 @@ export async function deployTokenV4(
     throw new Error('Wallet account required for deployToken');
   }
 
+  if (!CHAIN_ID || !isSupportedChain(CHAIN_ID)) {
+    throw new Error('Unsupported chain. Please use Base mainnet or Base Sepolia');
+  }
+
   // Check wallet balance
   const balance = await publicClient.getBalance({ address: account.address });
   console.log('Wallet balance:', balance.toString(), 'wei');
   console.log('Wallet balance in ETH:', Number(balance) / 1e18, 'ETH');
 
-  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, CHAIN_ID || 8453);
+  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, CHAIN_ID);
 
   console.log('Deployment config:', JSON.stringify(transaction, bigIntReplacer, 2));
+  console.log('Deploying on chain:', CHAIN_ID === base.id ? 'Base Mainnet' : 'Base Sepolia');
 
   // Estimate gas for the transaction
   const gasEstimate = await publicClient.estimateGas({
@@ -254,7 +264,6 @@ export async function deployTokenV4(
   
   // Add 20% buffer to the gas estimate
   const gasWithBuffer = (gasEstimate * 120n) / 100n;
-  console.log('Gas with 20% buffer:', gasWithBuffer.toString());
 
   const tx = await wallet.sendTransaction({
     ...transaction,
@@ -262,8 +271,8 @@ export async function deployTokenV4(
     chain: publicClient.chain,
     value: transaction.value,
     gas: gasWithBuffer,
-    maxFeePerGas: 100000000n,
-    maxPriorityFeePerGas: 100000000n,
+    maxFeePerGas: 1000000000n,
+    maxPriorityFeePerGas: 1000000000n,
   });
 
   console.log('Transaction hash:', tx);

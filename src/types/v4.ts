@@ -1,6 +1,7 @@
 import { type Address } from 'viem';
 import { type FeeConfig } from './fee.js';
 import { RewardsConfigV4 } from './index.js';
+import { base, baseSepolia } from 'viem/chains';
 
 export interface BuildV4Result {
   transaction: {
@@ -9,7 +10,7 @@ export interface BuildV4Result {
     value: bigint;
   };
   expectedAddress: `0x${string}`;
-  chainId: number;
+  chainId: typeof base.id | typeof baseSepolia.id;
 }
 
 export interface TokenConfigV4 {
