@@ -10,7 +10,7 @@ import type {
 } from '../types/index.js';
 import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
 import { type Address } from 'viem';
-import { CLANKER_HOOK_STATIC_FEE_V4 } from '../constants.js';
+import {POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../constants.js';
 
 /**
  * Builder class for creating TokenConfig objects
@@ -212,45 +212,97 @@ export class TokenConfigV4Builder {
   /**
    * Sets the pool configuration
    * @param config - The pool configuration object containing:
-   * @param config.pairedToken - The address of the paired token
-   * @param config.tickIfToken0IsClanker - Optional tick value if Clanker is token0
+   * @param config.pairedToken - Optional address of the paired token, defaults to WETH
+   * @param config.pairedTokenDecimals - Optional decimals of the paired token, defaults to 18
+   * @param config.tickIfToken0IsClanker - Optional tick value if Clanker is token0, defaults to -230400
    * @param config.startingMarketCapInPairedToken - Optional starting market cap in ETH or paired token
-   * @param config.positions - Optional array of position configurations
+   * @param config.positions - Optional array of position configurations, defaults to PoolPositions.Standard
    * @returns The builder instance for method chaining
-   * @throws {Error} If neither tickIfToken0IsClanker nor startingMarketCapInPairedToken is provided
+   * @throws {Error} If tickIfToken0IsClanker is provided and is not a multiple of tickSpacing (200) or if positions are provided and are not multiples of tickSpacing (200)
    */
   withPoolConfig(config: {
-    pairedToken: Address;
+    pairedToken?: Address;
+    pairedTokenDecimals?: number;
     tickIfToken0IsClanker?: number;
     startingMarketCapInPairedToken?: number;
-    positions?: {
-      tickLower: number;
-      tickUpper: number;
-      positionBps: number;
-    }[];
+    positions?: { tickLower: number; tickUpper: number; positionBps: number }[] | PoolPositions;
   }): TokenConfigV4Builder {
     let tickIfToken0IsClanker = config.tickIfToken0IsClanker;
     const tickSpacing = 200;
 
-    // TODO: extract out into new function, with decimals as param
+    // use weth as default paired token
+    if (!config.pairedToken) {
+      config.pairedToken = WETH_ADDRESS;
+      config.pairedTokenDecimals = 18;
+    }
+
+    // if tickIfToken0IsClanker is provided, validate that it is a multiple of tickSpacing
+    if (tickIfToken0IsClanker !== undefined) {
+      if (tickIfToken0IsClanker % tickSpacing !== 0) {
+        throw new Error('tickIfToken0IsClanker must be a multiple of tickSpacing=200');
+      }
+    }
+
+    // validate that only one of tickIfToken0IsClanker or startingMarketCapInPairedToken is provided
+    if (tickIfToken0IsClanker !== undefined && config.startingMarketCapInPairedToken !== undefined) {
+      throw new Error('Cannot set both tickIfToken0IsClanker and startingMarketCapInPairedToken');
+    }
+
+    // if startingMarketCapInPairedToken is provided, calculate the tick
     if (config.startingMarketCapInPairedToken !== undefined) {
-      const desiredPrice = config.startingMarketCapInPairedToken * 0.00000000001; // Convert market cap to price
+      // Calculate the decimal adjustment factor
+      // If paired token has non-standard decimals, we need to adjust the price calculation
+      const decimalAdjustment = Math.pow(10, 18 - (config.pairedTokenDecimals || 18));
+
+      // Convert market cap to price, adjusted for decimal differences
+      const desiredPrice = config.startingMarketCapInPairedToken * 0.00000000001 * decimalAdjustment;
+
       const logBase = 1.0001;
       const rawTick = Math.log(desiredPrice) / Math.log(logBase);
       tickIfToken0IsClanker = Math.floor(rawTick / tickSpacing) * tickSpacing;
     }
 
     if (tickIfToken0IsClanker === undefined) {
-      throw new Error('Either tickIfToken0IsClanker or startingMarketCapInPairedToken must be provided');
+      // use default tickIfToken0IsClanker if not provided
+      tickIfToken0IsClanker = -230_400;
+    }
+
+    let positions;
+    if (config.positions && typeof config.positions === 'string') {
+      // only allow default positions if starting tick is -230400
+      if (tickIfToken0IsClanker !== -230_400) {
+        throw new Error('Custom starting price requires custom positions');
+      }
+      if (config.positions === PoolPositions.Standard) {
+        positions = [...POOL_POSITIONS[PoolPositions.Standard]];
+      } else if (config.positions === PoolPositions.Project) {
+        positions = [...POOL_POSITIONS[PoolPositions.Project]];
+      } else {
+        throw new Error(`Invalid position type: ${config.positions}`);
+      }
+    } else if (config.positions && config.positions.length > 0) {
+      // check that all positions are equal to or greater than tickIfToken0IsClanker
+      // and are multiples of tickSpacing
+      for (const position of config.positions) {
+        if (position.tickLower < tickIfToken0IsClanker) {
+          throw new Error('All positions must be equal to or greater than tickIfToken0IsClanker');
+        }
+        if (position.tickLower % tickSpacing !== 0 || position.tickUpper % tickSpacing !== 0) {
+          throw new Error('All positions must be multiples of tickSpacing');
+        }
+      }
+      positions = config.positions;
+    } else {
+      throw new Error('positions are required');
     }
 
     this.config.poolConfig = {
       pairedToken: config.pairedToken,
       tickIfToken0IsClanker,
       tickSpacing,
-      positions: config.positions || [],
-      hook: CLANKER_HOOK_STATIC_FEE_V4, // Default hook, will be overridden by fee config
-      poolData: '0x', // Default empty data, will be overridden by fee config
+      positions: positions,
+      hook: "0x0000000000000000000000000000000000000000", // is populated in deployment
+      poolData:'0x', // is populated in deployment
     };
     return this;
   }
@@ -405,6 +457,16 @@ export class TokenConfigV4Builder {
       if (!validateBpsSum([totalPositionBps])) {
         throw new Error('Total position BPS values must sum to 10000 (100%)');
       }
+    } else {
+      // use default pool config
+      this.config.poolConfig = {
+        pairedToken: WETH_ADDRESS,
+        tickIfToken0IsClanker: -230400,
+        tickSpacing: 200,
+        positions: [{ tickLower: -230400, tickUpper: 230400, positionBps: 10000}],
+        hook: "0x0000000000000000000000000000000000000000", // is populated in deployment
+        poolData:'0x', // is populated in deployment
+      };
     }
 
     // Validate fee config if present
@@ -430,11 +492,17 @@ export class TokenConfigV4Builder {
       } else {
         throw new Error('Invalid fee config type');
       }
+    } else {
+      // Default fee config to 1% static fee
+      this.config.feeConfig = {
+        type: 'static',
+        clankerFee: 10000,
+        pairedFee: 10000,
+      };
     }
 
     return {
-      ...this.config,
-      tokenAdmin: this.config.tokenAdmin,
+      ...this.config
     } as TokenConfigV4;
   }
 }
