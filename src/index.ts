@@ -1,9 +1,11 @@
-import { type PublicClient, type WalletClient } from 'viem';
+import { encodeFunctionData, type PublicClient, type WalletClient } from 'viem';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
 import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.js';
 import type { BuildV4Result } from './types/v4.js';
+import { CLANKER_LOCKER_V4 } from './constants.js';
+import { ClankerLpLockerMultiple_abi } from './abi/v4/ClankerLpLockerMultiple.js';
 
 /**
  * Main class for interacting with the Clanker SDK
@@ -31,6 +33,28 @@ export class Clanker {
       this.wallet = config.wallet;
       this.publicClient = config.publicClient;
     }
+  }
+
+  /**
+   * Collects rewards from a token
+   * @param tokenAddress - The address of the token to collect rewards from
+   * @returns Promise resolving to the transaction hash
+   * @throws {Error} If wallet client or public client is not configured
+   */
+  public collectRewards(tokenAddress: `0x${string}`) {
+
+    const collectRewardsCalldata = encodeFunctionData({
+      abi: ClankerLpLockerMultiple_abi,
+      functionName: 'collectRewards',
+      args: [tokenAddress],
+    });
+    return {
+      transaction: {
+        to: CLANKER_LOCKER_V4,
+        data: collectRewardsCalldata,
+      },
+    }
+
   }
 
   /**
