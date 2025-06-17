@@ -78,9 +78,15 @@ export function buildTokenV4(
   const feeConfig = cfg.feeConfig;
   const { hook, poolData } = encodeFeeConfig(feeConfig);
 
-  // check pool config has positions
+  // check pool config has position
   if (cfg.poolConfig.positions.length === 0) {
     throw new Error('Pool configuration must have at least one position');
+  }
+
+  // check that the starting price has a lower tick position that touches it
+  const found = cfg.poolConfig.positions.some((position) => position.tickLower === cfg.poolConfig.tickIfToken0IsClanker);
+  if (!found) {
+    throw new Error('Starting price must have a lower tick position that touches it, please check that your positions align with the starting price.');
   }
 
   const deploymentConfig = {
