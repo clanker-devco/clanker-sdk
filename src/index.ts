@@ -4,8 +4,8 @@ import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.js';
 import type { BuildV4Result } from './types/v4.js';
-import { CLANKER_LOCKER_V4 } from './constants.js';
-import { ClankerLpLockerMultiple_abi } from './abi/v4/ClankerLpLockerMultiple.js';
+import { CLANKER_FEE_LOCKER_V4, CLANKER_LOCKER_V4 } from './constants.js';
+import { ClankerFeeLocker_abi } from './abi/ClankerFeeLocker.js';
 
 /**
  * Main class for interacting with the Clanker SDK
@@ -41,16 +41,17 @@ export class Clanker {
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
    */
-  public collectRewards(tokenAddress: `0x${string}`) {
+  public collectRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
 
     const collectRewardsCalldata = encodeFunctionData({
-      abi: ClankerLpLockerMultiple_abi,
-      functionName: 'collectRewards',
-      args: [tokenAddress],
+      abi: ClankerFeeLocker_abi,
+      functionName: 'claim',
+      args: [feeOwnerAddress, tokenAddress],
     });
+
     return {
       transaction: {
-        to: CLANKER_LOCKER_V4,
+        to: CLANKER_FEE_LOCKER_V4,
         data: collectRewardsCalldata,
       },
     }

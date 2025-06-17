@@ -15,7 +15,8 @@ dotenv.config();
 // Validate environment variables
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 const RPC_URL = process.env.RPC_URL;
-const TOKEN_ADDRESS = '0x2c1d0D111CDEE5A0d300eE825608A2Db8399D4b4';
+const FEE_OWNER_ADDRESS = '0x46e2c233a4C5CcBD6f48073F8808E0e4b3296477';
+const TOKEN_ADDRESS = '0x1A84F1eD13C733e689AACffFb12e0999907357F0';
 
 if (!PRIVATE_KEY) {
   throw new Error(
@@ -56,7 +57,7 @@ async function main(): Promise<void> {
 
     console.log('\n💰 Collecting Rewards for token: ', TOKEN_ADDRESS, '\n');
 
-    const { transaction } = clanker.collectRewards(TOKEN_ADDRESS);
+    const { transaction } = clanker.collectRewards(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
 
     console.log('Transaction:', transaction);
 
