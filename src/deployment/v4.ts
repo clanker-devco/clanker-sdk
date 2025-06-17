@@ -83,6 +83,18 @@ export function buildTokenV4(
     throw new Error('Pool configuration must have at least one position');
   }
 
+  // check that the starting price has a lower tick position that touches it
+  let found = false;
+  for (const position of cfg.poolConfig.positions) {
+    if (position.tickLower === cfg.poolConfig.tickIfToken0IsClanker) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    throw new Error('Starting price must have a lower tick position that touches it, please check that your positions align with the starting price.');
+  }
+
   const deploymentConfig = {
     tokenConfig: {
       tokenAdmin: cfg.tokenAdmin,
