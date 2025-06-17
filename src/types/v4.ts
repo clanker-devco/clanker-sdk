@@ -1,6 +1,6 @@
 import { type Address } from 'viem';
 import { type FeeConfig } from './fee.js';
-import { RewardsConfigV4 } from './index.js';
+import { DevBuyPoolKeyConfig, RewardsConfigV4 } from './index.js';
 
 export interface BuildV4Result {
   transaction: {
@@ -45,6 +45,8 @@ export interface TokenConfigV4 {
   };
   devBuy?: {
     ethAmount: number;
+    poolKey?: DevBuyPoolKeyConfig;
+    amountOutMin?: number;
   };
   feeConfig: FeeConfig;
   lockerConfig: LockerConfigV4;

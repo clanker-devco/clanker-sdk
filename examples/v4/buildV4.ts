@@ -1,7 +1,7 @@
-import { Clanker } from '../src/index.js';
-import { TokenConfigV4Builder } from '../src/config/builders.js';
-import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
+import { Clanker } from '../../src/index.js';
+import { TokenConfigV4Builder } from '../../src/config/builders.js';
+import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../../src/constants.js';
 
 /**
  * Example showing how to build V4 token deployment data without deploying
@@ -64,16 +64,16 @@ async function main(): Promise<void> {
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
       })
-      // .withAirdrop({
-      //   merkleRoot: root,
-      //   lockupDuration: 0, // 30 days in seconds
-      //   vestingDuration: 0, // 30 days in seconds
-      //   entries: airdropEntries,
-      //   percentage: 10, // 10%
-      // })
-      // .withDevBuy({
-      //   ethAmount: 0.0001,
-      // })
+      .withAirdrop({
+        merkleRoot: root,
+        lockupDuration: 86400, // 1 day
+        vestingDuration: 86400, // 1 day
+        entries: airdropEntries,
+        percentage: 10, // 10%
+      })
+      .withDevBuy({
+        ethAmount: 0.0001,
+      })
       .withRewardsRecipients({
         recipients: [
         {
@@ -89,19 +89,30 @@ async function main(): Promise<void> {
       ]})
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
+        positions: [...POOL_POSITIONS[PoolPositions.Standard]], // other option: [...POOL_POSITIONS[PoolPositions.Project]]
         startingMarketCapInPairedToken: 10,
       })
       // example of dynamic fee config
-      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
-      // Example of static fee config:
+      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) 
+      // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 
     // Build the deployment data without deploying
     const vanityConfig = await clanker.withVanityAddress(tokenConfig);
+
     // without vanity address
     // const deploymentData = clanker.buildV4(tokenConfig);
+
+    // Example of how to get a Merkle proof for claiming
+    const proof = airdropExtension.getMerkleProof(
+      tree,
+      entries,
+      airdropEntries[0].account,
+      airdropEntries[0].amount
+    );
+    console.log('Example Merkle proof for first entry:', proof);
+  
 
     console.log('\n📝 Deployment Data Preview:');
     console.log('Network:', vanityConfig.chainId);

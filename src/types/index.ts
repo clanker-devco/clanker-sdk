@@ -92,8 +92,18 @@ export interface AirdropConfig {
   percentage: number;
 }
 
+export interface DevBuyPoolKeyConfig {
+  currency0: Address;
+  currency1: Address;
+  fee: number;
+  tickSpacing: number;
+  hooks: Address;
+}
+
 export interface DevBuyConfig {
   ethAmount: number;
+  poolKey?: DevBuyPoolKeyConfig;
+  amountOutMin?: number;
 }
 
 export interface RewardsConfig {
