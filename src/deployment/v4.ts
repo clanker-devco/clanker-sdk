@@ -157,8 +157,8 @@ export function buildTokenV4(
               msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
               extensionBps: 0,
               extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
-                DEVBUY_POOL_CONFIG,
-                BigInt(0),
+                cfg.devBuy.poolKey ? cfg.devBuy.poolKey : DEVBUY_POOL_CONFIG,
+                cfg.devBuy.amountOutMin ? BigInt(cfg.devBuy.amountOutMin * 1e18) : BigInt(0),
                 cfg.tokenAdmin,
               ]),
             },
