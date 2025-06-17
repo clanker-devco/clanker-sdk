@@ -86,6 +86,7 @@ export enum FeeConfigs {
   DynamicAggressive = 'DynamicAggressive',
 }
 
+// pool positions assuming starting tick of -230400
 export const POOL_POSITIONS = {
   [PoolPositions.Standard]: [
     {
