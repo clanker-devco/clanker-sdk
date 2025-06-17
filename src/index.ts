@@ -1,11 +1,11 @@
-import { encodeFunctionData, type PublicClient, type WalletClient } from 'viem';
+import { type PublicClient, type WalletClient } from 'viem';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
 import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.js';
 import type { BuildV4Result } from './types/v4.js';
-import { CLANKER_FEE_LOCKER_V4, CLANKER_LOCKER_V4 } from './constants.js';
-import { ClankerFeeLocker_abi } from './abi/ClankerFeeLocker.js';
+import { claimRewards } from './fees/claim.js';
+import { availableFees } from './fees/availableFees.js';
 
 /**
  * Main class for interacting with the Clanker SDK
@@ -41,21 +41,22 @@ export class Clanker {
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
    */
-  public collectRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+  public claimRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+    return claimRewards(feeOwnerAddress, tokenAddress);
+  }
 
-    const collectRewardsCalldata = encodeFunctionData({
-      abi: ClankerFeeLocker_abi,
-      functionName: 'claim',
-      args: [feeOwnerAddress, tokenAddress],
-    });
-
-    return {
-      transaction: {
-        to: CLANKER_FEE_LOCKER_V4,
-        data: collectRewardsCalldata,
-      },
+  /**
+   * Checks the available fees for a token
+   * @param feeOwnerAddress - The address of the fee owner
+   * @param tokenAddress - The address of the token to check fees for
+   * @returns Promise resolving to the transaction hash
+   * @throws {Error} If wallet client or public client is not configured
+   */
+  public async availableFees(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+    if (!this.publicClient) {
+      throw new Error('Public client required for checking available fees');
     }
-
+    return availableFees(this.publicClient, feeOwnerAddress, tokenAddress);
   }
 
   /**
