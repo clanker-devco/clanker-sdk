@@ -6,11 +6,11 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base} from 'viem/chains';
-import { Clanker } from '../src/index.js';
-import { TokenConfigV4Builder } from '../src/config/builders.js';
+import { Clanker } from '../../src/index.js';
+import { TokenConfigV4Builder } from '../../src/config/builders.js';
 import * as dotenv from 'dotenv';
-import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
+import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../../src/constants.js';
 
 // Load environment variables
 dotenv.config();

@@ -6,11 +6,10 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { Clanker } from '../src/index.js';
-import { TokenConfigV4Builder } from '../src/config/builders.js';
+import { Clanker } from '../../src/index.js';
+import { TokenConfigV4Builder } from '../../src/config/builders.js';
 import * as dotenv from 'dotenv';
-import { AirdropExtension } from '../src/extensions/AirdropExtension.js';
-import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../src/constants.js';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../../src/constants.js';
 
 // Load environment variables
 dotenv.config();
@@ -66,26 +65,6 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V4 Token\n');
 
-    // Example airdrop entries
-    const airdropEntries = [
-      {
-        account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
-        amount: 1, // 1 token
-      },
-      {
-        account: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`,
-        amount: 2, // 2 tokens
-      },
-      {
-        account: '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825' as `0x${string}`,
-        amount: 2, // 2 tokens
-      },
-    ];
-
-    // Create Merkle tree for airdrop
-    const airdropExtension = new AirdropExtension();
-    const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
-
     // Build token configuration using the builder pattern
     const tokenConfig = new TokenConfigV4Builder()
       .withName(`My Token`)
@@ -108,13 +87,6 @@ async function main(): Promise<void> {
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
       })
-      // .withAirdrop({
-      //   merkleRoot: root,
-      //   lockupDuration: 2592000, // 30 days in seconds
-      //   vestingDuration: 0, // 30 days in seconds
-      //   entries: airdropEntries,
-      //   percentage: 10, // 10%
-      // })
       .withDevBuy({
         ethAmount: 0,
       })
@@ -137,9 +109,9 @@ async function main(): Promise<void> {
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
-      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
-      // Alternative static fee configuration:
-      // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% static fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (100 bps = 10%)
+      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) 
+      // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
+      // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100})
       .build();
 
     // Deploy the token with vanity address
@@ -152,15 +124,6 @@ async function main(): Promise<void> {
       'View on BaseScan:',
       `https://basescan.org/token/${tokenAddress}`
     );
-
-    // Example of how to get a Merkle proof for claiming
-    const proof = airdropExtension.getMerkleProof(
-      tree,
-      entries,
-      airdropEntries[0].account,
-      airdropEntries[0].amount
-    );
-    console.log('Example Merkle proof for first entry:', proof);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);
