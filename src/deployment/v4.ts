@@ -30,21 +30,14 @@ const bigIntReplacer = (_key: string, value: unknown) => {
 };
 
 // Default configuration constants
-const DEFAULT_FEE_CONFIG = { type: 'static', clankerFee: 10000, pairedFee: 10000 } as const; // 1% static fee
-const DEFAULT_PAIRED_TOKEN = WETH_ADDRESS;
-const DEFAULT_TICK_IF_TOKEN0_IS_CLANKER = -230400 as const;
-const DEFAULT_TICK_SPACING = 200 as const;
-const DEFAULT_TICK_LOWER = -230400 as const;
-const DEFAULT_TICK_UPPER = 230400 as const;
-const DEFAULT_POSITION_BPS = 10000 as const;
 const DEFAULT_SALT = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
 
-// DevBuy configuration constants
-const DEVBUY_POOL_CONFIG = {
-  currency0: '0x4200000000000000000000000000000000000006', // WETH
-  currency1: '0x4200000000000000000000000000000000000006', // paired token address if not WETH
-  fee: 3000,
-  tickSpacing: 60,
+// Null DevBuy configuration when paired token is WETH
+const NULL_DEVBUY_POOL_CONFIG = {
+  currency0: '0x0000000000000000000000000000000000000000',
+  currency1: '0x0000000000000000000000000000000000000000',
+  fee: 0,
+  tickSpacing: 0,
   hooks: '0x0000000000000000000000000000000000000000',
 } as const;
 
@@ -82,8 +75,13 @@ export function buildTokenV4(
   salt?: `0x${string}`
 ): BuildV4Result {
   // Get fee configuration
-  const feeConfig = cfg.feeConfig || DEFAULT_FEE_CONFIG;
+  const feeConfig = cfg.feeConfig;
   const { hook, poolData } = encodeFeeConfig(feeConfig);
+
+  // check pool config has positions
+  if (cfg.poolConfig.positions.length === 0) {
+    throw new Error('Pool configuration must have at least one position');
+  }
 
   const deploymentConfig = {
     tokenConfig: {
@@ -98,20 +96,19 @@ export function buildTokenV4(
     },
     lockerConfig: {
       locker: CLANKER_LOCKER_V4,
-      rewardAdmins: cfg.rewardsConfig?.recipients.map((reward) => reward.admin) || [],
-      rewardRecipients: cfg.rewardsConfig?.recipients.map((reward) => reward.recipient) || [],
-      rewardBps: cfg.rewardsConfig?.recipients.map((reward) => reward.bps) || [],
-      tickLower: cfg.poolConfig?.positions.map((p) => p.tickLower) || [DEFAULT_TICK_LOWER],
-      tickUpper: cfg.poolConfig?.positions.map((p) => p.tickUpper) || [DEFAULT_TICK_UPPER],
-      positionBps: cfg.poolConfig?.positions.map((p) => p.positionBps) || [DEFAULT_POSITION_BPS],
+      rewardAdmins: cfg.rewardsConfig.recipients.map((reward) => reward.admin),
+      rewardRecipients: cfg.rewardsConfig.recipients.map((reward) => reward.recipient),
+      rewardBps: cfg.rewardsConfig.recipients.map((reward) => reward.bps),
+      tickLower: cfg.poolConfig.positions.map((p) => p.tickLower),
+      tickUpper: cfg.poolConfig.positions.map((p) => p.tickUpper),
+      positionBps: cfg.poolConfig.positions.map((p) => p.positionBps),
       lockerData: '0x' as `0x${string}`,
     },
     poolConfig: {
+      pairedToken: cfg.poolConfig.pairedToken,
+      tickIfToken0IsClanker: cfg.poolConfig.tickIfToken0IsClanker,
+      tickSpacing: cfg.poolConfig.tickSpacing,
       hook: hook,
-      pairedToken: cfg.poolConfig?.pairedToken || DEFAULT_PAIRED_TOKEN,
-      tickIfToken0IsClanker:
-        cfg.poolConfig?.tickIfToken0IsClanker || DEFAULT_TICK_IF_TOKEN0_IS_CLANKER,
-      tickSpacing: cfg.poolConfig?.tickSpacing || DEFAULT_TICK_SPACING,
       poolData: poolData,
     },
     mevModuleConfig: {
@@ -120,7 +117,7 @@ export function buildTokenV4(
     },
     extensionConfigs: [
       // vaulting extension
-      ...(cfg.vault?.percentage
+      ...(cfg.vault
         ? [
             {
               extension: CLANKER_VAULT_V4,
@@ -128,8 +125,8 @@ export function buildTokenV4(
               extensionBps: cfg.vault.percentage * 100,
               extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
                 cfg.tokenAdmin,
-                BigInt(cfg.vault?.lockupDuration || 0),
-                BigInt(cfg.vault?.vestingDuration || 0),
+                BigInt(cfg.vault.lockupDuration),
+                BigInt(cfg.vault.vestingDuration),
               ]),
             },
           ]
@@ -140,7 +137,7 @@ export function buildTokenV4(
             {
               extension: CLANKER_AIRDROP_V4,
               msgValue: 0n,
-              extensionBps: cfg.airdrop.percentage,
+              extensionBps: cfg.airdrop.percentage * 100,
               extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
                 cfg.airdrop.merkleRoot,
                 BigInt(cfg.airdrop.lockupDuration),
@@ -157,7 +154,7 @@ export function buildTokenV4(
               msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
               extensionBps: 0,
               extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
-                DEVBUY_POOL_CONFIG,
+                NULL_DEVBUY_POOL_CONFIG,
                 BigInt(0),
                 cfg.tokenAdmin,
               ]),

@@ -46,10 +46,10 @@ export interface TokenConfigV4 {
   devBuy?: {
     ethAmount: number;
   };
-  feeConfig?: FeeConfig;
-  lockerConfig?: LockerConfigV4;
-  poolConfig?: PoolConfigV4;
-  rewardsConfig?: RewardsConfigV4;
+  feeConfig: FeeConfig;
+  lockerConfig: LockerConfigV4;
+  poolConfig: PoolConfigV4;
+  rewardsConfig: RewardsConfigV4;
 }
 
 export interface VaultConfigV4 {
