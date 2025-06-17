@@ -49,6 +49,7 @@ export const VALID_TOKEN_PAIR_ADDRESS: [
 
 //base mainnet
 export const CLANKER_FACTORY_V4 = '0xE85A59c628F7d27878ACeB4bf3b35733630083a9' as `0x${string}`;
+export const CLANKER_FEE_LOCKER_V4 = '0xF3622742b1E446D92e45E22923Ef11C2fcD55D68' as `0x${string}`;
 export const CLANKER_LOCKER_V4 = '0x29d17C1A8D851d7d4cA97FAe97AcAdb398D9cCE0' as `0x${string}`;
 export const CLANKER_VAULT_V4 = '0x8E845EAd15737bF71904A30BdDD3aEE76d6ADF6C' as `0x${string}`;
 export const CLANKER_AIRDROP_V4 = '0x56Fa0Da89eD94822e46734e736d34Cab72dF344F' as `0x${string}`;
