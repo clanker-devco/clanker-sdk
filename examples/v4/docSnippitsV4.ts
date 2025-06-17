@@ -82,7 +82,7 @@ async function main(): Promise<void> {
             .withPoolConfig({
                 positions: PoolPositions.Project
             })
-            .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
+            .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
             .withRewardsRecipients({
                 recipients: [
                     {

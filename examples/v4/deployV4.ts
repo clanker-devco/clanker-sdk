@@ -110,7 +110,6 @@ async function main(): Promise<void> {
       })
       // Dynamic fee configuration
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) 
-      // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100})
       .build();
 

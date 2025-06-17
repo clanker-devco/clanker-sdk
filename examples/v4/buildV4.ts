@@ -94,7 +94,6 @@ async function main(): Promise<void> {
       })
       // example of dynamic fee config
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) 
-      // .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicAggressive])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 

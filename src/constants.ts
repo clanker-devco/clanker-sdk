@@ -83,7 +83,6 @@ export enum PoolPositions {
 
 export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
-  DynamicAggressive = 'DynamicAggressive',
 }
 
 // pool positions assuming starting tick of -230400
@@ -133,14 +132,5 @@ export const FEE_CONFIGS = {
     resetTickFilter: 200, // 2% price movement
     feeControlNumerator: 100000, // Constant for scaling variable fee component
     decayFilterBps: 7500, // 75% decay after filter period
-  } as const,
-  [FeeConfigs.DynamicAggressive]: {
-    baseFee: 10000, // 1% minimum fee
-    maxLpFee: 100000, // 10% maximum fee
-    referenceTickFilterPeriod: 20, // 20 seconds
-    resetPeriod: 300, // 5 minutes
-    resetTickFilter: 200, // 2% price movement
-    feeControlNumerator: 125000, // Constant for scaling variable fee component
-    decayFilterBps: 5000, // 50% decay after filter period
   } as const,
 } as const;
