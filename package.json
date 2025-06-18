@@ -24,9 +24,7 @@
     "build": "tsup",
     "lint": "biome check",
     "format": "biome check --write --unsafe",
-    "test": "jest",
-    "test:watch": "vitest",
-    "create-clanker": "node dist/cli/create-clanker.js"
+    "create-clanker": "bun src/cli/create-clanker"
   },
   "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",
@@ -48,7 +46,8 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.4.0",
     "tsx": "^4.19.4",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "viem": "^2.7.9"

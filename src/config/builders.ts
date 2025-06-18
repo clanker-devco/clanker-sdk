@@ -1,4 +1,4 @@
-import type { Address } from 'viem';
+import { type Address, isAddressEqual, zeroAddress } from 'viem';
 import { POOL_POSITIONS, type PoolPosition, PoolPositions, WETH_ADDRESS } from '../constants.js';
 import type {
   ClankerMetadata,
@@ -205,6 +205,8 @@ export class TokenConfigV4Builder {
    * @returns The builder instance for method chaining
    */
   withTokenAdmin(tokenAdmin: Address): TokenConfigV4Builder {
+    if (isAddressEqual(tokenAdmin, zeroAddress))
+      throw new Error('Cannot set token admin as the zero address.');
     this.config.tokenAdmin = tokenAdmin;
     return this;
   }
@@ -380,7 +382,7 @@ export class TokenConfigV4Builder {
     }
 
     if (!this.config.tokenAdmin || !this.config.tokenAdmin.length) {
-      throw new Error('.withTokenAdmin(address) is required');
+      throw new Error('Token admin is required');
     }
 
     // Validate vault allocation if present
