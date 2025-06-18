@@ -26,7 +26,9 @@
     "format": "biome check --write --unsafe",
     "test": "jest",
     "test:watch": "vitest",
-    "create-clanker": "node dist/cli/create-clanker.js"
+    "create-clanker": "node dist/cli/create-clanker.js",
+    "deploy-v4": "bun run examples/v4/deployV4.ts",
+    "build-v4": "bun run examples/v4/buildV4.ts"
   },
   "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",

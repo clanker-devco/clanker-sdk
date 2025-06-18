@@ -5,14 +5,8 @@ The official TypeScript SDK for deploying tokens on Base using Clanker.
 ## Installation
 
 ```bash
-npm install clanker-sdk viem
-# or
-yarn add clanker-sdk viem
-# or
-pnpm add clanker-sdk viem
+bun install
 ```
-npm run create-clanker
-node --loader ts-node/esm examples/deploy.ts
 
 ## Quick Start
 
@@ -32,164 +26,281 @@ This will guide you through the token deployment process step by step.
 1. Create a `.env` file with your configuration:
 ```env
 PRIVATE_KEY=your_private_key_here
-FACTORY_ADDRESS=factory_contract_address_here
+RPC_URL=your_rpc_url_here  # Optional, defaults to Base RPC
 ```
 
 2. Create a deployment script:
-```typescript
-import { Clanker } from 'clanker-sdk';
-import { createPublicClient, createWalletClient, http, PublicClient } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
-import * as dotenv from 'dotenv';
+See the [examples/v4/deployV4.ts](./examples/v4/deployV4.ts) file for a complete deployment example using the SDK. This example demonstrates:
 
-// Load environment variables
-dotenv.config();
-
-// Validate environment variables
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
-const RPC_URL = process.env.RPC_URL;
-
-if (!PRIVATE_KEY || !FACTORY_ADDRESS) {
-  throw new Error("Missing required environment variables. Please create a .env file with PRIVATE_KEY and FACTORY_ADDRESS");
-}
-
-// Initialize wallet with private key
-const account = privateKeyToAccount(PRIVATE_KEY);
-
-// Create transport with optional custom RPC
-const transport = RPC_URL ? http(RPC_URL) : http();
-
-const publicClient = createPublicClient({
-  chain: base,
-  transport,
-}) as PublicClient;
-
-const wallet = createWalletClient({
-  account,
-  chain: base,
-  transport,
-});
-
-// Initialize Clanker SDK
-const clanker = new Clanker({
-  wallet,
-  publicClient,
-});
-
-async function deployToken() {
-  console.log("\n🚀 Deploying Token\n");
-
-  // Deploy the token with full configuration
-  const tokenConfig = {
-    name: "My Token",
-    symbol: "TKN",
-    image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
-    metadata: {
-      description: "Token with custom configuration including vesting and rewards",
-      socialMediaUrls: [
-        "https://twitter.com/mytoken",
-        "https://t.me/mytoken",
-      ],
-      auditUrls: ["https://example.com/audit"],
-    },
-    context: {
-      interface: "Clanker SDK",
-      platform: "Clanker",
-      messageId: "Deploy Example",
-      id: "TKN-1",
-    },
-    pool: {
-      quoteToken: "0x4200000000000000000000000000000000000006", // WETH on Base
-      initialMarketCap: "10", // 10 ETH initial market cap
-    },
-    vault: {
-      percentage: 10, // 10% of tokens vested
-      durationInDays: 30, // 30-day vesting period
-    },
-    devBuy: {
-      ethAmount: "0", // No initial buy
-    },
-    rewardsConfig: {
-      creatorReward: 75, // 75% creator reward
-      creatorAdmin: account.address,
-      creatorRewardRecipient: account.address,
-      interfaceAdmin: "0x1eaf444ebDf6495C57aD52A04C61521bBf564ace",
-      interfaceRewardRecipient: "0x1eaf444ebDf6495C57aD52A04C61521bBf564ace",
-    },
-  };
-
-  try {
-    const tokenAddress = await clanker.deployToken(tokenConfig);
-    
-    console.log("Token deployed successfully!");
-    console.log("Token address:", tokenAddress);
-    console.log("View on BaseScan:", `https://basescan.org/token/${tokenAddress}`);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Deployment failed:", error.message);
-    } else {
-      console.error("Deployment failed with unknown error");
-    }
-    process.exit(1);
-  }
-}
-
-deployToken().catch(console.error);
-```
+- Token deployment with full v4 configuration
+- Custom metadata and social links 
+- Pool configuration with static or dynamic fee hook
+- Locker configuration
+- MEV module configuration
+- Extension configuration including:
+  - Vault extension with lockup and vesting
+  - Airdrop extension with merkle root
+  - DevBuy extension with initial swap
 
 3. Run the deployment script:
 ```bash
-node --loader ts-node/esm examples/deploy.ts
+bun deploy-v4
+bun build-v4
 ```
 
-## Configuration Options
+## SDK API Reference
 
-### Basic Token Configuration
-- `name`: Token name
-- `symbol`: Token symbol
-- `image`: IPFS URI for token image
-- `metadata`: Token metadata (description, social links, etc.)
-- `context`: Deployment context information (interface, platform, etc.)
+### Initialization
+
+```typescript
+import { Clanker } from 'clanker-sdk';
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { base } from 'viem/chains';
+
+// Initialize with wallet and public client
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http(),
+});
+
+const wallet = createWalletClient({
+  account: privateKeyToAccount(PRIVATE_KEY),
+  chain: base,
+  transport: http(),
+});
+
+const clanker = new Clanker({
+  wallet, // optional but required for deployment
+  publicClient, // also optional for some methods
+});
+```
+
+### Core Methods
+
+#### Deploy Token V4
+```typescript
+// Deploy a new V4 token
+const tokenAddress = await clanker.deployTokenV4(tokenConfig);
+```
+
+#### Build Token V4 (without deploying)
+```typescript
+// Build deployment data without actually deploying
+const deploymentData = clanker.buildV4(tokenConfig);
+```
+
+#### Deploy with Vanity Address
+```typescript
+// Generate vanity address and deploy
+const vanityConfig = await clanker.withVanityAddress(tokenConfig);
+const tokenAddress = await clanker.deployTokenV4(vanityConfig);
+```
+
+#### Simulate Deployment
+```typescript
+// Simulate deployment to check for errors
+const simulatedAddress = await clanker.simulateDeployTokenV4(tokenConfig);
+```
+
+#### Deploy Token V3
+```typescript
+// Deploy using V3 protocol
+const tokenAddress = await clanker.deployToken(v3TokenConfig);
+```
+
+#### Fee Management
+```typescript
+// Check available fees
+const fees = await clanker.availableFees(feeOwnerAddress, tokenAddress);
+
+// Claim rewards
+const txHash = await clanker.claimRewards(feeOwnerAddress, tokenAddress);
+```
+
+### Token Configuration
+
+Use the `TokenConfigV4Builder` for easy configuration:
+
+```typescript
+import { TokenConfigV4Builder } from 'clanker-sdk';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from 'clanker-sdk';
+
+const tokenConfig = new TokenConfigV4Builder()
+  .withName('My Token')
+  .withSymbol('TKN')
+  .withImage('ipfs://your_image_hash')
+  .withTokenAdmin(adminAddress)
+  .withMetadata({
+    description: 'Token description',
+    socialMediaUrls: ['https://twitter.com/mytoken'],
+    auditUrls: ['https://audit.com/report'],
+  })
+  .withContext({
+    interface: 'Clanker SDK',
+    platform: 'farcaster',
+    messageId: 'cast_hash',
+    id: 'fid',
+  })
+  .withVault({
+    percentage: 10, // 10% of supply
+    lockupDuration: 2592000, // 30 days
+    vestingDuration: 2592000, // 30 days
+  })
+  .withAirdrop({
+    merkleRoot: merkleRoot,
+    lockupDuration: 86400, // 1 day
+    vestingDuration: 86400, // 1 day
+    entries: airdropEntries,
+    percentage: 10,
+  })
+  .withDevBuy({
+    ethAmount: 0.001, // ETH amount for initial buy
+  })
+  .withRewardsRecipients({
+    recipients: [
+      {
+        recipient: recipientAddress,
+        admin: adminAddress,
+        bps: 5000, // 50%
+      },
+    ],
+  })
+  .withPoolConfig({
+    pairedToken: WETH_ADDRESS,
+    startingMarketCapInPairedToken: 10, // ETH
+    positions: [...POOL_POSITIONS[PoolPositions.Standard]],
+  })
+  .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
+  // or use static fees:
+  // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100 })
+  .build();
+```
+
+### Extensions
+
+#### Airdrop Extension
+```typescript
+import { AirdropExtension } from 'clanker-sdk';
+
+const airdropExtension = new AirdropExtension();
+const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
+
+// Get proof for claiming
+const proof = airdropExtension.getMerkleProof(tree, entries, userAddress, amount);
+```
+
+#### Vault Extension
+```typescript
+// Configure vault with lockup and vesting
+.withVault({
+  percentage: 10, // 10% of token supply
+  lockupDuration: 2592000, // 30 days in seconds
+  vestingDuration: 2592000, // 30 days in seconds
+})
+```
+
+#### DevBuy Extension
+```typescript
+// Configure initial developer buy
+.withDevBuy({
+  ethAmount: 0.001, // ETH amount for initial swap
+})
+```
+
+### Fee Configuration
+
+#### Dynamic Fees
+```typescript
+// Use predefined dynamic fee configurations
+.withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
+```
+
+#### Static Fees
+```typescript
+// Configure static fees (in basis points)
+.withStaticFeeConfig({ 
+  clankerFeeBps: 100,  // 1% Clanker fee
+  pairedFeeBps: 100    // 1% paired token fee
+})
+```
 
 ### Pool Configuration
-- `pool.quoteToken`: Quote token address (defaults to WETH on Base)
-- `pool.initialMarketCap`: Initial market cap in quote token units
 
-### Dev Buy Configuration
-- `devBuy.ethAmount`: Amount of ETH for initial buy
+```typescript
+.withPoolConfig({
+  pairedToken: WETH_ADDRESS,
+  startingMarketCapInPairedToken: 10, // Starting market cap in ETH
+  positions: [...POOL_POSITIONS[PoolPositions.Standard]], // or PoolPositions.Project
+})
+```
 
-### Vault Configuration
-- `vault.percentage`: Percentage of tokens to be vested (0-30%)
-- `vault.durationInDays`: Duration of the vesting period in days
+### Available Pool Positions
 
-### Rewards Configuration
-- `rewardsConfig.creatorReward`: Creator reward percentage (0-80)
-- `rewardsConfig.creatorAdmin`: Creator admin address
-- `rewardsConfig.creatorRewardRecipient`: Creator reward recipient address
-- `rewardsConfig.interfaceAdmin`: Interface admin address
-- `rewardsConfig.interfaceRewardRecipient`: Interface reward recipient address
+- `PoolPositions.Standard`: Standard liquidity positions
+- `PoolPositions.Project`: Project-specific liquidity positions
+
+### Available Fee Configurations
+
+- `FeeConfigs.DynamicBasic`: Basic dynamic fee configuration
+- `FeeConfigs.DynamicAdvanced`: Advanced dynamic fee configuration
+- Custom static fee configuration with `clankerFeeBps` and `pairedFeeBps`
 
 ## Examples
 
-See the [examples](./examples) directory for more deployment scenarios:
-- `deploy-token-simple.ts`: Basic token deployment
-- `deploy-token.ts`: Advanced token deployment with all options
-- `deploy-full-sdk.ts`: Full SDK usage example
+### Basic V4 Deployment
+```typescript
+import { Clanker, TokenConfigV4Builder } from 'clanker-sdk';
 
-## Development
+const clanker = new Clanker({ wallet, publicClient });
 
-```bash
-# Install dependencies
-npm install
+const tokenConfig = new TokenConfigV4Builder()
+  .withName('My Token')
+  .withSymbol('TKN')
+  .withTokenAdmin(adminAddress)
+  .build();
 
-# Build
-npm run build
-
-# Test
-npm test
+const tokenAddress = await clanker.deployTokenV4(tokenConfig);
 ```
+
+### Build Without Deploying
+```typescript
+// Build deployment data for later use
+const deploymentData = clanker.buildV4(tokenConfig);
+console.log('Expected address:', deploymentData.expectedAddress);
+console.log('Transaction data:', deploymentData.transaction.data);
+```
+
+### Airdrop Token
+```typescript
+import { AirdropExtension } from 'clanker-sdk';
+
+const airdropExtension = new AirdropExtension();
+const { tree, root, entries } = airdropExtension.createMerkleTree([
+  { account: '0x...', amount: 1000 },
+  { account: '0x...', amount: 2000 },
+]);
+
+const tokenConfig = new TokenConfigV4Builder()
+  .withName('Airdrop Token')
+  .withSymbol('AIR')
+  .withAirdrop({
+    merkleRoot: root,
+    lockupDuration: 86400,
+    vestingDuration: 86400,
+    entries: airdropEntries,
+    percentage: 20,
+  })
+  .build();
+```
+
+## Scripts
+
+- `npm run create-clanker`: Interactive CLI for token creation
+- `bun deploy-v4`: Deploy V4 token using example script
+- `bun build-v4`: Build V4 token deployment data
+- `npm run build`: Build the SDK
+- `npm run lint`: Run linter
+- `npm run format`: Format code
 
 ## License
 
