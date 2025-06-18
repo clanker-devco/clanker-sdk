@@ -37,6 +37,6 @@ export const CLANKERS = {
   clanker_v4: {
     abi: Clanker_v4_abi,
     type: 'clanker_v4',
-    address: '0xeBA5bCE4a0e62e8D374fa46c6914D8d8c70619f6',
+    address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
   },
 } as const satisfies Record<string, { abi: Abi; type: string; address: `0x${string}` }>;

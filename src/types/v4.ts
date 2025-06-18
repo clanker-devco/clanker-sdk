@@ -60,7 +60,6 @@ export interface VaultConfigV4 {
   vestingDuration: number;
 }
 
-
 export interface PoolConfigV4 {
   hook: Address;
   pairedToken: Address;

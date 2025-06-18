@@ -1,11 +1,13 @@
 import {
+  Account,
   type Address,
   type PublicClient,
   type WalletClient,
+  decodeFunctionResult,
   encodeAbiParameters,
   encodeFunctionData,
   parseEventLogs,
-} from 'viem';  
+} from 'viem';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import {
   CLANKER_FACTORY_V4,
@@ -14,12 +16,13 @@ import {
   CLANKER_VAULT_V4,
   CLANKER_MEV_MODULE_V4,
   CLANKER_LOCKER_V4,
-  WETH_ADDRESS,
 } from '../constants.js';
 import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
 import { encodeFeeConfig } from '../types/fee.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import { DEFAULT_SUPPLY } from '../../src/constants.js';
+import { base } from 'viem/chains';
+import { call } from 'viem/actions';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -84,9 +87,13 @@ export function buildTokenV4(
   }
 
   // check that the starting price has a lower tick position that touches it
-  const found = cfg.poolConfig.positions.some((position) => position.tickLower === cfg.poolConfig.tickIfToken0IsClanker);
+  const found = cfg.poolConfig.positions.some(
+    (position) => position.tickLower === cfg.poolConfig.tickIfToken0IsClanker
+  );
   if (!found) {
-    throw new Error('Starting price must have a lower tick position that touches it, please check that your positions align with the starting price.');
+    throw new Error(
+      'Starting price must have a lower tick position that touches it, please check that your positions align with the starting price.'
+    );
   }
 
   const deploymentConfig = {
@@ -180,10 +187,7 @@ export function buildTokenV4(
     transaction: {
       to: CLANKER_FACTORY_V4,
       data: deployCalldata,
-      value:
-        cfg.devBuy && cfg.devBuy.ethAmount !== 0
-          ? BigInt(cfg.devBuy.ethAmount * 1e18)
-          : BigInt(0),
+      value: cfg.devBuy && cfg.devBuy.ethAmount !== 0 ? BigInt(cfg.devBuy.ethAmount * 1e18) : 0n,
     },
     expectedAddress: '0x0000000000000000000000000000000000000000' as `0x${string}`,
     chainId,
@@ -224,6 +228,43 @@ export async function withVanityAddress(
   };
 }
 
+export async function simulateDeploy(
+  cfg: TokenConfigV4 | BuildV4Result,
+  account: Account,
+  publicClient: PublicClient
+): Promise<
+  | {
+      transaction: { to: `0x${string}`; data: `0x${string}`; value: bigint };
+      simulatedAddress: `0x${string}`;
+    }
+  | { error: unknown }
+> {
+  const chain = publicClient.chain || base;
+
+  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, chain.id);
+
+  try {
+    const { data } = await call(publicClient, {
+      account,
+      ...transaction,
+    });
+    if (!data) throw new Error('No data returned in simulation');
+
+    const simulatedAddress = decodeFunctionResult({
+      abi: Clanker_v4_abi,
+      functionName: 'deployToken',
+      data,
+    });
+
+    return {
+      simulatedAddress,
+      transaction,
+    };
+  } catch (e) {
+    return { error: e };
+  }
+}
+
 export async function deployTokenV4(
   cfg: TokenConfigV4 | BuildV4Result,
   wallet: WalletClient,
@@ -254,7 +295,7 @@ export async function deployTokenV4(
   });
 
   console.log('Estimated gas required:', gasEstimate.toString());
-  
+
   // Add 20% buffer to the gas estimate
   const gasWithBuffer = (gasEstimate * 120n) / 100n;
   console.log('Gas with 20% buffer:', gasWithBuffer.toString());
