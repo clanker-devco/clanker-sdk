@@ -11,11 +11,7 @@
   "bin": {
     "clanker-sdk": "./dist/cli/cli.js"
   },
-  "files": [
-    "dist",
-    ".env.example",
-    "README.md"
-  ],
+  "files": ["dist", ".env.example", "README.md"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/clanker-devco/clanker-sdk.git"
@@ -26,18 +22,13 @@
   },
   "scripts": {
     "build": "tsup",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "biome check",
+    "format": "biome check --write --unsafe",
     "test": "jest",
     "test:watch": "vitest",
     "create-clanker": "node dist/cli/create-clanker.js"
   },
-  "keywords": [
-    "clanker",
-    "token",
-    "deployment",
-    "ethereum",
-    "superchain"
-  ],
+  "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",
   "license": "MIT",
   "dependencies": {
@@ -49,6 +40,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.0.0",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

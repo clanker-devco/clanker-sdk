@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as dotenv from 'dotenv';
 import inquirer from 'inquirer';
-import { Clanker } from '../index.js';
-import { createPublicClient, createWalletClient, http, PublicClient, WalletClient } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  type PublicClient,
+  type WalletClient,
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { Clanker } from '../index.js';
 import { validateConfig } from '../utils/validation.js';
 
 // Load environment variables
@@ -124,9 +130,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
     return true;
   };
 
-  const validatePercentage = (input: string) => {
+  const _validatePercentage = (input: string) => {
     const num = Number(input);
-    if (isNaN(num)) return 'Must be a number';
+    if (Number.isNaN(num)) return 'Must be a number';
     if (num < 0 || num > 100) return 'Percentage must be between 0 and 100';
     return true;
   };
@@ -150,7 +156,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
     return true;
   };
 
-  const validateHexString = (input: string) => {
+  const _validateHexString = (input: string) => {
     if (!input) return true; // Optional
     if (!/^0x[a-fA-F0-9]+$/.test(input)) return 'Must be a valid hex string starting with 0x';
     return true;
@@ -158,28 +164,28 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
 
   const validateSlippage = (input: string) => {
     const num = Number(input);
-    if (isNaN(num)) return 'Must be a number';
+    if (Number.isNaN(num)) return 'Must be a number';
     if (num < 0 || num > 100) return 'Slippage must be between 0 and 100';
     return true;
   };
 
   const validateVaultPercentage = (input: string) => {
     const num = Number(input);
-    if (isNaN(num)) return 'Must be a number';
+    if (Number.isNaN(num)) return 'Must be a number';
     if (num < 0 || num > 30) return 'Vault percentage must be between 0 and 30%';
     return true;
   };
 
   const validateVaultDuration = (input: string) => {
     const num = Number(input);
-    if (isNaN(num)) return 'Must be a number';
+    if (Number.isNaN(num)) return 'Must be a number';
     if (num < 30) return 'Vault duration must be at least 30 days';
     return true;
   };
 
   const validateCreatorReward = (input: string) => {
     const num = Number(input);
-    if (isNaN(num)) return 'Must be a number';
+    if (Number.isNaN(num)) return 'Must be a number';
     if (num < 0 || num > 80) return 'Creator reward must be between 0 and 80%';
     return true;
   };
@@ -189,7 +195,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
     try {
       new URL(input);
       return true;
-    } catch (e) {
+    } catch (_e) {
       return 'Please enter a valid URL';
     }
   };
@@ -250,7 +256,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom market cap in quote token:',
         prefix: '',
         validate: validateAmount,
-        when: (answers: any) => answers.initialMarketCapUsd === 'CUSTOM',
+        when: (answers: ClankerAnswers) => answers.initialMarketCapUsd === 'CUSTOM',
       },
       {
         type: 'input',
@@ -280,7 +286,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom dev buy amount in ETH:',
         prefix: '',
         validate: validateAmount,
-        when: (answers: any) => answers.devBuy.ethAmount === 'CUSTOM',
+        when: (answers: ClankerAnswers) => answers.devBuy.ethAmount === 'CUSTOM',
       },
       {
         type: 'input',
@@ -289,7 +295,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         prefix: '',
         validate: validateSlippage,
         default: '5',
-        when: (answers: any) => answers.devBuy.ethAmount !== '0',
+        when: (answers: ClankerAnswers) => answers.devBuy.ethAmount !== '0',
       },
       {
         type: 'list',
@@ -311,7 +317,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom vault percentage (0-30):',
         prefix: '',
         validate: validateVaultPercentage,
-        when: (answers: any) => answers.vaultConfig.vaultPercentage === 'CUSTOM',
+        when: (answers: ClankerAnswers) => answers.vaultConfig.vaultPercentage === 'CUSTOM',
       },
       {
         type: 'list',
@@ -325,7 +331,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           { name: 'Custom', value: 'CUSTOM' },
         ],
         default: '31',
-        when: (answers: any) => answers.vaultConfig.vaultPercentage !== '0',
+        when: (answers: ClankerAnswers) => answers.vaultConfig.vaultPercentage !== '0',
       },
       {
         type: 'input',
@@ -333,7 +339,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom vault duration in days (minimum 30):',
         prefix: '',
         validate: validateVaultDuration,
-        when: (answers: any) => answers.vaultConfig.durationInDays === 'CUSTOM',
+        when: (answers: ClankerAnswers) => answers.vaultConfig.durationInDays === 'CUSTOM',
       },
       {
         type: 'input',
@@ -393,7 +399,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         message: 'Enter custom creator reward percentage (0-80):',
         prefix: '',
         validate: validateCreatorReward,
-        when: (answers: any) => answers.rewardsConfig.creatorReward === 'CUSTOM',
+        when: (answers: ClankerAnswers) => answers.rewardsConfig.creatorReward === 'CUSTOM',
       },
       {
         type: 'input',
@@ -636,7 +642,9 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       if (confirm) {
         console.log('\n🔄 Deploying your token...');
         try {
-          const tokenAddress = await deployToken(answers);
+          const _tokenAddress = await deployToken(answers);
+          console.log(`\n✅ Token deployed to ${_tokenAddress}`);
+
           // Exit after successful deployment
           process.exit(0);
         } catch (error) {

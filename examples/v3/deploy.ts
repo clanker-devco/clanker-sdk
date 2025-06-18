@@ -1,8 +1,8 @@
-import { createPublicClient, createWalletClient, http, PublicClient } from 'viem';
+import * as dotenv from 'dotenv';
+import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { Clanker } from '../../src/index.js';
-import * as dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();

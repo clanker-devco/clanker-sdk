@@ -1,7 +1,7 @@
-import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY, WETH_ADDRESS } from '../constants.js';
 import { encodeFunctionData, getAddress, isAddress, stringify } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
-import { ClankerMetadata, ClankerSocialContext, DeployFormData } from '../types/index.js';
+import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY, WETH_ADDRESS } from '../constants.js';
+import type { ClankerMetadata, ClankerSocialContext, DeployFormData } from '../types/index.js';
 import { getRelativeUnixTimestamp } from '../utils/unix-timestamp.js';
 import { findVanityAddress } from './vanityAddress.js';
 
@@ -83,7 +83,7 @@ export async function buildTransaction({
   );
 
   // Convert absolute timestamp to duration if provided
-  let vestingDuration = vestingUnlockDate
+  const vestingDuration = vestingUnlockDate
     ? getRelativeUnixTimestamp(Number(vestingUnlockDate))
     : BigInt(0);
 
@@ -135,10 +135,11 @@ export async function buildTransaction({
       },
       expectedAddress,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error encoding function data:', error);
     console.error('Problematic deployArgs:', tokenConfig);
-    // Re-throw with more context
-    throw new Error(`Failed to encode function data: ${error.message}`);
+    throw new Error(
+      `Failed to encode function data: ${error instanceof Error ? error.message : error}`
+    );
   }
 }

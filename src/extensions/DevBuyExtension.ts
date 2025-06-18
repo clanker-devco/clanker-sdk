@@ -1,7 +1,7 @@
 import { encodeAbiParameters } from 'viem';
-import { IClankerExtension } from './IClankerExtension.js';
 import { CLANKER_DEVBUY_V4 } from '../constants.js';
-import { DevBuyExtensionDataV4 } from '../types/v4.js';
+import type { DevBuyExtensionDataV4 } from '../types/v4.js';
+import type { IClankerExtension } from './IClankerExtension.js';
 
 export class DevBuyExtension implements IClankerExtension {
   readonly address = CLANKER_DEVBUY_V4;

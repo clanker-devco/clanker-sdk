@@ -86,15 +86,21 @@ export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
 }
 
+export type PoolPosition = {
+  tickLower: number;
+  tickUpper: number;
+  positionBps: number;
+};
+
 // pool positions assuming starting tick of -230400
-export const POOL_POSITIONS = {
+export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
   [PoolPositions.Standard]: [
     {
       tickLower: -230400, // ~$27,000
       tickUpper: -120000, // ~$1.5B
       positionBps: 10000, // All tokens in one LP position
     },
-  ] as const,
+  ],
   [PoolPositions.Project]: [
     {
       tickLower: -230400, // ~$27K
@@ -121,8 +127,8 @@ export const POOL_POSITIONS = {
       tickUpper: -120000, // ~$1.5B
       positionBps: 500, // 5% of LP
     },
-  ] as const,
-} as const;
+  ],
+};
 
 export const FEE_CONFIGS = {
   [FeeConfigs.DynamicBasic]: {

@@ -1,9 +1,9 @@
-import { type Address, type PublicClient, type WalletClient, parseEventLogs } from 'viem';
+import { type Address, type PublicClient, parseEventLogs, type WalletClient } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
-import type { TokenConfig } from '../types/index.js';
 import { buildTransaction } from '../services/buildTransaction.js';
-import { getDesiredPriceAndPairAddress } from '../utils/desired-price.js';
 import { getTokenPairByAddress } from '../services/desiredPrice.js';
+import type { TokenConfig } from '../types/index.js';
+import { getDesiredPriceAndPairAddress } from '../utils/desired-price.js';
 
 export async function deployTokenV3(
   cfg: TokenConfig,
@@ -52,7 +52,7 @@ export async function deployTokenV3(
       symbol: cfg.symbol,
       imageUrl: cfg.image || '',
       description: cfg.metadata?.description || '',
-      devBuyAmount: cfg.devBuy?.ethAmount ? parseFloat(cfg.devBuy.ethAmount) : 0,
+      devBuyAmount: cfg.devBuy?.ethAmount || 0,
       lockupPercentage: cfg.vault?.percentage || 0,
       vestingUnlockDate,
       enableDevBuy: !!cfg.devBuy?.ethAmount,
@@ -87,8 +87,8 @@ export async function deployTokenV3(
   });
 
   const value =
-    cfg.devBuy && cfg.devBuy.ethAmount && cfg.devBuy.ethAmount !== '0'
-      ? BigInt(parseFloat(cfg.devBuy.ethAmount) * 1e18)
+    cfg.devBuy?.ethAmount && cfg.devBuy.ethAmount !== 0
+      ? BigInt(cfg.devBuy.ethAmount * 1e18)
       : BigInt(0);
 
   console.log('tx', tx);

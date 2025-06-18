@@ -1,15 +1,16 @@
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  PublicClient,
-} from 'viem';
+import * as dotenv from 'dotenv';
+import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { Clanker } from '../../src/index.js';
 import { TokenConfigV4Builder } from '../../src/config/builders.js';
-import * as dotenv from 'dotenv';
-import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../../src/constants.js';
+import {
+  FEE_CONFIGS,
+  FeeConfigs,
+  POOL_POSITIONS,
+  PoolPositions,
+  WETH_ADDRESS,
+} from '../../src/constants.js';
+import { Clanker } from '../../src/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -92,24 +93,25 @@ async function main(): Promise<void> {
       })
       .withRewardsRecipients({
         recipients: [
-        {
-          recipient: account.address,
-          admin: account.address,
-          bps: 5000,
-        },
-        {
-          recipient: account.address,
-          admin: account.address,
-          bps: 5000,
-        },
-      ]})
+          {
+            recipient: account.address,
+            admin: account.address,
+            bps: 5000,
+          },
+          {
+            recipient: account.address,
+            admin: account.address,
+            bps: 5000,
+          },
+        ],
+      })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         startingMarketCapInPairedToken: 1,
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
-      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) 
+      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100})
       .build();
 
@@ -119,10 +121,7 @@ async function main(): Promise<void> {
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
-    console.log(
-      'View on BaseScan:',
-      `https://basescan.org/token/${tokenAddress}`
-    );
+    console.log('View on BaseScan:', `https://basescan.org/token/${tokenAddress}`);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);

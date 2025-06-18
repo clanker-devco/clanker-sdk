@@ -1,15 +1,15 @@
 import { monadTestnet } from 'viem/chains';
-import { ITokenData, TokenPair } from '../types/index.js';
 import {
-  WETH_ADDRESS,
-  DEGEN_ADDRESS,
-  NATIVE_ADDRESS,
-  CLANKER_ADDRESS,
-  ANON_ADDRESS,
-  HIGHER_ADDRESS,
-  CB_BTC_ADDRESS,
   A0X_ADDRESS,
+  ANON_ADDRESS,
+  CB_BTC_ADDRESS,
+  CLANKER_ADDRESS,
+  DEGEN_ADDRESS,
+  HIGHER_ADDRESS,
+  NATIVE_ADDRESS,
+  WETH_ADDRESS,
 } from '../constants.js';
+import type { ITokenData, TokenPair } from '../types/index.js';
 
 export const getTokenPairByAddress = (address: `0x${string}`): TokenPair => {
   if (address === WETH_ADDRESS) {
