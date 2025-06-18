@@ -1,28 +1,28 @@
 import {
-  Account,
+  type Account,
   type Address,
-  type PublicClient,
-  type WalletClient,
   decodeFunctionResult,
   encodeAbiParameters,
   encodeFunctionData,
+  type PublicClient,
   parseEventLogs,
+  type WalletClient,
 } from 'viem';
+import { call } from 'viem/actions';
+import { base } from 'viem/chains';
+import { DEFAULT_SUPPLY } from '../../src/constants.js';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import {
-  CLANKER_FACTORY_V4,
   CLANKER_AIRDROP_V4,
   CLANKER_DEVBUY_V4,
-  CLANKER_VAULT_V4,
-  CLANKER_MEV_MODULE_V4,
+  CLANKER_FACTORY_V4,
   CLANKER_LOCKER_V4,
+  CLANKER_MEV_MODULE_V4,
+  CLANKER_VAULT_V4,
 } from '../constants.js';
-import type { TokenConfigV4, BuildV4Result } from '../types/v4.js';
-import { encodeFeeConfig } from '../types/fee.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
-import { DEFAULT_SUPPLY } from '../../src/constants.js';
-import { base } from 'viem/chains';
-import { call } from 'viem/actions';
+import { encodeFeeConfig } from '../types/fee.js';
+import type { BuildV4Result, TokenConfigV4 } from '../types/v4.js';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {

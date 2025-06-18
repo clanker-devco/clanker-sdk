@@ -1,14 +1,14 @@
-import { TokenPair } from '../types/index.js';
 import {
-  WETH_ADDRESS,
-  DEGEN_ADDRESS,
-  CLANKER_ADDRESS,
-  ANON_ADDRESS,
-  HIGHER_ADDRESS,
-  CB_BTC_ADDRESS,
-  NATIVE_ADDRESS,
   A0X_ADDRESS,
+  ANON_ADDRESS,
+  CB_BTC_ADDRESS,
+  CLANKER_ADDRESS,
+  DEGEN_ADDRESS,
+  HIGHER_ADDRESS,
+  NATIVE_ADDRESS,
+  WETH_ADDRESS,
 } from '../constants.js';
+import type { TokenPair } from '../types/index.js';
 
 export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: string = '10') => {
   // This is the ratio of token to paired token. In the default case it is WETH.

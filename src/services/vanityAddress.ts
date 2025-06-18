@@ -1,13 +1,13 @@
-import { ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
-import { CLANKERS } from '../utils/clankers.js';
+import { type ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
+import { monadTestnet } from 'viem/chains';
 import {
   ClankerToken_v3_1_abi,
   ClankerToken_v3_1_bytecode,
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
 } from '../abi/v3.1/ClankerToken.js';
-import { monadTestnet } from 'viem/chains';
 import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
+import { CLANKERS } from '../utils/clankers.js';
 
 export const findVanityAddress = async (
   args: ContractConstructorArgs<typeof ClankerToken_v3_1_abi>,
@@ -44,7 +44,7 @@ export const findVanityAddressV4 = async (
   args: ContractConstructorArgs<typeof ClankerToken_v4_abi>,
   admin: `0x${string}`,
   suffix: `0x${string}` = '0x4b07',
-  options?: {
+  _options?: {
     chainId?: number;
   }
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {

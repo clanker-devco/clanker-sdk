@@ -1,6 +1,6 @@
-import { type Address } from 'viem';
-import { type FeeConfig } from './fee.js';
-import { DevBuyPoolKeyConfig, RewardsConfigV4 } from './index.js';
+import type { Address } from 'viem';
+import type { FeeConfig } from './fee.js';
+import type { DevBuyPoolKeyConfig, RewardsConfigV4 } from './index.js';
 
 export interface BuildV4Result {
   transaction: {

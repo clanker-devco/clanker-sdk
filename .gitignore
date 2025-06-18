@@ -12,7 +12,6 @@ dist/
 coverage/
 
 # IDE files
-.vscode/
 .idea/
 *.sublime-*
 
@@ -33,11 +32,11 @@ video_commands.txt
 standup.txt
 
 # GitBook documentation
-gitbookDocs.md 
+gitbookDocs.md
 
 # Development files
 examples/updated-sdk.ts
-llm.txt 
+llm.txt
 
 #package lock
 package-lock.json

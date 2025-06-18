@@ -1,7 +1,7 @@
 import { type Address, encodeAbiParameters } from 'viem';
-import { IClankerExtension } from './IClankerExtension.js';
 import { CLANKER_VAULT_V4 } from '../constants.js';
-  
+import type { IClankerExtension } from './IClankerExtension.js';
+
 export interface VaultExtensionData {
   admin: Address;
   lockupDuration: number;

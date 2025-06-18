@@ -1,16 +1,16 @@
+import type { Address } from 'viem';
+import { POOL_POSITIONS, type PoolPosition, PoolPositions, WETH_ADDRESS } from '../constants.js';
 import type {
-  TokenConfig,
-  TokenConfigV4,
   ClankerMetadata,
   ClankerSocialContext,
-  VaultConfig,
   DevBuyConfig,
-  RewardsConfig,
   RewardRecipient,
+  RewardsConfig,
+  TokenConfig,
+  TokenConfigV4,
+  VaultConfig,
 } from '../types/index.js';
-import { isValidBps, validateBpsSum, percentageToBps } from '../utils/validation.js';
-import { type Address } from 'viem';
-import {POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../constants.js';
+import { isValidBps, percentageToBps, validateBpsSum } from '../utils/validation.js';
 
 /**
  * Builder class for creating TokenConfig objects
@@ -225,7 +225,7 @@ export class TokenConfigV4Builder {
     pairedTokenDecimals?: number;
     tickIfToken0IsClanker?: number;
     startingMarketCapInPairedToken?: number;
-    positions?: { tickLower: number; tickUpper: number; positionBps: number }[] | PoolPositions;
+    positions?: PoolPosition[] | PoolPositions;
   }): TokenConfigV4Builder {
     let tickIfToken0IsClanker = config.tickIfToken0IsClanker;
     const tickSpacing = 200;
@@ -244,7 +244,10 @@ export class TokenConfigV4Builder {
     }
 
     // validate that only one of tickIfToken0IsClanker or startingMarketCapInPairedToken is provided
-    if (tickIfToken0IsClanker !== undefined && config.startingMarketCapInPairedToken !== undefined) {
+    if (
+      tickIfToken0IsClanker !== undefined &&
+      config.startingMarketCapInPairedToken !== undefined
+    ) {
       throw new Error('Cannot set both tickIfToken0IsClanker and startingMarketCapInPairedToken');
     }
 
@@ -252,10 +255,11 @@ export class TokenConfigV4Builder {
     if (config.startingMarketCapInPairedToken !== undefined) {
       // Calculate the decimal adjustment factor
       // If paired token has non-standard decimals, we need to adjust the price calculation
-      const decimalAdjustment = Math.pow(10, 18 - (config.pairedTokenDecimals || 18));
+      const decimalAdjustment = 10 ** (18 - (config.pairedTokenDecimals || 18));
 
       // Convert market cap to price, adjusted for decimal differences
-      const desiredPrice = config.startingMarketCapInPairedToken * 0.00000000001 * decimalAdjustment;
+      const desiredPrice =
+        config.startingMarketCapInPairedToken * 0.00000000001 * decimalAdjustment;
 
       const logBase = 1.0001;
       const rawTick = Math.log(desiredPrice) / Math.log(logBase);
@@ -267,16 +271,16 @@ export class TokenConfigV4Builder {
       tickIfToken0IsClanker = -230_400;
     }
 
-    let positions;
+    let positions: PoolPosition[];
     if (config.positions && typeof config.positions === 'string') {
       // only allow default positions if starting tick is -230400
       if (tickIfToken0IsClanker !== -230_400) {
         throw new Error('Custom starting price requires custom positions');
       }
       if (config.positions === PoolPositions.Standard) {
-        positions = [...POOL_POSITIONS[PoolPositions.Standard]];
+        positions = POOL_POSITIONS[PoolPositions.Standard];
       } else if (config.positions === PoolPositions.Project) {
-        positions = [...POOL_POSITIONS[PoolPositions.Project]];
+        positions = POOL_POSITIONS[PoolPositions.Project];
       } else {
         throw new Error(`Invalid position type: ${config.positions}`);
       }
@@ -291,7 +295,7 @@ export class TokenConfigV4Builder {
           throw new Error('All positions must be multiples of tickSpacing');
         }
       }
-      positions = config.positions;
+      positions = config.positions as PoolPosition[];
     } else {
       throw new Error('positions are required');
     }
@@ -301,8 +305,8 @@ export class TokenConfigV4Builder {
       tickIfToken0IsClanker,
       tickSpacing,
       positions: positions,
-      hook: "0x0000000000000000000000000000000000000000", // is populated in deployment
-      poolData:'0x', // is populated in deployment
+      hook: '0x0000000000000000000000000000000000000000', // is populated in deployment
+      poolData: '0x', // is populated in deployment
     };
     return this;
   }
@@ -313,7 +317,10 @@ export class TokenConfigV4Builder {
    * @param pairedFee - The fee percentage for the paired token
    * @returns The builder instance for method chaining
    */
-  withStaticFeeConfig(config: { clankerFeeBps: number; pairedFeeBps: number }): TokenConfigV4Builder {
+  withStaticFeeConfig(config: {
+    clankerFeeBps: number;
+    pairedFeeBps: number;
+  }): TokenConfigV4Builder {
     this.config.feeConfig = {
       type: 'static',
       clankerFee: config.clankerFeeBps * 100,
@@ -463,9 +470,9 @@ export class TokenConfigV4Builder {
         pairedToken: WETH_ADDRESS,
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
-        positions: [{ tickLower: -230400, tickUpper: 230400, positionBps: 10000}],
-        hook: "0x0000000000000000000000000000000000000000", // is populated in deployment
-        poolData:'0x', // is populated in deployment
+        positions: [{ tickLower: -230400, tickUpper: 230400, positionBps: 10000 }],
+        hook: '0x0000000000000000000000000000000000000000', // is populated in deployment
+        poolData: '0x', // is populated in deployment
       };
     }
 
@@ -502,7 +509,7 @@ export class TokenConfigV4Builder {
     }
 
     return {
-      ...this.config
+      ...this.config,
     } as TokenConfigV4;
   }
 }

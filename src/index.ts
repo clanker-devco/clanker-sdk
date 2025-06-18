@@ -1,11 +1,11 @@
-import { Account, type PublicClient, type WalletClient } from 'viem';
-import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
-import { validateConfig } from './utils/validation.js';
+import type { Account, PublicClient, WalletClient } from 'viem';
 import { deployTokenV3 } from './deployment/v3.js';
-import { deployTokenV4, buildTokenV4, withVanityAddress, simulateDeploy } from './deployment/v4.js';
-import type { BuildV4Result } from './types/v4.js';
-import { claimRewards } from './fees/claim.js';
+import { buildTokenV4, deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
 import { availableFees } from './fees/availableFees.js';
+import { claimRewards } from './fees/claim.js';
+import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
+import type { BuildV4Result } from './types/v4.js';
+import { validateConfig } from './utils/validation.js';
 
 /**
  * Main class for interacting with the Clanker SDK
@@ -131,19 +131,18 @@ export class Clanker {
   }
 }
 
-// Re-export types and utilities
-export * from './types/index.js';
-export * from './utils/validation.js';
-export * from './services/vanityAddress.js';
+// Re-export commonly used types
+export type { PublicClient, WalletClient } from 'viem';
+export { TokenConfigV4Builder } from './config/builders.js';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
-export { TokenConfigV4Builder } from './config/builders.js';
+export * from './services/vanityAddress.js';
+// Re-export types and utilities
+export * from './types/index.js';
 export {
   type AirdropEntry,
   createMerkleTree,
-  getMerkleProof,
   encodeAirdropData,
+  getMerkleProof,
 } from './utils/merkleTree.js';
-
-// Re-export commonly used types
-export type { PublicClient, WalletClient } from 'viem';
+export * from './utils/validation.js';

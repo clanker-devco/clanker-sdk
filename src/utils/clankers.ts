@@ -1,4 +1,4 @@
-import { Abi } from 'viem';
+import type { Abi } from 'viem';
 import { Clanker_v0_abi } from '../abi/v0/Clanker.js';
 import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';

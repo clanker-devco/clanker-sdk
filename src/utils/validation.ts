@@ -1,11 +1,11 @@
 import {
+  clankerConfigSchema,
+  deploymentConfigSchema,
+  initialBuyConfigSchema,
+  poolConfigSchema,
+  rewardsConfigSchema,
   tokenConfigSchema,
   vaultConfigSchema,
-  poolConfigSchema,
-  initialBuyConfigSchema,
-  rewardsConfigSchema,
-  deploymentConfigSchema,
-  clankerConfigSchema,
 } from './validation-schema.js';
 
 /**
@@ -59,9 +59,8 @@ export function bpsToPercentage(bps: number): number {
 // Define a generic result type for validation
 type ValidationResult = {
   success: boolean;
-  data?: any;
   error?: {
-    format: () => Record<string, any>;
+    format: () => Record<string, unknown>;
     message?: string;
   };
 };

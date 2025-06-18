@@ -1,6 +1,5 @@
-import { type Address } from 'viem';
-import { encodeAbiParameters } from 'viem';
-import { CLANKER_HOOK_STATIC_FEE_V4, CLANKER_HOOK_DYNAMIC_FEE_V4 } from '../constants.js';
+import { type Address, encodeAbiParameters } from 'viem';
+import { CLANKER_HOOK_DYNAMIC_FEE_V4, CLANKER_HOOK_STATIC_FEE_V4 } from '../constants.js';
 
 // Static fee configuration types
 export interface StaticFeeConfig {

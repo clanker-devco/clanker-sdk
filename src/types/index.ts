@@ -1,16 +1,16 @@
 // Export all token-related types
-export * from './token.js';
 
 // Export validation types
 export * from '../utils/validation.js';
 export * from '../utils/validation-schema.js';
+export * from './token.js';
 
 // Export V4 types
 export * from './v4.js';
 
 import type { Address, PublicClient, WalletClient } from 'viem';
 import type { FeeConfig } from './fee.js';
-import { LockerConfigV4 } from './v4.js';
+import type { LockerConfigV4 } from './v4.js';
 
 export interface ClankerConfig {
   wallet?: WalletClient;

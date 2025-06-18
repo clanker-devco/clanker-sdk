@@ -1,12 +1,12 @@
 import type { Address } from 'viem';
 import {
+  A0X_ADDRESS,
+  ANON_ADDRESS,
+  CB_BTC_ADDRESS,
   CLANKER_ADDRESS,
   DEGEN_ADDRESS,
   HIGHER_ADDRESS,
-  ANON_ADDRESS,
-  CB_BTC_ADDRESS,
   NATIVE_ADDRESS,
-  A0X_ADDRESS,
   WETH_ADDRESS,
 } from '../constants.js';
 

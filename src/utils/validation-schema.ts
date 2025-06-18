@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { isAddress, isHex } from 'viem';
 import type { Address } from 'viem';
+import { isAddress, isHex } from 'viem';
+import { z } from 'zod';
 import { isValidBps, percentageToBps } from './validation.js';
 
 // Custom Zod refinements

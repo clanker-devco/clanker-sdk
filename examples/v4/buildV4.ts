@@ -1,7 +1,13 @@
-import { Clanker } from '../../src/index.js';
 import { TokenConfigV4Builder } from '../../src/config/builders.js';
+import {
+  FEE_CONFIGS,
+  FeeConfigs,
+  POOL_POSITIONS,
+  PoolPositions,
+  WETH_ADDRESS,
+} from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
-import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, PoolPositions, WETH_ADDRESS } from '../../src/constants.js';
+import { Clanker } from '../../src/index.js';
 
 /**
  * Example showing how to build V4 token deployment data without deploying
@@ -76,24 +82,25 @@ async function main(): Promise<void> {
       })
       .withRewardsRecipients({
         recipients: [
-        {
-          recipient: CREATOR_ADDRESS,
-          admin: CREATOR_ADDRESS,
-          bps: 5000,
-        },
-        {
-          recipient: INTERFACE_ADMIN_ADDRESS,
-          admin: INTERFACE_ADMIN_ADDRESS,
-          bps: 5000,
-        },
-      ]})
+          {
+            recipient: CREATOR_ADDRESS,
+            admin: CREATOR_ADDRESS,
+            bps: 5000,
+          },
+          {
+            recipient: INTERFACE_ADMIN_ADDRESS,
+            admin: INTERFACE_ADMIN_ADDRESS,
+            bps: 5000,
+          },
+        ],
+      })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // other option: [...POOL_POSITIONS[PoolPositions.Project]]
         startingMarketCapInPairedToken: 10,
       })
       // example of dynamic fee config
-      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic]) 
+      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 
@@ -111,7 +118,6 @@ async function main(): Promise<void> {
       airdropEntries[0].amount
     );
     console.log('Example Merkle proof for first entry:', proof);
-  
 
     console.log('\n📝 Deployment Data Preview:');
     console.log('Network:', vanityConfig.chainId);

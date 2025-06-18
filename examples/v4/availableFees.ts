@@ -1,11 +1,7 @@
-import {
-  createPublicClient,
-  http,
-  PublicClient,
-} from 'viem';
+import * as dotenv from 'dotenv';
+import { createPublicClient, http, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
 import { Clanker } from '../../src/index.js';
-import * as dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
@@ -41,7 +37,6 @@ async function main(): Promise<void> {
     const availableFees = await clanker.availableFees(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
 
     console.log('Available fees:', availableFees);
-
   } catch (error) {
     if (error instanceof Error) {
       console.error('Deployment failed:', error.message);
