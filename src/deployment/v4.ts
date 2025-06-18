@@ -22,7 +22,7 @@ import { encodeFeeConfig } from '../types/fee.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import { DEFAULT_SUPPLY } from '../../src/constants.js';
 import { base } from 'viem/chains';
-import { call, simulateBlocks } from 'viem/actions';
+import { call } from 'viem/actions';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
