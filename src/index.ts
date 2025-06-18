@@ -6,6 +6,42 @@ import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.
 import type { BuildV4Result } from './types/v4.js';
 import { claimRewards } from './fees/claim.js';
 import { availableFees } from './fees/availableFees.js';
+import {
+  CLANKER_FACTORY_V2,
+  CLANKER_FACTORY_V3,
+  CLANKER_FACTORY_V3_1,
+  CLANKER_FACTORY_V4,
+  CLANKER_FACTORY_V4_SEPOLIA,
+  LP_LOCKER_V2,
+  LP_LOCKER_V3,
+  LP_LOCKER_V3_1,
+  CLANKER_VAULT_V3_1,
+  CLANKER_VAULT_V4,
+  CLANKER_VAULT_ADDRESS_SEPOLIA,
+  CLANKER_FEE_LOCKER_V4,
+  CLANKER_LOCKER_V4,
+  CLANKER_LOCKER_V4_SEPOLIA,
+  CLANKER_AIRDROP_V4,
+  CLANKER_AIRDROP_ADDRESS_SEPOLIA,
+  CLANKER_DEVBUY_V4,
+  CLANKER_DEVBUY_ADDRESS_SEPOLIA,
+  CLANKER_MEV_MODULE_V4,
+  CLANKER_MEV_MODULE_ADDRESS_SEPOLIA,
+  CLANKER_HOOK_STATIC_FEE_V4,
+  CLANKER_HOOK_STATIC_FEE_ADDRESS_SEPOLIA,
+  CLANKER_HOOK_DYNAMIC_FEE_V4,
+  CLANKER_HOOK_DYNAMIC_FEE_ADDRESS_SEPOLIA,
+  WETH_ADDRESS,
+  DEGEN_ADDRESS,
+  NATIVE_ADDRESS,
+  CLANKER_ADDRESS,
+  ANON_ADDRESS,
+  HIGHER_ADDRESS,
+  CB_BTC_ADDRESS,
+  A0X_ADDRESS,
+  INTERFACE_ADMIN_ADDRESS,
+  INTERFACE_REWARD_RECIPIENT_ADDRESS,
+} from './constants.js';
 
 /**
  * Main class for interacting with the Clanker SDK
@@ -14,6 +50,65 @@ import { availableFees } from './fees/availableFees.js';
 export class Clanker {
   private readonly wallet?: WalletClient;
   private readonly publicClient?: PublicClient;
+
+  static readonly CONTRACTS = {
+    factories: {
+      v2: CLANKER_FACTORY_V2,
+      v3: CLANKER_FACTORY_V3,
+      v3_1: CLANKER_FACTORY_V3_1,
+      v4: CLANKER_FACTORY_V4,
+      v4_sepolia: CLANKER_FACTORY_V4_SEPOLIA,
+    },
+    lockers: {
+      v2: LP_LOCKER_V2,
+      v3: LP_LOCKER_V3,
+      v3_1: LP_LOCKER_V3_1,
+      v4: CLANKER_LOCKER_V4,
+      v4_sepolia: CLANKER_LOCKER_V4_SEPOLIA,
+      feeLocker: CLANKER_FEE_LOCKER_V4,
+    },
+    vaults: {
+      v3_1: CLANKER_VAULT_V3_1,
+      v4: CLANKER_VAULT_V4,
+      sepolia: CLANKER_VAULT_ADDRESS_SEPOLIA,
+    },
+    airdrops: {
+      v4: CLANKER_AIRDROP_V4,
+      sepolia: CLANKER_AIRDROP_ADDRESS_SEPOLIA,
+    },
+    devbuy: {
+      v4: CLANKER_DEVBUY_V4,
+      sepolia: CLANKER_DEVBUY_ADDRESS_SEPOLIA,
+    },
+    mev: {
+      v4: CLANKER_MEV_MODULE_V4,
+      sepolia: CLANKER_MEV_MODULE_ADDRESS_SEPOLIA,
+    },
+    hooks: {
+      staticFee: {
+        v4: CLANKER_HOOK_STATIC_FEE_V4,
+        sepolia: CLANKER_HOOK_STATIC_FEE_ADDRESS_SEPOLIA,
+      },
+      dynamicFee: {
+        v4: CLANKER_HOOK_DYNAMIC_FEE_V4,
+        sepolia: CLANKER_HOOK_DYNAMIC_FEE_ADDRESS_SEPOLIA,
+      },
+    },
+    tokens: {
+      weth: WETH_ADDRESS,
+      degen: DEGEN_ADDRESS,
+      native: NATIVE_ADDRESS,
+      clanker: CLANKER_ADDRESS,
+      anon: ANON_ADDRESS,
+      higher: HIGHER_ADDRESS,
+      cbBtc: CB_BTC_ADDRESS,
+      a0x: A0X_ADDRESS,
+    },
+    interface: {
+      admin: INTERFACE_ADMIN_ADDRESS,
+      rewardRecipient: INTERFACE_REWARD_RECIPIENT_ADDRESS,
+    },
+  } as const;
 
   /**
    * Creates a new instance of the Clanker SDK
