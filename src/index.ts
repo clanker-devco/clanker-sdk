@@ -1,8 +1,8 @@
-import { type PublicClient, type WalletClient } from 'viem';
+import { Account, type PublicClient, type WalletClient } from 'viem';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
 import { validateConfig } from './utils/validation.js';
 import { deployTokenV3 } from './deployment/v3.js';
-import { deployTokenV4, buildTokenV4, withVanityAddress } from './deployment/v4.js';
+import { deployTokenV4, buildTokenV4, withVanityAddress, simulateDeploy } from './deployment/v4.js';
 import type { BuildV4Result } from './types/v4.js';
 import { claimRewards } from './fees/claim.js';
 import { availableFees } from './fees/availableFees.js';
@@ -78,6 +78,24 @@ export class Clanker {
   public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
     const chainId = this.publicClient?.chain?.id || 8453;
     return withVanityAddress(cfg, chainId);
+  }
+
+  /**
+   * Simulates a token deploy using the V4 protocol
+   *
+   * @param cfg - Token configuration for V4 deployment or pre-built deployment data
+   * @returns Promise resolving to the address of the deployed token
+   * @throws {Error} If wallet client or public client is not configured
+   */
+  public async simulateDeployTokenV4(cfg: TokenConfigV4 | BuildV4Result, account?: Account) {
+    const acc = account || this.wallet?.account;
+    if (!acc) {
+      throw new Error('Account or wallet client required for simulation');
+    }
+    if (!this.publicClient) {
+      throw new Error('Public client required for deployment');
+    }
+    return simulateDeploy(cfg, acc, this.publicClient);
   }
 
   /**

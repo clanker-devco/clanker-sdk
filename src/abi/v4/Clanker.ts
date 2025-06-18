@@ -433,4 +433,4 @@ export const Clanker_v4_abi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-];
+] as const;
