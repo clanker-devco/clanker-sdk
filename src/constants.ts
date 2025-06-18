@@ -134,10 +134,10 @@ export const FEE_CONFIGS = {
   [FeeConfigs.DynamicBasic]: {
     baseFee: 5000, // 0.5% minimum fee
     maxLpFee: 50000, // 5% maximum fee
-    referenceTickFilterPeriod: 10, // 10 seconds
+    referenceTickFilterPeriod: 30, // 30 seconds
     resetPeriod: 120, // 2 minutes
     resetTickFilter: 200, // 2% price movement
-    feeControlNumerator: 100000, // Constant for scaling variable fee component
+    feeControlNumerator: 500000000, // Constant for scaling variable fee component 
     decayFilterBps: 7500, // 75% decay after filter period
   } as const,
 } as const;

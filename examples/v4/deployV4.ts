@@ -107,7 +107,7 @@ async function main(): Promise<void> {
       })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        startingMarketCapInPairedToken: 1,
+        startingMarketCapInPairedToken: 10,
         positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
