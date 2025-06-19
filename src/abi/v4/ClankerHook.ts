@@ -1472,4 +1472,4 @@ export const ClankerHook_abi = [
     name: 'WethCannotBeClanker',
     inputs: [],
   },
-];
+] as const;

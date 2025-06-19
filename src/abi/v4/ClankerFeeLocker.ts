@@ -156,4 +156,4 @@ export const ClankerFeeLocker_abi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-];
+] as const;

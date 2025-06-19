@@ -1,5 +1,5 @@
 import type { PublicClient } from 'viem';
-import { ClankerFeeLocker_abi } from '../abi/ClankerFeeLocker.js';
+import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { CLANKER_FEE_LOCKER_V4 } from '../constants.js';
 
 export const availableFees = async (
