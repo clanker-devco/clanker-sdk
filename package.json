@@ -21,10 +21,10 @@
     "url": "https://github.com/clanker-devco/clanker-sdk/issues"
   },
   "scripts": {
-    "build": "tsup",
-    "lint": "biome check && tsc",
+    "lint": "biome check && tsc --noEmit",
     "format": "biome check --write --unsafe",
-    "create-clanker": "bun src/cli/create-clanker"
+    "create-clanker": "bun src/cli/create-clanker",
+    "publish-package": "bun tsup && bun publish"
   },
   "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",
