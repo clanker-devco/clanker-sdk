@@ -284,13 +284,10 @@ export class TokenConfigV4Builder {
       if (tickIfToken0IsClanker !== -230_400) {
         throw new Error('Custom starting price requires custom positions');
       }
-      if (config.positions === 'Standard') {
-        positions = POOL_POSITIONS.Standard;
-      } else if (config.positions === 'Project') {
-        positions = POOL_POSITIONS.Project;
-      } else {
+      if (!(config.positions in POOL_POSITIONS)) {
         throw new Error(`Invalid position type: ${config.positions}`);
       }
+      positions = POOL_POSITIONS[config.positions];
     } else if (config.positions && config.positions.length > 0) {
       // check that all positions are equal to or greater than tickIfToken0IsClanker
       // and are multiples of tickSpacing
