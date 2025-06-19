@@ -284,11 +284,7 @@ export class TokenConfigV4Builder {
       if (tickIfToken0IsClanker !== -230_400) {
         throw new Error('Custom starting price requires custom positions');
       }
-      if (config.positions === 'Standard') {
-        positions = POOL_POSITIONS.Standard;
-      } else if (config.positions === 'Project') {
-        positions = POOL_POSITIONS.Project;
-      } else {
+      if (!(config.positions in POOL_POSITIONS)) {
         throw new Error(`Invalid position type: ${config.positions}`);
       }
       positions = POOL_POSITIONS[config.positions];
