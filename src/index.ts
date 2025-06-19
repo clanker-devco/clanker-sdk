@@ -99,35 +99,31 @@ export class Clanker {
   }
 
   /**
-   * Deploys a token using the V4 protocol
-   * @param cfg - Token configuration for V4 deployment or pre-built deployment data
-   * @returns Promise resolving to the address of the deployed token
-   * @throws {Error} If wallet client or public client is not configured
-   */
-  public async deployTokenV4(cfg: TokenConfigV4 | BuildV4Result) {
-    if (!this.wallet) {
-      throw new Error('Wallet client required for deployment');
-    }
-    if (!this.publicClient) {
-      throw new Error('Public client required for deployment');
-    }
-    return deployTokenV4(cfg, this.wallet, this.publicClient);
-  }
-
-  /**
-   * Deploys a token using the V3 protocol
+   * Deploys a token
    * @param cfg - Token configuration for V3 deployment
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  public async deployToken(cfg: TokenConfig) {
+  public async deployToken(cfg: TokenConfig | TokenConfigV4 | BuildV4Result) {
     if (!this.wallet) {
       throw new Error('Wallet client required for deployment');
     }
     if (!this.publicClient) {
       throw new Error('Public client required for deployment');
     }
-    return deployTokenV3(cfg, this.wallet, this.publicClient);
+
+    if ('transaction' in cfg) {
+      return deployTokenV4(cfg, this.wallet, this.publicClient);
+    }
+
+    switch (cfg.type) {
+      case 'v4':
+        return deployTokenV4(cfg, this.wallet, this.publicClient);
+      case 'v3':
+        return deployTokenV3(cfg, this.wallet, this.publicClient);
+      default:
+        throw new Error('Invalid config type');
+    }
   }
 }
 
