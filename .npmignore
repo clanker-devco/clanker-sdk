@@ -1,6 +1,7 @@
 src/
 examples/
 tests/
+test/
 .prettierrc
 jest.config.js
 tsconfig.json
