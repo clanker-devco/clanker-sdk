@@ -9,9 +9,7 @@
     "declaration": true,
     "outDir": "dist",
     // Features
-    "lib": [
-      "ES2024"
-    ],
+    "lib": ["ES2024"],
     "allowJs": false,
     "verbatimModuleSyntax": true,
     // Best practices
@@ -23,14 +21,8 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
+    "noPropertyAccessFromIndexSignature": false
   },
-  "include": [
-    "src/**/*",
-    "examples/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*", "examples/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

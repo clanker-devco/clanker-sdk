@@ -1,6 +1,3 @@
-// Default RPC URL for Base mainnet
-export const DEFAULT_BASE_RPC = 'https://mainnet.base.org';
-
 // Common addresses
 import { base, baseSepolia } from 'viem/chains';
 
@@ -60,32 +57,6 @@ export const CLANKER_HOOK_STATIC_FEE_V4 =
 export const CLANKER_HOOK_DYNAMIC_FEE_V4 =
   '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC' as `0x${string}`;
 
-// base sepolia
-export const CLANKER_FACTORY_V4_SEPOLIA =
-  '0xE85A59c628F7d27878ACeB4bf3b35733630083a9' as `0x${string}`;
-export const CLANKER_LOCKER_V4_SEPOLIA =
-  '0x33e2Eda238edcF470309b8c6D228986A1204c8f9' as `0x${string}`;
-// Extension contract addresses
-export const CLANKER_VAULT_ADDRESS_SEPOLIA = '0xcC80d1226F899a78fC2E459a1500A13C373CE0A5' as const;
-export const CLANKER_AIRDROP_ADDRESS_SEPOLIA =
-  '0x29d17C1A8D851d7d4cA97FAe97AcAdb398D9cCE0' as const;
-export const CLANKER_DEVBUY_ADDRESS_SEPOLIA = '0x691f97752E91feAcD7933F32a1FEdCeDae7bB59c' as const;
-export const CLANKER_MEV_MODULE_ADDRESS_SEPOLIA =
-  '0x71DB365E93e170ba3B053339A917c11024e7a9d4' as const;
-export const CLANKER_HOOK_STATIC_FEE_ADDRESS_SEPOLIA =
-  '0xdfcccfbeef7f3fc8b16027ce6feacb48024068cc' as const;
-export const CLANKER_HOOK_DYNAMIC_FEE_ADDRESS_SEPOLIA =
-  '0xE63b0A59100698f379F9B577441A561bAF9828cc' as const;
-
-export enum PoolPositions {
-  Standard = 'Standard',
-  Project = 'Project',
-}
-
-export enum FeeConfigs {
-  DynamicBasic = 'DynamicBasic',
-}
-
 export type PoolPosition = {
   tickLower: number;
   tickUpper: number;
@@ -93,15 +64,15 @@ export type PoolPosition = {
 };
 
 // pool positions assuming starting tick of -230400
-export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
-  [PoolPositions.Standard]: [
+export const POOL_POSITIONS = {
+  Standard: [
     {
       tickLower: -230400, // ~$27,000
       tickUpper: -120000, // ~$1.5B
       positionBps: 10000, // All tokens in one LP position
     },
   ],
-  [PoolPositions.Project]: [
+  Project: [
     {
       tickLower: -230400, // ~$27K
       tickUpper: -214000, // ~$130K
@@ -129,15 +100,17 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
     },
   ],
 };
+export type PoolPositions = keyof typeof POOL_POSITIONS;
 
 export const FEE_CONFIGS = {
-  [FeeConfigs.DynamicBasic]: {
+  DynamicBasic: {
     baseFee: 5000, // 0.5% minimum fee
     maxLpFee: 50000, // 5% maximum fee
     referenceTickFilterPeriod: 30, // 30 seconds
     resetPeriod: 120, // 2 minutes
     resetTickFilter: 200, // 2% price movement
-    feeControlNumerator: 500000000, // Constant for scaling variable fee component 
+    feeControlNumerator: 500000000, // Constant for scaling variable fee component
     decayFilterBps: 7500, // 75% decay after filter period
-  } as const,
-} as const;
+  },
+};
+export type FeeConfigs = keyof typeof FEE_CONFIGS;

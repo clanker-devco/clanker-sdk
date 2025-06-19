@@ -1,11 +1,5 @@
 import { TokenConfigV4Builder } from '../../src/config/builders.js';
-import {
-  FEE_CONFIGS,
-  FeeConfigs,
-  POOL_POSITIONS,
-  PoolPositions,
-  WETH_ADDRESS,
-} from '../../src/constants.js';
+import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
 import { Clanker } from '../../src/index.js';
 
@@ -96,11 +90,11 @@ async function main(): Promise<void> {
       })
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
-        positions: [...POOL_POSITIONS[PoolPositions.Standard]], // other option: [...POOL_POSITIONS[PoolPositions.Project]]
+        positions: [...POOL_POSITIONS.Standard], // other option: [...POOL_POSITIONS[PoolPositions.Project]]
         startingMarketCapInPairedToken: 10,
       })
       // example of dynamic fee config
-      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
+      .withDynamicFeeConfig(FEE_CONFIGS.DynamicBasic)
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 

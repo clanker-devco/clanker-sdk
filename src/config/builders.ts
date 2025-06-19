@@ -1,5 +1,10 @@
 import { type Address, isAddressEqual, zeroAddress } from 'viem';
-import { POOL_POSITIONS, type PoolPosition, PoolPositions, WETH_ADDRESS } from '../constants.js';
+import {
+  POOL_POSITIONS,
+  type PoolPosition,
+  type PoolPositions,
+  WETH_ADDRESS,
+} from '../constants.js';
 import type {
   ClankerMetadata,
   ClankerSocialContext,
@@ -279,10 +284,10 @@ export class TokenConfigV4Builder {
       if (tickIfToken0IsClanker !== -230_400) {
         throw new Error('Custom starting price requires custom positions');
       }
-      if (config.positions === PoolPositions.Standard) {
-        positions = POOL_POSITIONS[PoolPositions.Standard];
-      } else if (config.positions === PoolPositions.Project) {
-        positions = POOL_POSITIONS[PoolPositions.Project];
+      if (config.positions === 'Standard') {
+        positions = POOL_POSITIONS.Standard;
+      } else if (config.positions === 'Project') {
+        positions = POOL_POSITIONS.Project;
       } else {
         throw new Error(`Invalid position type: ${config.positions}`);
       }
