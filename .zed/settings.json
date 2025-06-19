@@ -1,4 +1,8 @@
 {
   "format_on_save": "on",
-  "formatter": "biome"
+  "formatter": {
+    "language_server": {
+      "name": "biome"
+    }
+  }
 }
