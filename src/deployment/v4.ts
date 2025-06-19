@@ -189,7 +189,6 @@ export function buildTokenV4(
       data: deployCalldata,
       value: cfg.devBuy && cfg.devBuy.ethAmount !== 0 ? BigInt(cfg.devBuy.ethAmount * 1e18) : 0n,
     },
-    expectedAddress: '0x0000000000000000000000000000000000000000' as `0x${string}`,
     chainId,
   };
 }

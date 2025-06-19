@@ -122,7 +122,7 @@ async function deployToken() {
 
   try {
     const tokenAddress = await clanker.deployToken(tokenConfig);
-    
+
     console.log("Token deployed successfully!");
     console.log("Token address:", tokenAddress);
     console.log("View on BaseScan:", `https://basescan.org/token/${tokenAddress}`);
@@ -141,7 +141,7 @@ deployToken().catch(console.error);
 
 3. Run the deployment script:
 ```bash
-node --loader ts-node/esm examples/deploy.ts
+bun examples/deploy.ts
 ```
 
 ## Configuration Options
@@ -182,13 +182,13 @@ See the [examples](./examples) directory for more deployment scenarios:
 
 ```bash
 # Install dependencies
-npm install
+bun i
 
 # Build
-npm run build
+bun run build
 
 # Test
-npm test
+bun test
 ```
 
 ## License

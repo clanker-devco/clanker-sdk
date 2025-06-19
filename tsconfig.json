@@ -1,15 +1,36 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "esModuleInterop": true,
+    // Target and modules
+    "target": "ES2024",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "moduleDetection": "force",
+    // Library building
+    "declaration": true,
+    "outDir": "dist",
+    // Features
+    "lib": [
+      "ES2024"
+    ],
+    "allowJs": false,
+    "verbatimModuleSyntax": true,
+    // Best practices
     "strict": true,
     "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "declaration": true
+    "esModuleInterop": true,
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
   },
-  "include": ["src/**/*", "examples/**/*"], // include examples
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "examples/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

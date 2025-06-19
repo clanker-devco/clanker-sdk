@@ -8,7 +8,7 @@ export interface BuildV4Result {
     data: `0x${string}`;
     value: bigint;
   };
-  expectedAddress: `0x${string}`;
+  expectedAddress?: `0x${string}`;
   chainId: number;
 }
 
