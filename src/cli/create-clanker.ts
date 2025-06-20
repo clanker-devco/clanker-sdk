@@ -15,6 +15,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { Clanker } from '../index.js';
+import type { TokenConfig } from '../types/index.js';
 import { validateConfig } from '../utils/validation.js';
 
 // Load environment variables
@@ -527,7 +528,8 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             : (answers.customPairedToken as `0x${string}`);
 
       // Prepare token configuration
-      const tokenConfig = {
+      const tokenConfig: TokenConfig = {
+        type: 'v3',
         name: answers.name,
         symbol: answers.symbol,
         image: answers.image,
@@ -557,7 +559,6 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           answers.devBuy.ethAmount !== '0'
             ? {
                 ethAmount: Number(answers.devBuy.ethAmount),
-                maxSlippage: answers.devBuy.maxSlippage,
               }
             : undefined,
         rewardsConfig: {

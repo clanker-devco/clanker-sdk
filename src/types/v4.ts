@@ -3,6 +3,7 @@ import type { FeeConfig } from './fee.js';
 import type { DevBuyPoolKeyConfig, RewardsConfigV4 } from './index.js';
 
 export interface BuildV4Result {
+  type: 'v4';
   transaction: {
     to: Address;
     data: `0x${string}`;
