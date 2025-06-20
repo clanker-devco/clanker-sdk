@@ -94,10 +94,6 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required for deployment');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
-    if ('transaction' in cfg) {
-      return deployTokenV4(cfg, this.wallet, this.publicClient);
-    }
-
     switch (cfg.type) {
       case 'v4':
         return deployTokenV4(cfg, this.wallet, this.publicClient);

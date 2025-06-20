@@ -43,7 +43,7 @@ test('vanity address', async () => {
 
   const vanityTransaction = await clanker.withVanityAddress(builder.build());
 
-  const simulationResult = await clanker.simulateDeployTokenV4(
+  const simulationResult = await clanker.simulateDeployToken(
     vanityTransaction,
     parseAccount('0x639C07D84B9dD334ca375Ac9c0067419D4877d87')
   );
