@@ -139,6 +139,7 @@ export { AirdropExtension } from './extensions/index.js';
 export * from './services/vanityAddress.js';
 // Re-export types and utilities
 export * from './types/index.js';
+export * from './utils/clankers.js';
 export {
   type AirdropEntry,
   createMerkleTree,

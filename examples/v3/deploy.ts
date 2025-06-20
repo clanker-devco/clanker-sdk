@@ -54,7 +54,7 @@ async function main(): Promise<void> {
     console.log('\n🚀 Deploying Token\n');
 
     // Deploy the token with full configuration
-    const tokenConfig = {
+    const tokenAddress = await clanker.deployToken({
       name: 'My Token',
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
@@ -78,7 +78,7 @@ async function main(): Promise<void> {
         durationInDays: 30, // 30-day vesting period
       },
       devBuy: {
-        ethAmount: '0', // 0 ETH initial buy
+        ethAmount: 0, // 0 ETH initial buy
       },
       rewardsConfig: {
         creatorReward: 40, // 40% creator reward
@@ -87,9 +87,7 @@ async function main(): Promise<void> {
         interfaceAdmin: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,
         interfaceRewardRecipient: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,
       },
-    };
-
-    const tokenAddress = await clanker.deployToken(tokenConfig);
+    });
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);

@@ -320,5 +320,3 @@ export const Clanker_v3_abi = [
     type: 'function',
   },
 ] as const;
-
-export type Clanker_v3_abi_type = typeof Clanker_v3_abi;

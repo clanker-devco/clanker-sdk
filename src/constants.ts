@@ -94,14 +94,14 @@ export type PoolPosition = {
 
 // pool positions assuming starting tick of -230400
 export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
-  [PoolPositions.Standard]: [
+  Standard: [
     {
       tickLower: -230400, // ~$27,000
       tickUpper: -120000, // ~$1.5B
       positionBps: 10000, // All tokens in one LP position
     },
   ],
-  [PoolPositions.Project]: [
+  Project: [
     {
       tickLower: -230400, // ~$27K
       tickUpper: -214000, // ~$130K
@@ -130,14 +130,24 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
   ],
 };
 
-export const FEE_CONFIGS = {
+export type FeeConfig = {
+  baseFee: number;
+  maxLpFee: number;
+  referenceTickFilterPeriod: number;
+  resetPeriod: number;
+  resetTickFilter: number;
+  feeControlNumerator: number;
+  decayFilterBps: number;
+};
+
+export const FEE_CONFIGS: Record<FeeConfigs, FeeConfig> = {
   [FeeConfigs.DynamicBasic]: {
     baseFee: 5000, // 0.5% minimum fee
     maxLpFee: 50000, // 5% maximum fee
     referenceTickFilterPeriod: 30, // 30 seconds
     resetPeriod: 120, // 2 minutes
     resetTickFilter: 200, // 2% price movement
-    feeControlNumerator: 500000000, // Constant for scaling variable fee component 
+    feeControlNumerator: 500000000, // Constant for scaling variable fee component
     decayFilterBps: 7500, // 75% decay after filter period
-  } as const,
-} as const;
+  },
+};

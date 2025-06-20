@@ -3,13 +3,7 @@ import { createPublicClient, createWalletClient, http, type PublicClient } from 
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { TokenConfigV4Builder } from '../../src/config/builders.js';
-import {
-  FEE_CONFIGS,
-  FeeConfigs,
-  POOL_POSITIONS,
-  PoolPositions,
-  WETH_ADDRESS,
-} from '../../src/constants.js';
+import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { Clanker } from '../../src/index.js';
 
 // Load environment variables
@@ -108,7 +102,7 @@ async function main(): Promise<void> {
       .withPoolConfig({
         pairedToken: WETH_ADDRESS,
         startingMarketCapInPairedToken: 10,
-        positions: [...POOL_POSITIONS[PoolPositions.Standard]], // [...POOL_POSITIONS[PoolPositions.Project]]
+        positions: POOL_POSITIONS.Standard, // [...POOL_POSITIONS[PoolPositions.Project]]
       })
       // Dynamic fee configuration
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])

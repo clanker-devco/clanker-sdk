@@ -35,7 +35,10 @@ export const findVanityAddress = async (
     `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(data)}&suffix=${suffix}`
   );
 
-  const { address, salt } = await response.json() as { address: `0x${string}`, salt: `0x${string}` };
+  const { address, salt } = (await response.json()) as {
+    address: `0x${string}`;
+    salt: `0x${string}`;
+  };
 
   return { token: address, salt };
 };
@@ -60,7 +63,10 @@ export const findVanityAddressV4 = async (
     `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(data)}&suffix=${suffix}`
   );
 
-  const { address, salt } = await response.json() as { address: `0x${string}`, salt: `0x${string}` };
+  const { address, salt } = (await response.json()) as {
+    address: `0x${string}`;
+    salt: `0x${string}`;
+  };
 
   return { token: address, salt };
 };

@@ -1,11 +1,11 @@
 src/
 examples/
 tests/
-.eslintrc.json
+test/
 .prettierrc
 jest.config.js
 tsconfig.json
 coverage/
 *.log
 .DS_Store
-video_*.txt 
+video_*.txt

@@ -77,7 +77,7 @@ async function main(): Promise<void> {
         durationInDays: 30, // 30 days vesting
       })
       .withDevBuy({
-        ethAmount: '0',
+        ethAmount: 0,
       })
       .withRewards({
         creatorReward: 40, // 40% creator reward
