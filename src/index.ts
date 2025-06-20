@@ -1,6 +1,6 @@
 import type { Account, PublicClient, WalletClient } from 'viem';
 import { deployTokenV3 } from './deployment/v3.js';
-import { buildTokenV4, deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
+import { deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
 import { availableFees } from './fees/availableFees.js';
 import { claimRewards } from './fees/claim.js';
 import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
@@ -60,17 +60,6 @@ export class Clanker {
   }
 
   /**
-   * Builds V4 token deployment data without actually deploying
-   * @param cfg - Token configuration for V4 deployment
-   * @returns Object containing transaction data, target address, and network info
-   */
-  public buildV4(cfg: TokenConfigV4): BuildV4Result {
-    const chainId = this.publicClient?.chain?.id || 8453;
-    const result = buildTokenV4(cfg, chainId);
-    return result;
-  }
-
-  /**
    * Generates a vanity address for a V4 token deployment
    * @param cfg - Token configuration for V4 deployment
    * @returns Promise resolving to an object containing transaction data, target address, and network info with vanity address
@@ -87,14 +76,11 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  public async simulateDeployTokenV4(cfg: TokenConfigV4 | BuildV4Result, account?: Account) {
+  public async simulateDeployToken(cfg: TokenConfigV4 | BuildV4Result, account?: Account) {
     const acc = account || this.wallet?.account;
-    if (!acc) {
-      throw new Error('Account or wallet client required for simulation');
-    }
-    if (!this.publicClient) {
-      throw new Error('Public client required for deployment');
-    }
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required for deployment');
+
     return simulateDeploy(cfg, acc, this.publicClient);
   }
 
@@ -105,12 +91,8 @@ export class Clanker {
    * @throws {Error} If wallet client or public client is not configured
    */
   public async deployToken(cfg: TokenConfig | TokenConfigV4 | BuildV4Result) {
-    if (!this.wallet) {
-      throw new Error('Wallet client required for deployment');
-    }
-    if (!this.publicClient) {
-      throw new Error('Public client required for deployment');
-    }
+    if (!this.wallet) throw new Error('Wallet client required for deployment');
+    if (!this.publicClient) throw new Error('Public client required for deployment');
 
     if ('transaction' in cfg) {
       return deployTokenV4(cfg, this.wallet, this.publicClient);
