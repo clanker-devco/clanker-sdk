@@ -40,7 +40,7 @@ async function main(): Promise<void> {
 
     // Create Merkle tree for airdrop
     const airdropExtension = new AirdropExtension();
-    const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
+    const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries, 10000);
 
     // Build token configuration using the builder pattern
     const tokenConfig = new TokenConfigV4Builder()
