@@ -184,6 +184,7 @@ export function buildTokenV4(
   });
 
   return {
+    type: 'v4',
     transaction: {
       to: CLANKER_FACTORY_V4,
       data: deployCalldata,

@@ -1,6 +1,6 @@
 # Clanker SDK
 
-The official TypeScript SDK for deploying tokens on Base using Clanker.
+The official TypeScript SDK for deploying tokens using Clanker.
 
 ## Installation
 
@@ -31,12 +31,13 @@ This will guide you through the token deployment process step by step.
 
 1. Create a `.env` file with your configuration:
 ```env
-PRIVATE_KEY=your_private_key_here
-FACTORY_ADDRESS=factory_contract_address_here
+PRIVATE_KEY=<your_private_key_here>
 ```
 
 2. Create a deployment script:
 ```typescript
+// deploy-script.ts
+
 import { Clanker } from 'clanker-sdk';
 import { createPublicClient, createWalletClient, http, PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -48,28 +49,23 @@ dotenv.config();
 
 // Validate environment variables
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
-const RPC_URL = process.env.RPC_URL;
 
-if (!PRIVATE_KEY || !FACTORY_ADDRESS) {
-  throw new Error("Missing required environment variables. Please create a .env file with PRIVATE_KEY and FACTORY_ADDRESS");
+if (!PRIVATE_KEY) {
+  throw new Error("Missing PRIVATE_KEY environment variable.");
 }
 
 // Initialize wallet with private key
 const account = privateKeyToAccount(PRIVATE_KEY);
 
-// Create transport with optional custom RPC
-const transport = RPC_URL ? http(RPC_URL) : http();
-
 const publicClient = createPublicClient({
   chain: base,
-  transport,
+  transport: http(),
 }) as PublicClient;
 
 const wallet = createWalletClient({
   account,
   chain: base,
-  transport,
+  transport: http(),
 });
 
 // Initialize Clanker SDK
@@ -109,7 +105,7 @@ async function deployToken() {
       durationInDays: 30, // 30-day vesting period
     },
     devBuy: {
-      ethAmount: "0", // No initial buy
+      ethAmount: 0, // No initial buy
     },
     rewardsConfig: {
       creatorReward: 75, // 75% creator reward
@@ -141,7 +137,7 @@ deployToken().catch(console.error);
 
 3. Run the deployment script:
 ```bash
-bun examples/deploy.ts
+bun deploy-script.ts
 ```
 
 ## Configuration Options
@@ -178,17 +174,38 @@ See the [examples](./examples) directory for more deployment scenarios:
 - `deploy-token.ts`: Advanced token deployment with all options
 - `deploy-full-sdk.ts`: Full SDK usage example
 
-## Development
+# SDK Development
 
+## Setup
+
+The SDK uses bun for development. Install bun following their instructions here: [https://bun.sh](https://bun.sh).
+
+Once bun is installed, the project is ready for development
 ```bash
 # Install dependencies
 bun i
 
-# Build
-bun run build
+# Run Examples
+# bun <path_to_example>
+bun examples/v4/availableFees.ts
 
-# Test
+# Run Tests
 bun test
+
+# Lint
+bun lint
+```
+
+Publishing the package
+```bash
+# Log into npm
+bunx npm login
+
+# Dry run publishing
+bun publish-package --dry-run
+
+# Publish
+bun publish-package
 ```
 
 ## License
