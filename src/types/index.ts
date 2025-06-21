@@ -18,6 +18,7 @@ export interface ClankerConfig {
 }
 
 export interface TokenConfig {
+  type: 'v3';
   name: string;
   symbol: string;
   image?: string;
@@ -33,6 +34,7 @@ export interface TokenConfig {
 }
 
 export interface TokenConfigV4 {
+  type: 'v4';
   tokenAdmin: Address;
   name: string;
   symbol: string;

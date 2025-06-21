@@ -101,7 +101,7 @@ async function main(): Promise<void> {
       })
       .build();
 
-    const tokenAddress = await clanker.deployTokenV4(tokenConfig);
+    const tokenAddress = await clanker.deployToken(tokenConfig);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
@@ -130,7 +130,7 @@ async function main(): Promise<void> {
       })
       .build();
 
-    const tokenAddressNonWeth = await clanker.deployTokenV4(tokenConfigNonWeth);
+    const tokenAddressNonWeth = await clanker.deployToken(tokenConfigNonWeth);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddressNonWeth);

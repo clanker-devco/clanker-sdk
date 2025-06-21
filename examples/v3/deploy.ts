@@ -9,12 +9,11 @@ dotenv.config();
 
 // Validate environment variables
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as `0x${string}`;
 const RPC_URL = process.env.RPC_URL;
 
-if (!PRIVATE_KEY || !FACTORY_ADDRESS) {
+if (!PRIVATE_KEY) {
   throw new Error(
-    'Missing required environment variables. Please create a .env file with PRIVATE_KEY and FACTORY_ADDRESS'
+    'Missing required environment variables. Please create a .env file with PRIVATE_KEY.'
   );
 }
 
@@ -55,6 +54,7 @@ async function main(): Promise<void> {
 
     // Deploy the token with full configuration
     const tokenAddress = await clanker.deployToken({
+      type: 'v3',
       name: 'My Token',
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
@@ -84,8 +84,8 @@ async function main(): Promise<void> {
         creatorReward: 40, // 40% creator reward
         creatorAdmin: account.address,
         creatorRewardRecipient: account.address,
-        interfaceAdmin: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,
-        interfaceRewardRecipient: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,
+        interfaceAdmin: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace',
+        interfaceRewardRecipient: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace',
       },
     });
 

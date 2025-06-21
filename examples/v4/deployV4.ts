@@ -111,7 +111,7 @@ async function main(): Promise<void> {
 
     // Deploy the token with vanity address
     const vanityConfig = await clanker.withVanityAddress(tokenConfig);
-    const tokenAddress = await clanker.deployTokenV4(vanityConfig);
+    const tokenAddress = await clanker.deployToken(vanityConfig);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
