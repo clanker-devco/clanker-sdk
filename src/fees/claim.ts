@@ -1,8 +1,8 @@
 import type { PublicClient, WalletClient } from 'viem';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { CLANKER_FEE_LOCKER_V4 } from '../constants.js';
-import { writeClankerContract } from '../utils/clanker-contract.js';
 import type { ClankerError } from '../utils/errors.js';
+import { writeClankerContract } from '../utils/write-clanker-contracts.js';
 
 export const claimRewards = async (
   client: PublicClient,
