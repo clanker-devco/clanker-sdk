@@ -41,7 +41,7 @@ export class Clanker {
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
    */
-  public claimRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+  claimRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
     return claimRewards(feeOwnerAddress, tokenAddress);
   }
 
@@ -52,7 +52,7 @@ export class Clanker {
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
    */
-  public async availableFees(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+  async availableFees(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
     if (!this.publicClient) {
       throw new Error('Public client required for checking available fees');
     }
@@ -64,7 +64,7 @@ export class Clanker {
    * @param cfg - Token configuration for V4 deployment
    * @returns Promise resolving to an object containing transaction data, target address, and network info with vanity address
    */
-  public async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
+  async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
     const chainId = this.publicClient?.chain?.id || 8453;
     return withVanityAddress(cfg, chainId);
   }
@@ -76,7 +76,7 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  public async simulateDeployToken(cfg: TokenConfigV4 | BuildV4Result, account?: Account) {
+  async simulateDeployToken(cfg: TokenConfigV4 | BuildV4Result, account?: Account) {
     const acc = account || this.wallet?.account;
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
@@ -90,7 +90,7 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  public async deployToken(cfg: TokenConfig | TokenConfigV4 | BuildV4Result) {
+  async deployToken(cfg: TokenConfig | TokenConfigV4 | BuildV4Result) {
     if (!this.wallet) throw new Error('Wallet client required for deployment');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
