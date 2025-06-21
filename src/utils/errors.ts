@@ -1,5 +1,5 @@
 import type { ExtractAbiErrorNames } from 'abitype';
-import { BaseError, ContractFunctionRevertedError } from 'viem';
+import { BaseError, ContractFunctionRevertedError, InsufficientFundsError } from 'viem';
 import type { ClankerContract } from './clanker-contracts.js';
 
 type ClankerErrorName = ExtractAbiErrorNames<ClankerContract>;
@@ -23,7 +23,7 @@ export class ClankerError extends Error {
     readonly error: Error,
     readonly data: ClankerErrorData
   ) {
-    super();
+    super(data.label);
   }
 }
 
@@ -40,12 +40,23 @@ export const understandError = (e: unknown): ClankerError => {
   if (!(e instanceof BaseError)) return ClankerError.unknown(e);
 
   const revertError = e.walk((e) => e instanceof ContractFunctionRevertedError);
-  if (!(revertError instanceof ContractFunctionRevertedError)) return ClankerError.unknown(e);
+  if (revertError instanceof ContractFunctionRevertedError) {
+    const errorName = revertError.data?.errorName ?? '';
 
-  const errorName = revertError.data?.errorName ?? '';
+    const mapping = ErrorMapping[errorName as ClankerErrorName];
+    if (!mapping) return ClankerError.unknown(e, errorName);
 
-  const mapping = ErrorMapping[errorName as ClankerErrorName];
-  if (!mapping) return ClankerError.unknown(e, errorName);
+    return new ClankerError(e, mapping);
+  }
 
-  return new ClankerError(e, mapping);
+  const fundsError = e.walk((e) => e instanceof InsufficientFundsError);
+  if (fundsError instanceof InsufficientFundsError) {
+    return new ClankerError(fundsError, {
+      type: 'caller',
+      label: 'Insufficient funds.',
+      rawName: 'InsufficientFundsError',
+    });
+  }
+
+  return ClankerError.unknown(e);
 };

@@ -10,6 +10,7 @@ import type { ClankerError } from './utils/errors.js';
 type ClankerConfig = {
   wallet?: WalletClient;
   publicClient?: PublicClient;
+  simulateBeforeWrite?: boolean;
 };
 
 /**
@@ -19,6 +20,7 @@ type ClankerConfig = {
 export class Clanker {
   private readonly wallet?: WalletClient;
   private readonly publicClient?: PublicClient;
+  private readonly simulate: boolean;
 
   /**
    * Creates a new instance of the Clanker SDK
@@ -28,6 +30,7 @@ export class Clanker {
   constructor(config?: ClankerConfig) {
     this.wallet = config?.wallet;
     this.publicClient = config?.publicClient;
+    this.simulate = !!config?.simulateBeforeWrite;
   }
 
   /**
@@ -45,7 +48,9 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
 
-    return claimRewards(this.publicClient, this.wallet, feeOwnerAddress, tokenAddress);
+    return claimRewards(this.publicClient, this.wallet, feeOwnerAddress, tokenAddress, {
+      simulate: this.simulate,
+    });
   }
 
   /**

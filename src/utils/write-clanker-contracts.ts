@@ -40,8 +40,11 @@ export const writeClankerContract = async <
     }
   }
 
-  // biome-ignore lint: It's difficult to type tx correctly
-  const txHash = await writeContract(wallet, tx as any);
-
-  return { txHash, error: undefined };
+  try {
+    // biome-ignore lint: It's difficult to type tx correctly
+    const txHash = await writeContract(wallet, tx as any);
+    return { txHash, error: undefined };
+  } catch (e) {
+    return { txHash: undefined, error: understandError(e) };
+  }
 };
