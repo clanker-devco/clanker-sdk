@@ -53,7 +53,7 @@ async function main(): Promise<void> {
 
   const { txHash, error } = await clanker.claimRewards(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
   if (error) {
-    console.error('Deployment failed:', error.message);
+    console.error('Deployment failed:', error.message, error);
     process.exit(1);
   }
 
