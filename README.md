@@ -187,7 +187,7 @@ bun i
 
 # Run Examples
 # bun <path_to_example>
-bun examples/v4/availableFees.ts
+bun examples/v4/availableRewards.ts
 
 # Run Tests
 bun test
