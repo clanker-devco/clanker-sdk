@@ -35,6 +35,14 @@ type RelatedV4 = {
   feeDynamicHook: `0x${string}`;
 };
 
+type ClankerDeployment = {
+  abi: Abi;
+  chainId: number;
+  type: string;
+  address: `0x${string}`;
+  related: RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4;
+};
+
 export const CLANKERS = {
   clanker_v0: {
     abi: Clanker_v0_abi,
@@ -110,18 +118,20 @@ export const CLANKERS = {
       feeDynamicHook: '0xE63b0A59100698f379F9B577441A561bAF9828cc',
     } satisfies RelatedV4,
   },
-} as const satisfies Record<
-  string,
-  {
-    abi: Abi;
-    chainId: number;
-    type: string;
-    address: `0x${string}`;
-    related: RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4;
-  }
->;
+} as const satisfies Record<string, ClankerDeployment>;
 
 export type Clankers = typeof CLANKERS;
 
+export type Type = Clankers[keyof Clankers]['type'];
+
 export type Chain = Clankers[keyof Clankers]['chainId'];
 export const Chains = [...new Set(Object.values(CLANKERS).map(({ chainId }) => chainId))];
+
+export const ClankerDeployments = Object.values(CLANKERS).reduce(
+  (agg, cur) => {
+    if (!agg[cur.chainId]) agg[cur.chainId] = {};
+    agg[cur.chainId][cur.type] = cur;
+    return agg;
+  },
+  {} as Record<Chain, Partial<Record<Type, ClankerDeployment>>>
+);

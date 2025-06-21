@@ -1,18 +1,29 @@
-import { encodeFunctionData } from 'viem';
+import type { PublicClient, WalletClient } from 'viem';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { CLANKER_FEE_LOCKER_V4 } from '../constants.js';
+import { writeClankerContract } from '../utils/clanker-contract.js';
+import type { ClankerError } from '../utils/errors.js';
 
-export const claimRewards = (feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) => {
-  const claimRewardsCalldata = encodeFunctionData({
-    abi: ClankerFeeLocker_abi,
-    functionName: 'claim',
-    args: [feeOwnerAddress, tokenAddress],
-  });
-
-  return {
-    transaction: {
-      to: CLANKER_FEE_LOCKER_V4,
-      data: claimRewardsCalldata,
+export const claimRewards = async (
+  client: PublicClient,
+  wallet: WalletClient,
+  feeOwnerAddress: `0x${string}`,
+  tokenAddress: `0x${string}`,
+  options?: {
+    simulate?: boolean;
+  }
+): Promise<
+  { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+> => {
+  return writeClankerContract(
+    client,
+    wallet,
+    {
+      address: CLANKER_FEE_LOCKER_V4,
+      abi: ClankerFeeLocker_abi,
+      functionName: 'claim',
+      args: [feeOwnerAddress, tokenAddress],
     },
-  };
+    options
+  );
 };
