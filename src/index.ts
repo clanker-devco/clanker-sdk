@@ -2,7 +2,7 @@ import type { Account, PublicClient, WalletClient } from 'viem';
 import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
 import { availableFees } from './fees/availableFees.js';
-import { buildClaimRewards, claimRewards } from './fees/claim.js';
+import { claimRewards } from './fees/claim.js';
 import type { TokenConfig, TokenConfigV4 } from './types/index.js';
 import type { BuildV4Result } from './types/v4.js';
 import type { ClankerError } from './utils/errors.js';
@@ -34,20 +34,8 @@ export class Clanker {
   }
 
   /**
-   * Builds a claim rewards transaction without executing it
-   * @param feeOwnerAddress - The address of the fee owner
-   * @param tokenAddress - The address of the token to claim rewards from
-   * @returns Object containing the transaction data
-   */
-  buildClaimRewards(
-    feeOwnerAddress: `0x${string}`,
-    tokenAddress: `0x${string}`
-  ) {
-    return buildClaimRewards(feeOwnerAddress, tokenAddress);
-  }
-
-  /**
    * Collects rewards from a token
+   * @param feeOwnerAddress - The address of the fee owner
    * @param tokenAddress - The address of the token to collect rewards from
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
@@ -64,6 +52,26 @@ export class Clanker {
     return claimRewards(this.publicClient, this.wallet, feeOwnerAddress, tokenAddress, {
       simulate: this.simulate,
     });
+  }
+
+  /**
+   * Builds a claim rewards transaction without executing it
+   * @param feeOwnerAddress - The address of the fee owner
+   * @param tokenAddress - The address of the token to claim rewards from
+   * @returns Object containing the transaction data
+   */
+  buildClaimRewardsTransaction(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+    return claimRewards.transaction(feeOwnerAddress, tokenAddress);
+  }
+
+  /**
+   * Builds a raw claim rewards transaction without executing it
+   * @param feeOwnerAddress - The address of the fee owner
+   * @param tokenAddress - The address of the token to claim rewards from
+   * @returns Object containing the raw transaction data with ABI
+   */
+  buildClaimRewardsRawTransaction(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+    return claimRewards.rawTransaction(feeOwnerAddress, tokenAddress);
   }
 
   /**
@@ -131,6 +139,13 @@ export type { PublicClient, WalletClient } from 'viem';
 export { TokenConfigV4Builder } from './config/builders.js';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
+// Re-export fee-related functions and types
+export {
+  type ClaimRewardsFunction,
+  type ClaimRewardsRawTransaction,
+  type ClaimRewardsTransaction,
+  claimRewards,
+} from './fees/claim.js';
 export * from './services/vanityAddress.js';
 // Re-export types and utilities
 export * from './types/index.js';
@@ -142,5 +157,3 @@ export {
   getMerkleProof,
 } from './utils/merkleTree.js';
 export * from './utils/validation.js';
-// Re-export fee-related functions and types
-export { buildClaimRewards, type BuildClaimRewardsResult } from './fees/claim.js';
