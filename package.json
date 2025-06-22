@@ -1,6 +1,6 @@
 {
   "name": "clanker-sdk",
-  "version": "4.0.21",
+  "version": "4.0.22",
   "description": "SDK for deploying tokens on Base using Clanker",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,7 +24,9 @@
     "lint": "biome check && tsc --noEmit",
     "format": "biome check --write --unsafe",
     "create-clanker": "bun src/cli/create-clanker",
-    "publish-package": "bun tsup && bun publish"
+    "publish-package": "bun tsup && bun publish",
+    "deploy-v4": "bun run examples/v4/deployV4.ts",
+    "build-v4": "bun run examples/v4/buildV4.ts"
   },
   "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",
