@@ -2,7 +2,7 @@ import type { Account, PublicClient, WalletClient } from 'viem';
 import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
 import { availableFees } from './fees/availableFees.js';
-import { claimRewards } from './fees/claim.js';
+import { buildClaimRewards, claimRewards } from './fees/claim.js';
 import type { TokenConfig, TokenConfigV4 } from './types/index.js';
 import type { BuildV4Result } from './types/v4.js';
 import type { ClankerError } from './utils/errors.js';
@@ -31,6 +31,19 @@ export class Clanker {
     this.wallet = config?.wallet;
     this.publicClient = config?.publicClient;
     this.simulate = !!config?.simulateBeforeWrite;
+  }
+
+  /**
+   * Builds a claim rewards transaction without executing it
+   * @param feeOwnerAddress - The address of the fee owner
+   * @param tokenAddress - The address of the token to claim rewards from
+   * @returns Object containing the transaction data
+   */
+  buildClaimRewards(
+    feeOwnerAddress: `0x${string}`,
+    tokenAddress: `0x${string}`
+  ) {
+    return buildClaimRewards(feeOwnerAddress, tokenAddress);
   }
 
   /**
@@ -129,3 +142,5 @@ export {
   getMerkleProof,
 } from './utils/merkleTree.js';
 export * from './utils/validation.js';
+// Re-export fee-related functions and types
+export { buildClaimRewards, type BuildClaimRewardsResult } from './fees/claim.js';
