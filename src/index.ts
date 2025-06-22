@@ -3,9 +3,15 @@ import { deployTokenV3 } from './deployment/v3.js';
 import { deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
 import { availableFees } from './fees/availableFees.js';
 import { claimRewards } from './fees/claim.js';
-import type { ClankerConfig, TokenConfig, TokenConfigV4 } from './types/index.js';
+import type { TokenConfig, TokenConfigV4 } from './types/index.js';
 import type { BuildV4Result } from './types/v4.js';
-import { validateConfig } from './utils/validation.js';
+import type { ClankerError } from './utils/errors.js';
+
+type ClankerConfig = {
+  wallet?: WalletClient;
+  publicClient?: PublicClient;
+  simulateBeforeWrite?: boolean;
+};
 
 /**
  * Main class for interacting with the Clanker SDK
@@ -14,6 +20,7 @@ import { validateConfig } from './utils/validation.js';
 export class Clanker {
   private readonly wallet?: WalletClient;
   private readonly publicClient?: PublicClient;
+  private readonly simulate: boolean;
 
   /**
    * Creates a new instance of the Clanker SDK
@@ -21,18 +28,9 @@ export class Clanker {
    * @throws {Error} If the provided configuration is invalid
    */
   constructor(config?: ClankerConfig) {
-    if (config) {
-      // Validate the ClankerConfig
-      const validationResult = validateConfig(config);
-      if (!validationResult.success) {
-        throw new Error(
-          `Invalid Clanker configuration: ${JSON.stringify(validationResult.error?.format())}`
-        );
-      }
-
-      this.wallet = config.wallet;
-      this.publicClient = config.publicClient;
-    }
+    this.wallet = config?.wallet;
+    this.publicClient = config?.publicClient;
+    this.simulate = !!config?.simulateBeforeWrite;
   }
 
   /**
@@ -41,8 +39,18 @@ export class Clanker {
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
    */
-  claimRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
-    return claimRewards(feeOwnerAddress, tokenAddress);
+  async claimRewards(
+    feeOwnerAddress: `0x${string}`,
+    tokenAddress: `0x${string}`
+  ): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    return claimRewards(this.publicClient, this.wallet, feeOwnerAddress, tokenAddress, {
+      simulate: this.simulate,
+    });
   }
 
   /**
@@ -52,7 +60,7 @@ export class Clanker {
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
    */
-  async availableFees(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+  async availableRewards(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
     if (!this.publicClient) {
       throw new Error('Public client required for checking available fees');
     }

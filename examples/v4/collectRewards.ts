@@ -25,47 +25,42 @@ if (!PRIVATE_KEY) {
  * - Collecting rewards from a v4 token
  */
 async function main(): Promise<void> {
-  try {
-    console.log(`Starting main function...`);
-    // Initialize wallet with private key
-    const account = privateKeyToAccount(PRIVATE_KEY);
+  console.log(`Starting main function...`);
+  // Initialize wallet with private key
+  const account = privateKeyToAccount(PRIVATE_KEY);
 
-    // Create transport with optional custom RPC
-    const transport = RPC_URL ? http(RPC_URL) : http();
+  // Create transport with optional custom RPC
+  const transport = RPC_URL ? http(RPC_URL) : http();
 
-    const publicClient = createPublicClient({
-      chain: base,
-      transport,
-    }) as PublicClient;
+  const publicClient = createPublicClient({
+    chain: base,
+    transport,
+  }) as PublicClient;
 
-    const wallet = createWalletClient({
-      account,
-      chain: base,
-      transport,
-    });
+  const wallet = createWalletClient({
+    account,
+    chain: base,
+    transport,
+  });
 
-    // Initialize Clanker SDK
-    const clanker = new Clanker({
-      wallet,
-      publicClient,
-    });
+  // Initialize Clanker SDK
+  const clanker = new Clanker({
+    wallet,
+    publicClient,
+    simulateBeforeWrite: true,
+  });
 
-    console.log('\n💰 Collecting Rewards for token: ', TOKEN_ADDRESS, '\n');
+  console.log('\n💰 Collecting Rewards for token: ', TOKEN_ADDRESS, '\n');
 
-    const { transaction } = clanker.claimRewards(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
-
-    console.log('Transaction:', transaction);
-
-    const tx = await wallet.sendTransaction(transaction);
-    console.log('Transaction hash:', tx);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Deployment failed:', error.message);
-    } else {
-      console.error('Deployment failed with unknown error');
-    }
+  const { txHash, error } = await clanker.claimRewards(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
+  if (error) {
+    console.error('Claim failed:', error.message);
     process.exit(1);
   }
+
+  console.log('Transaction hash:', txHash);
+
+  process.exit(1);
 }
 
 main().catch(console.error);

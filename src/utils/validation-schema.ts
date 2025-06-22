@@ -7,12 +7,6 @@ import { isValidBps, percentageToBps } from './validation.js';
 const isHexRefinement = (val: string) => isHex(val);
 const isAddressRefinement = (val: string) => isAddress(val as Address);
 
-// ClankerConfig Schema
-export const clankerConfigSchema = z.object({
-  publicClient: z.any().optional(),
-  wallet: z.any().optional(),
-});
-
 // Token Config Schema
 export const tokenConfigSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -140,7 +134,6 @@ export const deploymentConfigSchema = z.object({
 });
 
 // Type inferences
-export type ZodClankerConfig = z.infer<typeof clankerConfigSchema>;
 export type ZodTokenConfig = z.infer<typeof tokenConfigSchema>;
 export type ZodVaultConfig = z.infer<typeof vaultConfigSchema>;
 export type ZodPoolConfig = z.infer<typeof poolConfigSchema>;

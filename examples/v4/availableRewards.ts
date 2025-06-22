@@ -34,7 +34,7 @@ async function main(): Promise<void> {
     });
 
     // check available fees
-    const availableFees = await clanker.availableFees(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
+    const availableFees = await clanker.availableRewards(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
 
     console.log('Available fees:', availableFees);
   } catch (error) {

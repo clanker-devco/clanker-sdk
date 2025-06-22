@@ -1,5 +1,4 @@
 import {
-  clankerConfigSchema,
   deploymentConfigSchema,
   initialBuyConfigSchema,
   poolConfigSchema,
@@ -125,11 +124,6 @@ export function validateConfig<T>(config: T): ValidationResult {
     'pairedTokenSwapAmountOutMinimum' in config
   ) {
     return initialBuyConfigSchema.safeParse(config);
-  }
-
-  // Check if it's a ClankerConfig
-  if (typeof config === 'object' && config !== null && 'publicClient' in config) {
-    return clankerConfigSchema.safeParse(config);
   }
 
   // If we can't determine the type, return a custom error
