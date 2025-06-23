@@ -3,18 +3,17 @@ import { createPublicClient, http, type PublicClient, zeroAddress } from 'viem';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { Clanker, TokenConfigV4Builder } from '../../src';
-import { buildTokenV4 } from '../../src/deployment/v4';
 
-test('basic build', () => {
+test('basic build', async () => {
   let builder = new TokenConfigV4Builder();
 
-  expect(() => buildTokenV4(builder.build(), 123)).toThrow('Name and symbol are required');
+  expect(() => builder.build()).toThrow('Name and symbol are required');
 
   builder = builder.withName('Name');
-  expect(() => buildTokenV4(builder.build(), 123)).toThrow('Name and symbol are required');
+  expect(() => builder.build()).toThrow('Name and symbol are required');
 
   builder = builder.withSymbol('SYM');
-  expect(() => buildTokenV4(builder.build(), 123)).toThrow('Token admin is required');
+  expect(() => builder.build()).toThrow('Token admin is required');
 
   expect(() => builder.withTokenAdmin(zeroAddress)).toThrow(
     'Cannot set token admin as the zero address.'
@@ -22,8 +21,8 @@ test('basic build', () => {
 
   builder = builder.withTokenAdmin('0x639C07D84B9dD334ca375Ac9c0067419D4877d87');
   {
-    const { transaction, expectedAddress, chainId } = buildTokenV4(builder.build(), 123);
-    expect(chainId).toEqual(123);
+    const { transaction, expectedAddress, chainId } = await builder.buildTransaction();
+    expect(chainId).toEqual(base.id);
     expect(expectedAddress).toBeUndefined();
     expect(transaction.to).toEqual('0xE85A59c628F7d27878ACeB4bf3b35733630083a9');
   }
@@ -36,22 +35,22 @@ test('vanity address', async () => {
   }) as PublicClient;
 
   const clanker = new Clanker({ publicClient });
-  const builder = new TokenConfigV4Builder()
+  const tx = await new TokenConfigV4Builder()
     .withName('Name')
     .withSymbol('SYM')
-    .withTokenAdmin('0x639C07D84B9dD334ca375Ac9c0067419D4877d87');
-
-  const vanityTransaction = await clanker.withVanityAddress(builder.build());
+    .withTokenAdmin('0x639C07D84B9dD334ca375Ac9c0067419D4877d87')
+    .withVanity()
+    .buildTransaction();
 
   const simulationResult = await clanker.simulateDeployToken(
-    vanityTransaction,
+    tx,
     parseAccount('0x639C07D84B9dD334ca375Ac9c0067419D4877d87')
   );
 
   expect('error' in simulationResult).toBeFalse();
 
-  expect(vanityTransaction.expectedAddress?.toLowerCase().endsWith('b07')).toBeTrue();
-  expect(vanityTransaction.expectedAddress).toEqual(
+  expect(tx.expectedAddress?.toLowerCase().endsWith('b07')).toBeTrue();
+  expect(tx.expectedAddress).toEqual(
     'simulatedAddress' in simulationResult ? simulationResult.simulatedAddress : '0x'
   );
 });

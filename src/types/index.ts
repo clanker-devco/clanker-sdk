@@ -43,6 +43,9 @@ export interface TokenConfigV4 {
   rewardsConfig: RewardsConfigV4;
   poolConfig: PoolConfigV4;
   lockerConfig: LockerConfigV4;
+  chainId: number;
+  salt: `0x${string}`;
+  expectedAddress?: `0x${string}`;
 }
 
 export interface RewardsConfigV4 {

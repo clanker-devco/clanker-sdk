@@ -1,6 +1,4 @@
 import type { Address } from 'viem';
-import type { FeeConfig } from './fee.js';
-import type { DevBuyPoolKeyConfig, RewardsConfigV4 } from './index.js';
 
 export interface BuildV4Result {
   type: 'v4';
@@ -11,48 +9,6 @@ export interface BuildV4Result {
   };
   expectedAddress?: `0x${string}`;
   chainId: number;
-}
-
-export interface TokenConfigV4 {
-  tokenAdmin: Address;
-  name: string;
-  symbol: string;
-  image?: string;
-  metadata?: {
-    description?: string;
-    socialMediaUrls?: string[];
-    auditUrls?: string[];
-  };
-  context?: {
-    interface?: string;
-    platform?: string;
-    messageId?: string;
-    id?: string;
-  };
-  vault?: {
-    percentage: number;
-    lockupDuration: number;
-    vestingDuration: number;
-  };
-  airdrop?: {
-    merkleRoot: `0x${string}`;
-    lockupDuration: number;
-    vestingDuration: number;
-    entries: Array<{
-      account: `0x${string}`;
-      amount: number;
-    }>;
-    percentage: number;
-  };
-  devBuy?: {
-    ethAmount: number;
-    poolKey?: DevBuyPoolKeyConfig;
-    amountOutMin?: number;
-  };
-  feeConfig: FeeConfig;
-  lockerConfig: LockerConfigV4;
-  poolConfig: PoolConfigV4;
-  rewardsConfig: RewardsConfigV4;
 }
 
 export interface VaultConfigV4 {
@@ -94,14 +50,6 @@ export interface ExtensionConfigV4 {
 export interface MevModuleConfigV4 {
   mevModule: Address;
   mevModuleData: `0x${string}`;
-}
-
-export interface DeploymentConfigV4 {
-  tokenConfig: TokenConfigV4;
-  poolConfig: PoolConfigV4;
-  lockerConfig: LockerConfigV4;
-  mevModuleConfig: MevModuleConfigV4;
-  extensionConfigs: ExtensionConfigV4[];
 }
 
 export interface DevBuyExtensionDataV4 {
