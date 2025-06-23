@@ -1,20 +1,13 @@
 import { type Address, isAddressEqual, zeroAddress } from 'viem';
 import {
+  DEFAULT_SUPPLY,
   POOL_POSITIONS,
   type PoolPosition,
   type PoolPositions,
   WETH_ADDRESS,
 } from '../constants.js';
-import type {
-  ClankerMetadata,
-  ClankerSocialContext,
-  DevBuyConfig,
-  RewardRecipient,
-  RewardsConfig,
-  TokenConfig,
-  TokenConfigV4,
-  VaultConfig,
-} from '../types/index.js';
+import { findVanityAddressV4 } from '../services/vanityAddress.js';
+import type { RewardRecipient, TokenConfigV4 } from '../types/index.js';
 import { isValidBps, percentageToBps, validateBpsSum } from '../utils/validation.js';
 
 /**
@@ -23,6 +16,9 @@ import { isValidBps, percentageToBps, validateBpsSum } from '../utils/validation
  */
 export class TokenConfigV4Builder {
   private config: Partial<TokenConfigV4> = {};
+  private vanityAddressProvider?: (
+    config: TokenConfigV4
+  ) => Promise<{ expectedAddress: `0x${string}`; salt: `0x${string}` }>;
 
   /**
    * Sets the token name
@@ -273,12 +269,40 @@ export class TokenConfigV4Builder {
     return this;
   }
 
+  withSalt(
+    provider?: (
+      config: TokenConfigV4
+    ) => Promise<{ expectedAddress: `0x${string}`; salt: `0x${string}` }>
+  ) {
+    const defaultProvider = async (cfg: TokenConfigV4) => {
+      const { token, salt } = await findVanityAddressV4(
+        [
+          cfg.name,
+          cfg.symbol,
+          DEFAULT_SUPPLY,
+          cfg.tokenAdmin,
+          cfg.image || '',
+          cfg.metadata ? JSON.stringify(cfg.metadata) : '',
+          cfg.context ? JSON.stringify(cfg.context) : '',
+          BigInt(cfg.chainId),
+        ],
+        cfg.tokenAdmin,
+        '0x4b07',
+        { chainId: cfg.chainId }
+      );
+      return { expectedAddress: token, salt };
+    };
+
+    this.vanityAddressProvider = provider ?? defaultProvider;
+    return this;
+  }
+
   /**
    * Builds and validates the final TokenConfigV4
    * @returns The complete TokenConfigV4 object
    * @throws {Error} If required fields are missing or invalid
    */
-  build(): TokenConfigV4 {
+  async build(): Promise<TokenConfigV4> {
     if (!this.config.name || !this.config.symbol) {
       throw new Error('Name and symbol are required');
     }
@@ -412,8 +436,13 @@ export class TokenConfigV4Builder {
       };
     }
 
-    return {
-      ...this.config,
-    } as TokenConfigV4;
+    this.config.salt = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    if (this.vanityAddressProvider) {
+      const res = await this.vanityAddressProvider(this.config as TokenConfigV4);
+      this.config.salt = res.salt;
+      this.config.expectedAddress = res.expectedAddress;
+    }
+
+    return this.config as TokenConfigV4;
   }
 }

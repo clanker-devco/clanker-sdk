@@ -1,21 +1,11 @@
-import { type Address, isAddressEqual, zeroAddress } from 'viem';
-import {
-  POOL_POSITIONS,
-  type PoolPosition,
-  type PoolPositions,
-  WETH_ADDRESS,
-} from '../constants.js';
 import type {
   ClankerMetadata,
   ClankerSocialContext,
   DevBuyConfig,
-  RewardRecipient,
   RewardsConfig,
   TokenConfig,
-  TokenConfigV4,
   VaultConfig,
 } from '../types/index.js';
-import { isValidBps, percentageToBps, validateBpsSum } from '../utils/validation.js';
 
 /**
  * Builder class for creating TokenConfig objects

@@ -1,6 +1,6 @@
 import type { Account, PublicClient, WalletClient } from 'viem';
 import { deployTokenV3 } from './deployment/v3.js';
-import { deployTokenV4, simulateDeploy, withVanityAddress } from './deployment/v4.js';
+import { deployTokenV4, simulateDeploy } from './deployment/v4.js';
 import { availableFees } from './fees/availableFees.js';
 import { claimRewards } from './fees/claim.js';
 import type { TokenConfig, TokenConfigV4 } from './types/index.js';
@@ -68,16 +68,6 @@ export class Clanker {
   }
 
   /**
-   * Generates a vanity address for a V4 token deployment
-   * @param cfg - Token configuration for V4 deployment
-   * @returns Promise resolving to an object containing transaction data, target address, and network info with vanity address
-   */
-  async withVanityAddress(cfg: TokenConfigV4): Promise<BuildV4Result> {
-    const chainId = this.publicClient?.chain?.id || 8453;
-    return withVanityAddress(cfg, chainId);
-  }
-
-  /**
    * Simulates a token deploy using the V4 protocol
    *
    * @param cfg - Token configuration for V4 deployment or pre-built deployment data
@@ -115,7 +105,7 @@ export class Clanker {
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';
-export { TokenConfigV4Builder } from './config/builders.js';
+export { TokenConfigV4Builder } from './config/v4TokenBuilder.js';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
 export * from './services/vanityAddress.js';
