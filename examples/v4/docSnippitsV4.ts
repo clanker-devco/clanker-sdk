@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { TokenConfigV4Builder } from '../../src/config/builders.js';
+import { TokenConfigV4Builder } from '../../src/config/v4TokenBuilder.js';
 import { FEE_CONFIGS, FeeConfigs, PoolPositions } from '../../src/constants.js';
 import { Clanker } from '../../src/index.js';
 
@@ -57,7 +57,7 @@ async function main(): Promise<void> {
     const FRIEND_MULTISIG = '0x1234567890123456789012345678901234567890';
 
     // Build token configuration using the builder pattern for WETH<>ETH pool
-    const tokenConfig = new TokenConfigV4Builder()
+    const tokenConfig = await new TokenConfigV4Builder()
       .withName(`My Cool Project Coin I`)
       .withSymbol('MCPCI')
       .withTokenAdmin(account.address)
@@ -108,7 +108,7 @@ async function main(): Promise<void> {
     console.log('View on BaseScan:', `https://basescan.org/token/${tokenAddress}`);
 
     // non-weth example
-    const tokenConfigNonWeth = new TokenConfigV4Builder()
+    const tokenConfigNonWeth = await new TokenConfigV4Builder()
       .withName(`My Cool Project Coin II`)
       .withSymbol('MCPCII')
       .withTokenAdmin(account.address)

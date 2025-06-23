@@ -11,7 +11,7 @@ import type {
  * Builder class for creating TokenConfig objects
  * Provides a fluent interface for configuring token parameters
  */
-export class TokenConfigBuilder {
+export class TokenConfigV3Builder {
   private config: Partial<TokenConfig> = {};
 
   /**
@@ -19,7 +19,7 @@ export class TokenConfigBuilder {
    * @param name - The name of the token
    * @returns The builder instance for method chaining
    */
-  withName(name: string): TokenConfigBuilder {
+  withName(name: string): TokenConfigV3Builder {
     this.config.name = name;
     return this;
   }
@@ -29,7 +29,7 @@ export class TokenConfigBuilder {
    * @param symbol - The symbol of the token
    * @returns The builder instance for method chaining
    */
-  withSymbol(symbol: string): TokenConfigBuilder {
+  withSymbol(symbol: string): TokenConfigV3Builder {
     this.config.symbol = symbol;
     return this;
   }
@@ -39,7 +39,7 @@ export class TokenConfigBuilder {
    * @param image - The URL of the token's image
    * @returns The builder instance for method chaining
    */
-  withImage(image: string): TokenConfigBuilder {
+  withImage(image: string): TokenConfigV3Builder {
     this.config.image = image;
     return this;
   }
@@ -49,7 +49,7 @@ export class TokenConfigBuilder {
    * @param metadata - The metadata configuration for the token
    * @returns The builder instance for method chaining
    */
-  withMetadata(metadata: ClankerMetadata): TokenConfigBuilder {
+  withMetadata(metadata: ClankerMetadata): TokenConfigV3Builder {
     this.config.metadata = metadata;
     return this;
   }
@@ -59,7 +59,7 @@ export class TokenConfigBuilder {
    * @param context - The social context configuration
    * @returns The builder instance for method chaining
    */
-  withContext(context: ClankerSocialContext): TokenConfigBuilder {
+  withContext(context: ClankerSocialContext): TokenConfigV3Builder {
     this.config.context = context;
     return this;
   }
@@ -69,7 +69,7 @@ export class TokenConfigBuilder {
    * @param vault - The vault configuration
    * @returns The builder instance for method chaining
    */
-  withVault(vault: VaultConfig): TokenConfigBuilder {
+  withVault(vault: VaultConfig): TokenConfigV3Builder {
     this.config.vault = vault;
     return this;
   }
@@ -79,7 +79,7 @@ export class TokenConfigBuilder {
    * @param devBuy - The developer buy configuration
    * @returns The builder instance for method chaining
    */
-  withDevBuy(devBuy: DevBuyConfig): TokenConfigBuilder {
+  withDevBuy(devBuy: DevBuyConfig): TokenConfigV3Builder {
     this.config.devBuy = devBuy;
     return this;
   }
@@ -89,7 +89,7 @@ export class TokenConfigBuilder {
    * @param rewards - The rewards configuration
    * @returns The builder instance for method chaining
    */
-  withRewards(rewards: RewardsConfig): TokenConfigBuilder {
+  withRewards(rewards: RewardsConfig): TokenConfigV3Builder {
     this.config.rewardsConfig = rewards;
     return this;
   }

@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { TokenConfigBuilder } from '../../src/config/builders.js';
+import { TokenConfigV3Builder } from '../../src/config/v3TokenBuilder.js';
 import { Clanker } from '../../src/index.js';
 
 // Load environment variables
@@ -57,7 +57,7 @@ async function main(): Promise<void> {
     console.log('\n🚀 Deploying V3 Token\n');
 
     // Build token configuration using the builder pattern
-    const tokenConfig = new TokenConfigBuilder()
+    const tokenConfig = new TokenConfigV3Builder()
       .withName('My Token V3.1')
       .withSymbol('TKN3.1')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')

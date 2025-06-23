@@ -1,4 +1,4 @@
-import { TokenConfigV4Builder } from '../../src/config/builders.js';
+import { TokenConfigV4Builder } from '../../src/config/v4TokenBuilder.js';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
 import { Clanker } from '../../src/index.js';
@@ -43,7 +43,7 @@ async function main(): Promise<void> {
     const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
 
     // Build token configuration using the builder pattern
-    const tokenConfig = new TokenConfigV4Builder()
+    const tokenConfig = await new TokenConfigV4Builder()
       .withName(`My Token`)
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
@@ -95,11 +95,11 @@ async function main(): Promise<void> {
       })
       // example of dynamic fee config
       .withDynamicFeeConfig(FEE_CONFIGS.DynamicBasic)
+      .withSalt()
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 
-    // Build the deployment data without deploying
-    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
+
 
     // without vanity address
     // const deploymentData = clanker.buildV4(tokenConfig);

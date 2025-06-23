@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { TokenConfigV4Builder } from '../../src/config/builders.js';
+import { TokenConfigV4Builder } from '../../src/config/v4TokenBuilder.js';
 import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { Clanker } from '../../src/index.js';
 
@@ -107,11 +107,10 @@ async function main(): Promise<void> {
       // Dynamic fee configuration
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100})
+      .withSalt()
       .build();
 
-    // Deploy the token with vanity address
-    const vanityConfig = await clanker.withVanityAddress(tokenConfig);
-    const tokenAddress = await clanker.deployToken(vanityConfig);
+    const tokenAddress = await clanker.deployToken(tokenConfig);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);
