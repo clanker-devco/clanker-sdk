@@ -18,11 +18,6 @@ export interface ITokenData {
   name: string;
 }
 
-export interface IPoolConfig {
-  pairedToken: `0x${string}`;
-  tickIfToken0IsNewToken: number;
-}
-
 export type TokenPair =
   | 'WETH'
   | 'DEGEN'
@@ -56,31 +51,6 @@ export const VALID_TOKEN_PAIR_ADDRESSES: `0x${string}`[] = [
   A0X_ADDRESS,
   NATIVE_ADDRESS,
 ];
-
-export interface DeployFormData {
-  name: string;
-  symbol: string;
-  image: File | null;
-  imageUrl: string;
-  description: string;
-  devBuyAmount: string | number;
-  lockupPercentage: number;
-  vestingUnlockDate: bigint | null;
-  enableDevBuy: boolean;
-  enableLockup: boolean;
-  feeRecipient: string | null;
-  telegramLink: string;
-  websiteLink: string;
-  xLink: string;
-  marketCap: string;
-  farcasterLink: string;
-  pairedToken: string;
-  creatorRewardsRecipient: string;
-  creatorRewardsAdmin: string;
-  creatorReward?: number;
-  interfaceAdmin?: string;
-  interfaceRewardRecipient?: string;
-}
 
 export interface ClankerMetadata {
   description?: string;
@@ -129,10 +99,4 @@ export interface TokenConfig {
   vault?: VaultConfig;
   devBuy?: DevBuyConfig;
   rewardsConfig?: RewardsConfig;
-}
-
-export interface IClankerDeployConfig {
-  devBuyAmount: number;
-  lockupPercentage: number;
-  vestingUnlockDate: number;
 }

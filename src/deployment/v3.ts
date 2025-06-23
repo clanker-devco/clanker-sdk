@@ -1,6 +1,5 @@
 import { type Address, type PublicClient, parseEventLogs, type WalletClient } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
-import { buildTransaction } from '../services/buildTransaction.js';
 import { getTokenPairByAddress } from '../services/desiredPrice.js';
 import type { TokenConfig } from '../types/index.js';
 import { getDesiredPriceAndPairAddress } from '../utils/desired-price.js';
