@@ -2,27 +2,15 @@ import {
   type Account,
   type Address,
   decodeFunctionResult,
-  encodeAbiParameters,
-  encodeFunctionData,
   type PublicClient,
   parseEventLogs,
   type WalletClient,
 } from 'viem';
 import { call } from 'viem/actions';
-import { base } from 'viem/chains';
-import { DEFAULT_SUPPLY } from '../../src/constants.js';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
-import {
-  CLANKER_AIRDROP_V4,
-  CLANKER_DEVBUY_V4,
-  CLANKER_FACTORY_V4,
-  CLANKER_LOCKER_V4,
-  CLANKER_MEV_MODULE_V4,
-  CLANKER_VAULT_V4,
-} from '../constants.js';
-import { findVanityAddressV4 } from '../services/vanityAddress.js';
-import { encodeFeeConfig } from '../types/fee.js';
-import type { BuildV4Result, TokenConfigV4 } from '../types/v4.js';
+import { TokenConfigV4Builder } from '../config/v4TokenBuilder.js';
+import type { TokenConfigV4 } from '../types/index.js';
+import type { BuildV4Result } from '../types/v4.js';
 
 // Custom JSON replacer to handle BigInt serialization
 const bigIntReplacer = (_key: string, value: unknown) => {
@@ -31,202 +19,6 @@ const bigIntReplacer = (_key: string, value: unknown) => {
   }
   return value;
 };
-
-// Default configuration constants
-const DEFAULT_SALT = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
-
-// Null DevBuy configuration when paired token is WETH
-const NULL_DEVBUY_POOL_CONFIG = {
-  currency0: '0x0000000000000000000000000000000000000000',
-  currency1: '0x0000000000000000000000000000000000000000',
-  fee: 0,
-  tickSpacing: 0,
-  hooks: '0x0000000000000000000000000000000000000000',
-} as const;
-
-// ABI parameter types
-const VAULT_EXTENSION_PARAMETERS = [
-  { type: 'address' },
-  { type: 'uint256' },
-  { type: 'uint256' },
-] as const;
-
-const AIRDROP_EXTENSION_PARAMETERS = [
-  { type: 'bytes32' },
-  { type: 'uint256' },
-  { type: 'uint256' },
-] as const;
-
-const DEVBUY_EXTENSION_PARAMETERS = [
-  {
-    type: 'tuple',
-    components: [
-      { type: 'address', name: 'currency0' },
-      { type: 'address', name: 'currency1' },
-      { type: 'uint24', name: 'fee' },
-      { type: 'int24', name: 'tickSpacing' },
-      { type: 'address', name: 'hooks' },
-    ],
-  },
-  { type: 'uint128' },
-  { type: 'address' },
-] as const;
-
-export function buildTokenV4(
-  cfg: TokenConfigV4,
-  chainId: number,
-  salt?: `0x${string}`
-): BuildV4Result {
-  // Get fee configuration
-  const feeConfig = cfg.feeConfig;
-  const { hook, poolData } = encodeFeeConfig(feeConfig);
-
-  // check pool config has position
-  if (cfg.poolConfig.positions.length === 0) {
-    throw new Error('Pool configuration must have at least one position');
-  }
-
-  // check that the starting price has a lower tick position that touches it
-  const found = cfg.poolConfig.positions.some(
-    (position) => position.tickLower === cfg.poolConfig.tickIfToken0IsClanker
-  );
-  if (!found) {
-    throw new Error(
-      'Starting price must have a lower tick position that touches it, please check that your positions align with the starting price.'
-    );
-  }
-
-  const deploymentConfig = {
-    tokenConfig: {
-      tokenAdmin: cfg.tokenAdmin,
-      name: cfg.name,
-      symbol: cfg.symbol,
-      salt: salt || DEFAULT_SALT,
-      image: cfg.image || '',
-      metadata: cfg.metadata ? JSON.stringify(cfg.metadata) : '',
-      context: cfg.context ? JSON.stringify(cfg.context) : '',
-      originatingChainId: BigInt(chainId),
-    },
-    lockerConfig: {
-      locker: CLANKER_LOCKER_V4,
-      rewardAdmins: cfg.rewardsConfig.recipients.map((reward) => reward.admin),
-      rewardRecipients: cfg.rewardsConfig.recipients.map((reward) => reward.recipient),
-      rewardBps: cfg.rewardsConfig.recipients.map((reward) => reward.bps),
-      tickLower: cfg.poolConfig.positions.map((p) => p.tickLower),
-      tickUpper: cfg.poolConfig.positions.map((p) => p.tickUpper),
-      positionBps: cfg.poolConfig.positions.map((p) => p.positionBps),
-      lockerData: '0x' as `0x${string}`,
-    },
-    poolConfig: {
-      pairedToken: cfg.poolConfig.pairedToken,
-      tickIfToken0IsClanker: cfg.poolConfig.tickIfToken0IsClanker,
-      tickSpacing: cfg.poolConfig.tickSpacing,
-      hook: hook,
-      poolData: poolData,
-    },
-    mevModuleConfig: {
-      mevModule: CLANKER_MEV_MODULE_V4,
-      mevModuleData: '0x' as `0x${string}`,
-    },
-    extensionConfigs: [
-      // vaulting extension
-      ...(cfg.vault
-        ? [
-            {
-              extension: CLANKER_VAULT_V4,
-              msgValue: 0n,
-              extensionBps: cfg.vault.percentage * 100,
-              extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
-                cfg.tokenAdmin,
-                BigInt(cfg.vault.lockupDuration),
-                BigInt(cfg.vault.vestingDuration),
-              ]),
-            },
-          ]
-        : []),
-      // airdrop extension
-      ...(cfg.airdrop
-        ? [
-            {
-              extension: CLANKER_AIRDROP_V4,
-              msgValue: 0n,
-              extensionBps: cfg.airdrop.percentage * 100,
-              extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
-                cfg.airdrop.merkleRoot,
-                BigInt(cfg.airdrop.lockupDuration),
-                BigInt(cfg.airdrop.vestingDuration),
-              ]),
-            },
-          ]
-        : []),
-      // devBuy extension
-      ...(cfg.devBuy && cfg.devBuy.ethAmount !== 0
-        ? [
-            {
-              extension: CLANKER_DEVBUY_V4,
-              msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
-              extensionBps: 0,
-              extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
-                cfg.devBuy.poolKey ? cfg.devBuy.poolKey : NULL_DEVBUY_POOL_CONFIG,
-                cfg.devBuy.amountOutMin ? BigInt(cfg.devBuy.amountOutMin * 1e18) : BigInt(0),
-                cfg.tokenAdmin,
-              ]),
-            },
-          ]
-        : []),
-    ],
-  } as const;
-
-  const deployCalldata = encodeFunctionData({
-    abi: Clanker_v4_abi,
-    functionName: 'deployToken',
-    args: [deploymentConfig],
-  });
-
-  return {
-    type: 'v4',
-    transaction: {
-      to: CLANKER_FACTORY_V4,
-      data: deployCalldata,
-      value: cfg.devBuy && cfg.devBuy.ethAmount !== 0 ? BigInt(cfg.devBuy.ethAmount * 1e18) : 0n,
-    },
-    chainId,
-  };
-}
-
-export async function withVanityAddress(
-  cfg: TokenConfigV4,
-  chainId: number
-): Promise<BuildV4Result> {
-  const { token: expectedAddress, salt } = await findVanityAddressV4(
-    [
-      cfg.name,
-      cfg.symbol,
-      DEFAULT_SUPPLY,
-      cfg.tokenAdmin,
-      cfg.image || '',
-      cfg.metadata ? JSON.stringify(cfg.metadata) : '',
-      cfg.context ? JSON.stringify(cfg.context) : '',
-      BigInt(chainId),
-    ],
-    cfg.tokenAdmin,
-    '0x4b07',
-    {
-      chainId,
-    }
-  );
-
-  console.log('Expected address:', expectedAddress);
-  console.log('Salt:', salt);
-
-  // Build the deployment config with the vanity salt
-  const result = buildTokenV4(cfg, chainId, salt);
-
-  return {
-    ...result,
-    expectedAddress,
-  };
-}
 
 export async function simulateDeploy(
   cfg: TokenConfigV4 | BuildV4Result,
@@ -239,9 +31,16 @@ export async function simulateDeploy(
     }
   | { error: unknown }
 > {
-  const chain = publicClient.chain || base;
+  if (!('transaction' in cfg)) {
+    if (cfg.chainId !== publicClient.chain?.id) {
+      throw new Error(
+        `Token chainId doesn't match public client chainId: ${cfg.chainId} != ${publicClient.chain?.id}`
+      );
+    }
+  }
 
-  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, chain.id);
+  const builder = new TokenConfigV4Builder();
+  const { transaction } = 'transaction' in cfg ? cfg : await builder.buildTransaction(cfg);
 
   try {
     const { data } = await call(publicClient, {
@@ -271,10 +70,17 @@ export async function deployTokenV4(
   publicClient: PublicClient
 ): Promise<Address> {
   const account = wallet?.account;
-  const CHAIN_ID = publicClient.chain?.id;
 
   if (!account) {
     throw new Error('Wallet account required for deployToken');
+  }
+
+  if (!('transaction' in cfg)) {
+    if (cfg.chainId !== publicClient.chain?.id) {
+      throw new Error(
+        `Token chainId doesn't match public client chainId: ${cfg.chainId} != ${publicClient.chain?.id}`
+      );
+    }
   }
 
   // Check wallet balance
@@ -282,7 +88,8 @@ export async function deployTokenV4(
   console.log('Wallet balance:', balance.toString(), 'wei');
   console.log('Wallet balance in ETH:', Number(balance) / 1e18, 'ETH');
 
-  const { transaction } = 'transaction' in cfg ? cfg : buildTokenV4(cfg, CHAIN_ID || 8453);
+  const builder = new TokenConfigV4Builder();
+  const { transaction } = 'transaction' in cfg ? cfg : await builder.buildTransaction(cfg);
 
   console.log('Deployment config:', JSON.stringify(transaction, bigIntReplacer, 2));
 

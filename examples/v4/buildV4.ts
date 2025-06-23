@@ -1,7 +1,6 @@
 import { TokenConfigV4Builder } from '../../src/config/v4TokenBuilder.js';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
-import { Clanker } from '../../src/index.js';
 
 /**
  * Example showing how to build V4 token deployment data without deploying
@@ -16,9 +15,6 @@ async function main(): Promise<void> {
 
     const CREATOR_ADDRESS = '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`;
     const INTERFACE_ADMIN_ADDRESS = '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`;
-
-    // Initialize Clanker SDK
-    const clanker = new Clanker();
 
     console.log('\n🏗️ Building V4 Token Deployment Data\n');
 
@@ -99,8 +95,6 @@ async function main(): Promise<void> {
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
       .build();
 
-
-
     // without vanity address
     // const deploymentData = clanker.buildV4(tokenConfig);
 
@@ -114,11 +108,11 @@ async function main(): Promise<void> {
     console.log('Example Merkle proof for first entry:', proof);
 
     console.log('\n📝 Deployment Data Preview:');
-    console.log('Network:', vanityConfig.chainId);
-    console.log('Transaction To:', vanityConfig.transaction.to);
-    console.log('Transaction Value:', vanityConfig.transaction.value.toString(), 'wei');
-    console.log('Transaction Data:', vanityConfig.transaction.data);
-    console.log('Expected Address:', vanityConfig.expectedAddress);
+    console.log('Network:', tokenConfig.chainId);
+    console.log('Transaction To:', tokenConfig.transaction.to);
+    console.log('Transaction Value:', tokenConfig.transaction.value.toString(), 'wei');
+    console.log('Transaction Data:', tokenConfig.transaction.data);
+    console.log('Expected Address:', tokenConfig.expectedAddress);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Build failed:', error.message);
