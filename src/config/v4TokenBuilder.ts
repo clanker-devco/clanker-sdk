@@ -326,7 +326,7 @@ export class TokenConfigV4Builder {
     return this;
   }
 
-  withSalt(
+  withVanity(
     provider?: (
       config: TokenConfigV4
     ) => Promise<{ expectedAddress: `0x${string}`; salt: `0x${string}` }>

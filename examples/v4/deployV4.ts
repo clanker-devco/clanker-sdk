@@ -107,7 +107,7 @@ async function main(): Promise<void> {
       // Dynamic fee configuration
       .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100})
-      .withSalt()
+      .withVanity()
       .build();
 
     const tokenAddress = await clanker.deployToken(tokenConfig);
