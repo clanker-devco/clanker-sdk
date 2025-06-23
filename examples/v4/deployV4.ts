@@ -61,7 +61,7 @@ async function main(): Promise<void> {
     console.log('\n🚀 Deploying V4 Token\n');
 
     // Build token configuration using the builder pattern
-    const tokenConfig = new TokenConfigV4Builder()
+    const tokenConfig = await new TokenConfigV4Builder()
       .withName(`My Token`)
       .withSymbol('TKN')
       .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')

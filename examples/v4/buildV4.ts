@@ -93,7 +93,7 @@ async function main(): Promise<void> {
       .withDynamicFeeConfig(FEE_CONFIGS.DynamicBasic)
       .withSalt()
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
-      .build();
+      .buildTransaction();
 
     // without vanity address
     // const deploymentData = clanker.buildV4(tokenConfig);

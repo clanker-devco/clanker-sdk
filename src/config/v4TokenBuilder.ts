@@ -624,6 +624,7 @@ export class TokenConfigV4Builder {
         value: cfg.devBuy && cfg.devBuy.ethAmount !== 0 ? BigInt(cfg.devBuy.ethAmount * 1e18) : 0n,
       },
       chainId: cfg.chainId,
+      expectedAddress: cfg.expectedAddress,
     };
   }
 }
