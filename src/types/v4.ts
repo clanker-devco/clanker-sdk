@@ -52,14 +52,6 @@ export interface MevModuleConfigV4 {
   mevModuleData: `0x${string}`;
 }
 
-export interface DeploymentConfigV4 {
-  tokenConfig: TokenConfigV4;
-  poolConfig: PoolConfigV4;
-  lockerConfig: LockerConfigV4;
-  mevModuleConfig: MevModuleConfigV4;
-  extensionConfigs: ExtensionConfigV4[];
-}
-
 export interface DevBuyExtensionDataV4 {
   pairedTokenPoolKey: {
     currency0: Address;
