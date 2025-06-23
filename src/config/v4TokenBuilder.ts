@@ -22,7 +22,7 @@ import {
 } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import { encodeFeeConfig } from '../types/fee.js';
-import type { RewardRecipient, TokenConfigV4 } from '../types/index.js';
+import type { BuildV4Result, RewardRecipient, TokenConfigV4 } from '../types/index.js';
 import { isValidBps, percentageToBps, validateBpsSum } from '../utils/validation.js';
 
 // Null DevBuy configuration when paired token is WETH
@@ -507,7 +507,7 @@ export class TokenConfigV4Builder {
     return this.config as TokenConfigV4;
   }
 
-  async buildTransaction(config?: TokenConfigV4) {
+  async buildTransaction(config?: TokenConfigV4): Promise<BuildV4Result> {
     const cfg = config ?? (await this.build());
 
     // Get fee configuration
