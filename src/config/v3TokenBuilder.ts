@@ -1,6 +1,7 @@
-import { encodeFunctionData, isAddress, stringify } from 'viem';
+import { type Chain, isAddress, stringify } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY } from '../constants.js';
+import type { ClankerDeployConfig } from '../deployment/deploy.js';
 import { getTokenPairByAddress } from '../services/desiredPrice.js';
 import { findVanityAddress } from '../services/vanityAddress.js';
 import type {
@@ -106,15 +107,11 @@ export class TokenConfigV3Builder {
    * @returns The complete TokenConfig object
    * @throws {Error} If required fields (name and symbol) are missing
    */
-  build(): TokenConfig {
-    if (!this.config.name || !this.config.symbol) {
-      throw new Error('Token name and symbol are required');
-    }
-    return this.config as TokenConfig;
-  }
-
-  async buildTransaction(requestorAddress: `0x${string}`, chainId: number, config?: TokenConfig) {
-    const cfg = config ?? this.build();
+  async build(
+    requestorAddress: `0x${string}`,
+    chain: Chain
+  ): Promise<ClankerDeployConfig<typeof Clanker_v3_1_abi, 'deployToken'>> {
+    const cfg = this.config as TokenConfig;
 
     if (!cfg.name || !cfg.symbol) {
       throw new Error('Token name and symbol are required');
@@ -192,12 +189,12 @@ export class TokenConfigV3Builder {
         cfg.image || '',
         metadata,
         socialContext,
-        BigInt(chainId),
+        BigInt(chain.id),
       ],
       admin,
       '0x4b07',
       {
-        chainId: chainId,
+        chainId: chain.id,
       }
     );
 
@@ -210,63 +207,52 @@ export class TokenConfigV3Builder {
       ? getRelativeUnixTimestamp(Number(vestingUnlockDate))
       : BigInt(0);
 
-    const tokenConfig = {
-      tokenConfig: {
-        name: cfg.name,
-        symbol: cfg.symbol,
-        salt: salt,
-        image: cfg.image || '',
-        metadata: metadata,
-        context: socialContext,
-        originatingChainId: BigInt(chainId),
-      },
-      poolConfig: {
-        pairedToken: pairAddress,
-        tickIfToken0IsNewToken: initialTick || 0,
-      },
-      initialBuyConfig: {
-        pairedTokenPoolFee: 10000,
-        pairedTokenSwapAmountOutMinimum: 0n,
-      },
-      vaultConfig: {
-        vaultDuration: vestingDuration,
-        vaultPercentage: cfg.vault?.percentage || 0,
-      },
-      rewardsConfig: {
-        creatorReward: BigInt(cfg.rewardsConfig?.creatorReward || 40),
-        creatorAdmin: validateAddress(cfg.rewardsConfig?.creatorAdmin, requestorAddress),
-        creatorRewardRecipient: validateAddress(
-          cfg.rewardsConfig?.creatorRewardRecipient,
-          requestorAddress
-        ),
-        interfaceAdmin: validateAddress(cfg.rewardsConfig?.interfaceAdmin, requestorAddress),
-        interfaceRewardRecipient: validateAddress(
-          cfg.rewardsConfig?.interfaceRewardRecipient,
-          requestorAddress
-        ),
-      },
-    } as const;
-
-    try {
-      const deployCalldata = encodeFunctionData({
-        abi: Clanker_v3_1_abi,
-        functionName: 'deployToken',
-        args: [tokenConfig],
-      });
-
-      return {
-        transaction: {
-          to: CLANKER_FACTORY_V3_1,
-          data: deployCalldata,
+    return {
+      abi: Clanker_v3_1_abi,
+      address: CLANKER_FACTORY_V3_1,
+      functionName: 'deployToken',
+      args: [
+        {
+          tokenConfig: {
+            name: cfg.name,
+            symbol: cfg.symbol,
+            salt: salt,
+            image: cfg.image || '',
+            metadata: metadata,
+            context: socialContext,
+            originatingChainId: BigInt(chain.id),
+          },
+          poolConfig: {
+            pairedToken: pairAddress,
+            tickIfToken0IsNewToken: initialTick || 0,
+          },
+          initialBuyConfig: {
+            pairedTokenPoolFee: 10000,
+            pairedTokenSwapAmountOutMinimum: 0n,
+          },
+          vaultConfig: {
+            vaultDuration: vestingDuration,
+            vaultPercentage: cfg.vault?.percentage || 0,
+          },
+          rewardsConfig: {
+            creatorReward: BigInt(cfg.rewardsConfig?.creatorReward || 40),
+            creatorAdmin: validateAddress(cfg.rewardsConfig?.creatorAdmin, requestorAddress),
+            creatorRewardRecipient: validateAddress(
+              cfg.rewardsConfig?.creatorRewardRecipient,
+              requestorAddress
+            ),
+            interfaceAdmin: validateAddress(cfg.rewardsConfig?.interfaceAdmin, requestorAddress),
+            interfaceRewardRecipient: validateAddress(
+              cfg.rewardsConfig?.interfaceRewardRecipient,
+              requestorAddress
+            ),
+          },
         },
-        expectedAddress,
-      };
-    } catch (error: unknown) {
-      console.error('Error encoding function data:', error);
-      console.error('Problematic deployArgs:', tokenConfig);
-      throw new Error(
-        `Failed to encode function data: ${error instanceof Error ? error.message : error}`
-      );
-    }
+      ],
+      // todo
+      value: 0n,
+      expectedAddress,
+      chain: chain,
+    };
   }
 }

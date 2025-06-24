@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const ClankerFeeLocker_abi = [
   {
     inputs: [{ internalType: 'address', name: 'owner_', type: 'address' }],
@@ -156,4 +158,4 @@ export const ClankerFeeLocker_abi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

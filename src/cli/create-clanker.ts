@@ -5,13 +5,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as dotenv from 'dotenv';
 import inquirer from 'inquirer';
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  type PublicClient,
-  type WalletClient,
-} from 'viem';
+import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { Clanker, type TokenConfig } from '../index.js';
@@ -508,7 +502,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         account,
         chain: base,
         transport,
-      }) as WalletClient;
+      });
 
       // Initialize Clanker SDK
       const clanker = new Clanker({

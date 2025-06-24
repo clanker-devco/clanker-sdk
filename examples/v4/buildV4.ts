@@ -93,7 +93,7 @@ async function main(): Promise<void> {
       .withDynamicFeeConfig(FEE_CONFIGS.DynamicBasic)
       .withVanity()
       // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
-      .buildTransaction();
+      .build();
 
     // without vanity address
     // const deploymentData = clanker.buildV4(tokenConfig);
@@ -108,10 +108,10 @@ async function main(): Promise<void> {
     console.log('Example Merkle proof for first entry:', proof);
 
     console.log('\n📝 Deployment Data Preview:');
-    console.log('Network:', tokenConfig.chainId);
-    console.log('Transaction To:', tokenConfig.transaction.to);
-    console.log('Transaction Value:', tokenConfig.transaction.value.toString(), 'wei');
-    console.log('Transaction Data:', tokenConfig.transaction.data);
+    console.log('Network:', tokenConfig.chain?.id);
+    console.log('Transaction To:', tokenConfig.address);
+    console.log('Transaction Value:', tokenConfig.value?.toString(), 'wei');
+    console.log('Transaction Data:', tokenConfig.args);
     console.log('Expected Address:', tokenConfig.expectedAddress);
   } catch (error) {
     if (error instanceof Error) {

@@ -1,10 +1,4 @@
-import {
-  type Address,
-  encodeAbiParameters,
-  encodeFunctionData,
-  isAddressEqual,
-  zeroAddress,
-} from 'viem';
+import { type Address, encodeAbiParameters, isAddress, isAddressEqual, zeroAddress } from 'viem';
 import { base } from 'viem/chains';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import {
@@ -20,10 +14,15 @@ import {
   type PoolPositions,
   WETH_ADDRESS,
 } from '../constants.js';
+import type { ClankerDeployConfig } from '../deployment/deploy.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import { encodeFeeConfig } from '../types/fee.js';
-import type { BuildV4Result, RewardRecipient, TokenConfigV4 } from '../types/index.js';
+import type { RewardRecipient, TokenConfigV4 } from '../types/index.js';
 import { isValidBps, percentageToBps, validateBpsSum } from '../utils/validation.js';
+
+const exists = <T>(obj: T | undefined | null): obj is T => {
+  return !!obj;
+};
 
 // Null DevBuy configuration when paired token is WETH
 const NULL_DEVBUY_POOL_CONFIG = {
@@ -359,38 +358,40 @@ export class TokenConfigV4Builder {
    * @returns The complete TokenConfigV4 object
    * @throws {Error} If required fields are missing or invalid
    */
-  async build(): Promise<TokenConfigV4> {
-    if (!this.config.name || !this.config.symbol) {
+  async build(): Promise<ClankerDeployConfig<typeof Clanker_v4_abi, 'deployToken'>> {
+    const cfg = this.config;
+
+    if (!exists(cfg.name) || !exists(cfg.symbol)) {
       throw new Error('Name and symbol are required');
     }
 
-    if (!this.config.chainId) {
-      this.config.chainId = base.id;
+    if (!cfg.chainId) {
+      cfg.chainId = base.id;
     }
 
-    if (!this.config.tokenAdmin || !this.config.tokenAdmin.length) {
+    if (!exists(cfg.tokenAdmin) || !isAddress(cfg.tokenAdmin)) {
       throw new Error('Token admin is required');
     }
 
     // Validate vault allocation if present
-    if (this.config.vault?.percentage) {
-      const vaultBps = percentageToBps(this.config.vault.percentage);
+    if (cfg.vault?.percentage) {
+      const vaultBps = percentageToBps(cfg.vault.percentage);
       if (!isValidBps(vaultBps)) {
-        throw new Error(`Invalid vault percentage: ${this.config.vault.percentage}`);
+        throw new Error(`Invalid vault percentage: ${cfg.vault.percentage}`);
       }
     }
 
     // Validate airdrop allocation if present
-    if (this.config.airdrop?.percentage) {
-      const airdropBps = percentageToBps(this.config.airdrop.percentage);
+    if (cfg.airdrop?.percentage) {
+      const airdropBps = percentageToBps(cfg.airdrop.percentage);
       if (!isValidBps(airdropBps)) {
-        throw new Error(`Invalid airdrop percentage: ${this.config.airdrop.percentage}`);
+        throw new Error(`Invalid airdrop percentage: ${cfg.airdrop.percentage}`);
       }
     }
 
     // Validate rewards config if present
-    if (this.config.rewardsConfig) {
-      const rewardsConfig = this.config.rewardsConfig;
+    if (exists(cfg.rewardsConfig)) {
+      const { rewardsConfig } = cfg;
 
       // Validate admins array
       if (rewardsConfig.recipients.length === 0) {
@@ -404,11 +405,11 @@ export class TokenConfigV4Builder {
       }
     } else {
       // Default rewards config to 100% to token admin
-      this.config.rewardsConfig = {
+      cfg.rewardsConfig = {
         recipients: [
           {
-            admin: this.config.tokenAdmin,
-            recipient: this.config.tokenAdmin,
+            admin: cfg.tokenAdmin,
+            recipient: cfg.tokenAdmin,
             bps: 10000,
           },
         ],
@@ -416,8 +417,8 @@ export class TokenConfigV4Builder {
     }
 
     // Validate pool config if present
-    if (this.config.poolConfig) {
-      const { hook, pairedToken, tickIfToken0IsClanker, positions } = this.config.poolConfig;
+    if (cfg.poolConfig) {
+      const { hook, pairedToken, tickIfToken0IsClanker, positions } = cfg.poolConfig;
       console.log('positions', positions);
 
       if (!hook || !pairedToken) {
@@ -455,7 +456,7 @@ export class TokenConfigV4Builder {
       }
     } else {
       // use default pool config
-      this.config.poolConfig = {
+      cfg.poolConfig = {
         pairedToken: WETH_ADDRESS,
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
@@ -466,8 +467,8 @@ export class TokenConfigV4Builder {
     }
 
     // Validate fee config if present
-    if (this.config.feeConfig) {
-      const feeConfig = this.config.feeConfig;
+    if (cfg.feeConfig) {
+      const { feeConfig } = cfg;
 
       if (feeConfig.type === 'dynamic') {
         const { baseFee, maxLpFee } = feeConfig;
@@ -490,25 +491,19 @@ export class TokenConfigV4Builder {
       }
     } else {
       // Default fee config to 1% static fee
-      this.config.feeConfig = {
+      cfg.feeConfig = {
         type: 'static',
         clankerFee: 10000,
         pairedFee: 10000,
       };
     }
 
-    this.config.salt = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    cfg.salt = '0x0000000000000000000000000000000000000000000000000000000000000000';
     if (this.vanityAddressProvider) {
-      const res = await this.vanityAddressProvider(this.config as TokenConfigV4);
-      this.config.salt = res.salt;
-      this.config.expectedAddress = res.expectedAddress;
+      const res = await this.vanityAddressProvider(cfg as TokenConfigV4);
+      cfg.salt = res.salt;
+      cfg.expectedAddress = res.expectedAddress;
     }
-
-    return this.config as TokenConfigV4;
-  }
-
-  async buildTransaction(config?: TokenConfigV4): Promise<BuildV4Result> {
-    const cfg = config ?? (await this.build());
 
     // Get fee configuration
     const feeConfig = cfg.feeConfig;
@@ -521,7 +516,7 @@ export class TokenConfigV4Builder {
 
     // check that the starting price has a lower tick position that touches it
     const found = cfg.poolConfig.positions.some(
-      (position) => position.tickLower === cfg.poolConfig.tickIfToken0IsClanker
+      (position) => position.tickLower === cfg.poolConfig?.tickIfToken0IsClanker
     );
     if (!found) {
       throw new Error(
@@ -529,102 +524,95 @@ export class TokenConfigV4Builder {
       );
     }
 
-    const deploymentConfig = {
-      tokenConfig: {
-        tokenAdmin: cfg.tokenAdmin,
-        name: cfg.name,
-        symbol: cfg.symbol,
-        salt: cfg.salt,
-        image: cfg.image || '',
-        metadata: cfg.metadata ? JSON.stringify(cfg.metadata) : '',
-        context: cfg.context ? JSON.stringify(cfg.context) : '',
-        originatingChainId: BigInt(cfg.chainId),
-      },
-      lockerConfig: {
-        locker: CLANKER_LOCKER_V4,
-        rewardAdmins: cfg.rewardsConfig.recipients.map((reward) => reward.admin),
-        rewardRecipients: cfg.rewardsConfig.recipients.map((reward) => reward.recipient),
-        rewardBps: cfg.rewardsConfig.recipients.map((reward) => reward.bps),
-        tickLower: cfg.poolConfig.positions.map((p) => p.tickLower),
-        tickUpper: cfg.poolConfig.positions.map((p) => p.tickUpper),
-        positionBps: cfg.poolConfig.positions.map((p) => p.positionBps),
-        lockerData: '0x' as `0x${string}`,
-      },
-      poolConfig: {
-        pairedToken: cfg.poolConfig.pairedToken,
-        tickIfToken0IsClanker: cfg.poolConfig.tickIfToken0IsClanker,
-        tickSpacing: cfg.poolConfig.tickSpacing,
-        hook: hook,
-        poolData: poolData,
-      },
-      mevModuleConfig: {
-        mevModule: CLANKER_MEV_MODULE_V4,
-        mevModuleData: '0x' as `0x${string}`,
-      },
-      extensionConfigs: [
-        // vaulting extension
-        ...(cfg.vault
-          ? [
-              {
-                extension: CLANKER_VAULT_V4,
-                msgValue: 0n,
-                extensionBps: cfg.vault.percentage * 100,
-                extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
-                  cfg.tokenAdmin,
-                  BigInt(cfg.vault.lockupDuration),
-                  BigInt(cfg.vault.vestingDuration),
-                ]),
-              },
-            ]
-          : []),
-        // airdrop extension
-        ...(cfg.airdrop
-          ? [
-              {
-                extension: CLANKER_AIRDROP_V4,
-                msgValue: 0n,
-                extensionBps: cfg.airdrop.percentage * 100,
-                extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
-                  cfg.airdrop.merkleRoot,
-                  BigInt(cfg.airdrop.lockupDuration),
-                  BigInt(cfg.airdrop.vestingDuration),
-                ]),
-              },
-            ]
-          : []),
-        // devBuy extension
-        ...(cfg.devBuy && cfg.devBuy.ethAmount !== 0
-          ? [
-              {
-                extension: CLANKER_DEVBUY_V4,
-                msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
-                extensionBps: 0,
-                extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
-                  cfg.devBuy.poolKey ? cfg.devBuy.poolKey : NULL_DEVBUY_POOL_CONFIG,
-                  cfg.devBuy.amountOutMin ? BigInt(cfg.devBuy.amountOutMin * 1e18) : BigInt(0),
-                  cfg.tokenAdmin,
-                ]),
-              },
-            ]
-          : []),
-      ],
-    } as const;
-
-    const deployCalldata = encodeFunctionData({
+    return {
+      address: CLANKER_FACTORY_V4,
       abi: Clanker_v4_abi,
       functionName: 'deployToken',
-      args: [deploymentConfig],
-    });
-
-    return {
-      type: 'v4',
-      transaction: {
-        to: CLANKER_FACTORY_V4,
-        data: deployCalldata,
-        value: cfg.devBuy && cfg.devBuy.ethAmount !== 0 ? BigInt(cfg.devBuy.ethAmount * 1e18) : 0n,
-      },
-      chainId: cfg.chainId,
+      args: [
+        {
+          tokenConfig: {
+            tokenAdmin: cfg.tokenAdmin,
+            name: cfg.name,
+            symbol: cfg.symbol,
+            salt: cfg.salt,
+            image: cfg.image || '',
+            metadata: cfg.metadata ? JSON.stringify(cfg.metadata) : '',
+            context: cfg.context ? JSON.stringify(cfg.context) : '',
+            originatingChainId: BigInt(cfg.chainId),
+          },
+          lockerConfig: {
+            locker: CLANKER_LOCKER_V4,
+            rewardAdmins: cfg.rewardsConfig.recipients.map((reward) => reward.admin),
+            rewardRecipients: cfg.rewardsConfig.recipients.map((reward) => reward.recipient),
+            rewardBps: cfg.rewardsConfig.recipients.map((reward) => reward.bps),
+            tickLower: cfg.poolConfig.positions.map((p) => p.tickLower),
+            tickUpper: cfg.poolConfig.positions.map((p) => p.tickUpper),
+            positionBps: cfg.poolConfig.positions.map((p) => p.positionBps),
+            lockerData: '0x',
+          },
+          poolConfig: {
+            pairedToken: cfg.poolConfig.pairedToken,
+            tickIfToken0IsClanker: cfg.poolConfig.tickIfToken0IsClanker,
+            tickSpacing: cfg.poolConfig.tickSpacing,
+            hook: hook,
+            poolData: poolData,
+          },
+          mevModuleConfig: {
+            mevModule: CLANKER_MEV_MODULE_V4,
+            mevModuleData: '0x',
+          },
+          extensionConfigs: [
+            // vaulting extension
+            ...(cfg.vault
+              ? [
+                  {
+                    extension: CLANKER_VAULT_V4,
+                    msgValue: 0n,
+                    extensionBps: cfg.vault.percentage * 100,
+                    extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
+                      cfg.tokenAdmin,
+                      BigInt(cfg.vault.lockupDuration),
+                      BigInt(cfg.vault.vestingDuration),
+                    ]),
+                  },
+                ]
+              : []),
+            // airdrop extension
+            ...(cfg.airdrop
+              ? [
+                  {
+                    extension: CLANKER_AIRDROP_V4,
+                    msgValue: 0n,
+                    extensionBps: cfg.airdrop.percentage * 100,
+                    extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
+                      cfg.airdrop.merkleRoot,
+                      BigInt(cfg.airdrop.lockupDuration),
+                      BigInt(cfg.airdrop.vestingDuration),
+                    ]),
+                  },
+                ]
+              : []),
+            // devBuy extension
+            ...(cfg.devBuy && cfg.devBuy.ethAmount !== 0
+              ? [
+                  {
+                    extension: CLANKER_DEVBUY_V4,
+                    msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
+                    extensionBps: 0,
+                    extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
+                      cfg.devBuy.poolKey ? cfg.devBuy.poolKey : NULL_DEVBUY_POOL_CONFIG,
+                      cfg.devBuy.amountOutMin ? BigInt(cfg.devBuy.amountOutMin * 1e18) : BigInt(0),
+                      cfg.tokenAdmin,
+                    ]),
+                  },
+                ]
+              : []),
+          ],
+        },
+      ],
+      value: cfg.devBuy && cfg.devBuy.ethAmount !== 0 ? BigInt(cfg.devBuy.ethAmount * 1e18) : 0n,
       expectedAddress: cfg.expectedAddress,
+      chain: base,
     };
   }
 }

@@ -1,16 +1,5 @@
 import type { Address } from 'viem';
 
-export interface BuildV4Result {
-  type: 'v4';
-  transaction: {
-    to: Address;
-    data: `0x${string}`;
-    value: bigint;
-  };
-  expectedAddress?: `0x${string}`;
-  chainId: number;
-}
-
 export interface VaultConfigV4 {
   percentage: number;
   lockupDuration: number;

@@ -19,6 +19,7 @@ export class ClankerError extends Error {
       rawName: name || 'unknown',
     });
   }
+
   constructor(
     readonly error: Error,
     readonly data: ClankerErrorData
