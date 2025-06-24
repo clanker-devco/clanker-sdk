@@ -249,8 +249,10 @@ export class TokenConfigV3Builder {
           },
         },
       ],
-      // todo
-      value: 0n,
+      value:
+        cfg.devBuy?.ethAmount && cfg.devBuy.ethAmount !== 0
+          ? BigInt(cfg.devBuy.ethAmount * 1e18)
+          : 0n,
       expectedAddress,
       chain: chain,
     };
