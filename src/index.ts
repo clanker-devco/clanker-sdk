@@ -35,6 +35,7 @@ export class Clanker {
 
   /**
    * Collects rewards from a token
+   * @param feeOwnerAddress - The address of the fee owner
    * @param tokenAddress - The address of the token to collect rewards from
    * @returns Promise resolving to the transaction hash
    * @throws {Error} If wallet client or public client is not configured
@@ -51,6 +52,26 @@ export class Clanker {
     return claimRewards(this.publicClient, this.wallet, feeOwnerAddress, tokenAddress, {
       simulate: this.simulate,
     });
+  }
+
+  /**
+   * Builds a claim rewards transaction without executing it
+   * @param feeOwnerAddress - The address of the fee owner
+   * @param tokenAddress - The address of the token to claim rewards from
+   * @returns Object containing the transaction data
+   */
+  buildClaimRewardsTransaction(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+    return claimRewards.transaction(feeOwnerAddress, tokenAddress);
+  }
+
+  /**
+   * Builds a raw claim rewards transaction without executing it
+   * @param feeOwnerAddress - The address of the fee owner
+   * @param tokenAddress - The address of the token to claim rewards from
+   * @returns Object containing the raw transaction data with ABI
+   */
+  buildClaimRewardsRawTransaction(feeOwnerAddress: `0x${string}`, tokenAddress: `0x${string}`) {
+    return claimRewards.rawTransaction(feeOwnerAddress, tokenAddress);
   }
 
   /**
@@ -108,6 +129,13 @@ export type { PublicClient, WalletClient } from 'viem';
 export { TokenConfigV4Builder } from './config/v4TokenBuilder.js';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
+// Re-export fee-related functions and types
+export {
+  type ClaimRewardsFunction,
+  type ClaimRewardsRawTransaction,
+  type ClaimRewardsTransaction,
+  claimRewards,
+} from './fees/claim.js';
 export * from './services/vanityAddress.js';
 // Re-export types and utilities
 export * from './types/index.js';
