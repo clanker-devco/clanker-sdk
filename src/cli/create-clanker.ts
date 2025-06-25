@@ -8,7 +8,8 @@ import inquirer from 'inquirer';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { Clanker, type TokenConfig } from '../index.js';
+import type { ClankerV3Token } from '../config/clankerTokenV3.js';
+import { Clanker } from '../index.js';
 import { validateConfig } from '../utils/validation.js';
 
 // Load environment variables
@@ -29,12 +30,6 @@ async function createClanker() {
 
   // Initialize wallet with private key
   const account = privateKeyToAccount(PRIVATE_KEY);
-
-  // Helper function to safely convert address to 0x-prefixed string type
-  function toHexAddress(address: string | undefined): `0x${string}` | undefined {
-    if (!address) return undefined;
-    return address.toLowerCase() as `0x${string}`;
-  }
 
   function checkEnvironment(): boolean {
     const missingVars = [];
@@ -472,18 +467,10 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
           answers.rewardsConfig.creatorReward === 'CUSTOM'
             ? Number(answers.rewardsConfig.customCreatorReward)
             : Number(answers.rewardsConfig.creatorReward),
-        creatorAdmin: toHexAddress(
-          answers.rewardsConfig.creatorAdmin || account.address
-        ) as `0x${string}`,
-        creatorRewardRecipient: toHexAddress(
-          answers.rewardsConfig.creatorRewardRecipient || account.address
-        ) as `0x${string}`,
-        interfaceAdmin: toHexAddress(
-          answers.rewardsConfig.interfaceAdmin || account.address
-        ) as `0x${string}`,
-        interfaceRewardRecipient: toHexAddress(
-          answers.rewardsConfig.interfaceRewardRecipient || account.address
-        ) as `0x${string}`,
+        creatorAdmin: answers.rewardsConfig.creatorAdmin || account.address,
+        creatorRewardRecipient: answers.rewardsConfig.creatorRewardRecipient || account.address,
+        interfaceAdmin: answers.rewardsConfig.interfaceAdmin || account.address,
+        interfaceRewardRecipient: answers.rewardsConfig.interfaceRewardRecipient || account.address,
       },
     };
   }
@@ -520,12 +507,12 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             ? USDC_ADDRESS
             : (answers.customPairedToken as `0x${string}`);
 
-      // Prepare token configuration
-      const tokenConfig: TokenConfig = {
+      const tokenConfig: ClankerV3Token = {
         type: 'v3',
         name: answers.name,
         symbol: answers.symbol,
         image: answers.image,
+        chainId: walletClient.chain.id,
         metadata: {
           description: answers.metadata.description,
           socialMediaUrls: answers.metadata.socialMediaUrls,
@@ -539,38 +526,33 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         },
         pool: {
           quoteToken,
-          initialMarketCap: answers.initialMarketCapUsd,
+          initialMarketCap: Number(answers.initialMarketCapUsd),
         },
-        vault:
-          answers.vaultConfig.vaultPercentage !== '0'
-            ? {
+        ...(answers.vaultConfig.vaultPercentage !== '0'
+          ? {
+              vault: {
                 percentage: parseInt(answers.vaultConfig.vaultPercentage, 10),
                 durationInDays: parseInt(answers.vaultConfig.durationInDays, 10),
-              }
-            : undefined,
-        devBuy:
-          answers.devBuy.ethAmount !== '0'
-            ? {
+              },
+            }
+          : undefined),
+        ...(answers.devBuy.ethAmount !== '0'
+          ? {
+              devBuy: {
                 ethAmount: Number(answers.devBuy.ethAmount),
-              }
-            : undefined,
-        rewardsConfig: {
+              },
+            }
+          : undefined),
+        rewards: {
           creatorReward:
             answers.rewardsConfig.creatorReward === 'CUSTOM'
               ? Number(answers.rewardsConfig.customCreatorReward)
               : Number(answers.rewardsConfig.creatorReward),
-          creatorAdmin: toHexAddress(
-            answers.rewardsConfig.creatorAdmin || account.address
-          ) as `0x${string}`,
-          creatorRewardRecipient: toHexAddress(
-            answers.rewardsConfig.creatorRewardRecipient || account.address
-          ) as `0x${string}`,
-          interfaceAdmin: toHexAddress(
-            answers.rewardsConfig.interfaceAdmin || account.address
-          ) as `0x${string}`,
-          interfaceRewardRecipient: toHexAddress(
-            answers.rewardsConfig.interfaceRewardRecipient || account.address
-          ) as `0x${string}`,
+          creatorAdmin: answers.rewardsConfig.creatorAdmin || account.address,
+          creatorRewardRecipient: answers.rewardsConfig.creatorRewardRecipient || account.address,
+          interfaceAdmin: answers.rewardsConfig.interfaceAdmin || account.address,
+          interfaceRewardRecipient:
+            answers.rewardsConfig.interfaceRewardRecipient || account.address,
         },
       };
 

@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { TokenConfigV4Builder } from '../../src/config/v4TokenBuilder.js';
 import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { Clanker } from '../../src/index.js';
 
@@ -60,32 +59,30 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V4 Token\n');
 
-    // Build token configuration using the builder pattern
-    const tokenConfig = await new TokenConfigV4Builder()
-      .withName(`My Token`)
-      .withSymbol('TKN')
-      .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
-      .withTokenAdmin(account.address)
-      .withMetadata({
+    const { txHash, waitForTransaction, error } = await clanker.deployToken({
+      type: 'v4',
+      name: 'My Token',
+      symbol: 'TKN',
+      image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
+      tokenAdmin: account.address,
+      metadata: {
         description: 'Token with custom configuration including vesting and rewards',
-        socialMediaUrls: [],
-        auditUrls: [],
-      })
-      .withContext({
+      },
+      context: {
         interface: 'Clanker SDK', //insert your interface name here
         platform: '', //social platform identifier (farcaster, X, etc..)
         messageId: '', // cast hash, X URL, etc..
         id: '', // social identifier (FID, X handle, etc..)
-      })
-      .withVault({
+      },
+      vault: {
         percentage: 10, // 10% of token supply
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
-      })
-      .withDevBuy({
+      },
+      devBuy: {
         ethAmount: 0,
-      })
-      .withRewardsRecipients({
+      },
+      rewards: {
         recipients: [
           {
             recipient: account.address,
@@ -98,19 +95,19 @@ async function main(): Promise<void> {
             bps: 5000,
           },
         ],
-      })
-      .withPoolConfig({
+      },
+      pool: {
         pairedToken: WETH_ADDRESS,
-        startingMarketCapInPairedToken: 10,
+        // startingMarketCapInPairedToken: 10, // todo check
         positions: POOL_POSITIONS.Standard, // [...POOL_POSITIONS[PoolPositions.Project]]
-      })
-      // Dynamic fee configuration
-      .withDynamicFeeConfig(FEE_CONFIGS[FeeConfigs.DynamicBasic])
-      // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100})
-      .withVanity()
-      .build();
+      },
+      fees: FEE_CONFIGS[FeeConfigs.DynamicBasic],
+      vanity: true,
+    });
+    if (error) throw error;
 
-    const tokenAddress = await clanker.deployToken(tokenConfig);
+    console.log(`Token deploying in tx: ${txHash}`);
+    const { address: tokenAddress } = await waitForTransaction();
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);

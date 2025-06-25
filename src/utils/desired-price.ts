@@ -10,7 +10,7 @@ import {
 } from '../constants.js';
 import type { TokenPair } from '../types/index.js';
 
-export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: string = '10') => {
+export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: number = 10) => {
   // This is the ratio of token to paired token. In the default case it is WETH.
   // So 0.0000000001 WETH = 1 TOKEN. Since we are deploying with 100000000000 tokens,
   // Then 100000000000 * 0.0000000001 == 10 WETH. So starting market cap is 10 WETH or about 40k.
@@ -19,7 +19,7 @@ export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: string
 
   // Only adjust the desired price for WETH pairs
   if (pair === 'WETH') {
-    desiredPrice = Number(marketCap) * 0.00000000001; // Dynamic market cap in ETH
+    desiredPrice = marketCap * 0.00000000001; // Dynamic market cap in ETH
   }
 
   if (pair === 'DEGEN') {
@@ -81,7 +81,7 @@ export const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: string
     desiredPrice = pricePerTokenInA0x;
     pairAddress = A0X_ADDRESS;
   } else if (pair === 'WMON') {
-    desiredPrice = Number(marketCap) * 0.00000000001; // Dynamic market cap in ETH
+    desiredPrice = marketCap * 0.00000000001; // Dynamic market cap in ETH
     pairAddress = '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701';
   }
 

@@ -49,22 +49,22 @@ export async function deployToken(
   publicClient: PublicClient
 ): ClankerResult<{
   txHash: `0x${string}`;
-  result: () => ClankerResult<{ address: `0x${string}` }>;
+  waitForTransaction: () => ClankerResult<{ address: `0x${string}` }>;
 }> {
   const account = wallet?.account;
   if (!account) {
     throw new Error('Wallet account required for deployToken');
   }
 
-  if (tx.chain?.id !== publicClient.chain?.id) {
+  if (tx.chainId !== publicClient.chain?.id) {
     throw new Error(
-      `Token chainId doesn't match public client chainId: ${tx.chain?.id} != ${publicClient.chain?.id}`
+      `Token chainId doesn't match public client chainId: ${tx.chainId} != ${publicClient.chain?.id}`
     );
   }
 
-  if (tx.chain?.id !== wallet.chain?.id) {
+  if (tx.chainId !== wallet.chain?.id) {
     throw new Error(
-      `Token chainId doesn't match wallet chainId: ${tx.chain?.id} != ${wallet.chain?.id}`
+      `Token chainId doesn't match wallet chainId: ${tx.chainId} != ${wallet.chain?.id}`
     );
   }
 
@@ -89,7 +89,7 @@ export async function deployToken(
 
   return {
     txHash,
-    result: async (): ClankerResult<{ address: `0x${string}` }> => {
+    waitForTransaction: async (): ClankerResult<{ address: `0x${string}` }> => {
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: txHash,
       });
