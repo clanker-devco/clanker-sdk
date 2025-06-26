@@ -115,7 +115,7 @@ export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
   const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
   console.log('initialTick', initialTick);
 
-  const metadata = stringify(cfg.metadata);
+  const metadata = stringify(cfg.metadata) || '';
   const socialContext = stringify(cfg.context);
 
   const creatorAdmin = cfg.rewards.creatorAdmin ?? requestorAddress;
@@ -136,7 +136,9 @@ export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
   );
 
   const vestingUnlockDate = Math.floor(Date.now() / 1000 + cfg.vault.durationInDays * 24 * 60 * 60);
-  const vestingDuration = getRelativeUnixTimestamp(vestingUnlockDate);
+  const vestingDuration = cfg.vault.durationInDays
+    ? getRelativeUnixTimestamp(vestingUnlockDate)
+    : 0n;
 
   return {
     abi: Clanker_v3_1_abi,
@@ -157,8 +159,9 @@ export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
           pairedToken: pairAddress,
           tickIfToken0IsNewToken: initialTick,
         },
+        // This was always set to this for v3_1
         initialBuyConfig: {
-          pairedTokenPoolFee: 10000,
+          pairedTokenPoolFee: 10_000,
           pairedTokenSwapAmountOutMinimum: 0n,
         },
         vaultConfig: {
@@ -176,6 +179,6 @@ export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
     ],
     value: BigInt(cfg.devBuy.ethAmount * 1e18),
     expectedAddress,
-    chain: cfg.chainId,
+    chainId: cfg.chainId,
   };
 };

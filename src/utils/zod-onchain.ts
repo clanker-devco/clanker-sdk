@@ -27,10 +27,10 @@ export const hexSchema = z.custom<`0x${string}`>((val) => {
   if (!(typeof val === 'string')) return false;
   if (!isHex(val)) return false;
   return val;
-}, 'String must be a valid address');
+}, 'String must be valid hex.');
 
 export const addressSchema = z.custom<`0x${string}`>((val) => {
   if (!(typeof val === 'string')) return false;
   if (!isAddress(val)) return false;
   return getAddress(val);
-}, 'String must be a valid address');
+}, 'String must be a valid address.');
