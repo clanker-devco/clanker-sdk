@@ -51,9 +51,19 @@ export class AirdropExtension implements IClankerExtension {
    * @param entries List of airdrop entries with account addresses and amounts
    * @returns The Merkle tree, root, and entries
    */
-  createMerkleTree(entries: AirdropEntry[], supplyBPS: number) {
-    return createMerkleTree(entries, supplyBPS);
+  // createMerkleTree(entries: AirdropEntry[], supplyBPS: number) {
+  //   return createMerkleTree(entries, supplyBPS);
+  // }
+
+   /**
+   * Creates a Merkle tree from a list of airdrop entries
+   * @param entries List of airdrop entries with account addresses and amounts
+   * @returns The Merkle tree, root, and entries
+   */
+  createMerkleTree(addresses: `0x${string}`[], supplyBPS: number) {
+    return createMerkleTree(addresses, supplyBPS);
   }
+
 
   /**
    * Gets the Merkle proof for a specific account and amount

@@ -23,6 +23,7 @@ async function main(): Promise<void> {
     console.log('\n🏗️ Building V4 Token Deployment Data\n');
 
     // Example airdrop entries
+    /*
     const airdropEntries = [
       {
         account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
@@ -36,11 +37,17 @@ async function main(): Promise<void> {
         account: '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825' as `0x${string}`,
         amount: 2, // 2 tokens
       },
+    ];  
+    */
+    const addresses = [
+      '0x308112D06027Cd838627b94dDFC16ea6B4D90004' as `0x${string}`,
+      '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`,
+      '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825' as `0x${string}`,
     ];
 
     // Create Merkle tree for airdrop
     const airdropExtension = new AirdropExtension();
-    const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries, 10000);
+    const { tree, root, entries, amountPerAddress, leftoverAmount } = airdropExtension.createMerkleTree(addresses, 10000);
 
     // Build token configuration using the builder pattern
     const tokenConfig = new TokenConfigV4Builder()

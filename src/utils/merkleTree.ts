@@ -34,35 +34,39 @@ export function createMerkleTree(addresses: `0x${string}`[], supplyBPS: number):
   entries: [string, string][];
   amountPerAddress: number;
 } {
-  // check for duplicates in the addresses
-  const uniqueAddresses = new Set(addresses.map((address) => address.toString().toLowerCase()));
-  if (uniqueAddresses.size !== addresses.length) {
-    const repeatedAddress = addresses.find((address, index) => addresses.indexOf(address) !== index);
-    throw new Error(`Duplicate address found in airdrop entries: ${repeatedAddress}`);
-  }
-
+  
+    // check for duplicates in the addresses (case-insensitive)
+    const lowerAddresses = addresses.map(address => address.toString().toLowerCase());
+    const uniqueAddresses = new Set(lowerAddresses);
+    if (uniqueAddresses.size !== addresses.length) {
+      const repeatedAddress = lowerAddresses.find((address, index) => 
+        lowerAddresses.indexOf(address) != index
+      );
+      throw new Error(`Duplicate address found in airdrop entries: ${repeatedAddress}`);
+    }
+  
   // check if the supply bps is greater than 90% of the token supply
   if (supplyBPS > 9000) throw new Error('Requested supply is greater than 90%');
-
+  
   // split the supply equally between the addresses
   const bpsPerAddress = Math.floor(supplyBPS / addresses.length);
   const leftoverAmount = supplyBPS - bpsPerAddress * addresses.length;
-
+  
   // create entries with the addresses and the supply bps
   const entries = addresses.map((address) => ({ account: address, amount: bpsPerAddress }));
-
+  
   // Convert entries to the format expected by OpenZeppelin's MerkleTree
   const values = entries.map((entry) => [
     entry.account.toLowerCase(),
     toTokenDecimals(entry.amount).toString(),
   ]) as [string, string][];
-
+  
   // Create the Merkle tree
   const tree = StandardMerkleTree.of(values, ['address', 'uint256']);
-
+  
   // Get the root and ensure it's a proper bytes32 value
   const root = tree.root as `0x${string}`;
-
+  
   return { tree, root, entries: values, amountPerAddress: bpsPerAddress, leftoverAmount };
 }
 
@@ -72,6 +76,7 @@ export function createMerkleTree(addresses: `0x${string}`[], supplyBPS: number):
  * @param leftoverAddress The address to receive the leftover tokens
  * @returns The Merkle tree, root, entries, the bps amount to request, and the amount given to the leftover address
  */
+/*
 export function createMerkleTreeWithAmounts(entries: AirdropEntry[], leftoverAddress: `0x${string}`): {
   tree: StandardMerkleTree<[string, string]>;
   root: `0x${string}`;
@@ -119,6 +124,7 @@ export function createMerkleTreeWithAmounts(entries: AirdropEntry[], leftoverAdd
 
   return { tree, root, entries: values, bpsToRequest, leftoverAmount };
 }
+  */
 
 export function getMerkleProof(
   tree: StandardMerkleTree<[string, string]>,
