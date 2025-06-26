@@ -39,6 +39,11 @@ const ErrorMapping: Partial<Record<ClankerErrorName, ClankerErrorData>> = {
     label: 'Invalid vault configuration',
     rawName: 'InvalidVault',
   },
+  BaseFeeTooLow: {
+    type: 'caller',
+    label: 'Base fee is set too low',
+    rawName: 'BaseFeeTooLow',
+  },
 };
 
 export const understandError = (e: unknown): ClankerError => {

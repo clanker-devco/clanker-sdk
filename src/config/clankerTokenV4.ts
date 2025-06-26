@@ -174,9 +174,9 @@ const clankerV4Token = z.strictObject({
         /** Dynamic fee structure. Takes more fees on token volatility with a baseline fee. */
         type: z.literal('dynamic').default('dynamic'),
         /** Minimum fee. Units are in bps. */
-        baseFee: z.number().min(0).max(2_000),
+        baseFee: z.number().min(25).max(2_000),
         /** Maximum fee. Units are in bps. */
-        maxFee: z.number().min(0).max(2_000),
+        maxFee: z.number().min(0).max(3_000),
         /** Seconds */
         referenceTickFilterPeriod: z.number(),
         /** Seconds */
@@ -418,7 +418,11 @@ function encodeFeeConfig(config: z.infer<typeof clankerV4Token>['fees']): {
   hook: Address;
   poolData: `0x${string}`;
 } {
-  // TODO adjust fees for percentage
+  // Note - Fees hooks don't use bps for all units. Some are bps * 100, for example:
+  // - 1_000_000 = 100%
+  // -   500_000 = 50%
+  // -         0 = 0%
+
   if (config.type === 'static') {
     return {
       hook: CLANKER_HOOK_STATIC_FEE_V4,
@@ -428,11 +432,11 @@ function encodeFeeConfig(config: z.infer<typeof clankerV4Token>['fees']): {
     return {
       hook: CLANKER_HOOK_DYNAMIC_FEE_V4,
       poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
-        config.baseFee,
-        config.maxFee,
+        config.baseFee * 100,
+        config.maxFee * 100,
         BigInt(config.referenceTickFilterPeriod),
         BigInt(config.resetPeriod),
-        config.resetTickFilter,
+        config.resetTickFilter * 100,
         BigInt(config.feeControlNumerator),
         config.decayFilterBps,
       ]),
