@@ -110,10 +110,10 @@ export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
 
   const logBase = 1.0001;
   const tickSpacing = 200;
-  console.log('desiredPrice', desiredPrice);
+  // console.log('desiredPrice', desiredPrice);
   const rawTick = Math.log(desiredPrice) / Math.log(logBase);
   const initialTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
-  console.log('initialTick', initialTick);
+  // console.log('initialTick', initialTick);
 
   const metadata = stringify(cfg.metadata) || '';
   const socialContext = stringify(cfg.context);
