@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import type { ClankerV3TokenInput } from '../../src/config/clankerTokenV3.js';
+import type { ClankerV3Token } from '../../src/config/clankerTokenV3.js';
 import { Clanker } from '../../src/index.js';
 
 // Load environment variables
@@ -56,7 +56,8 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V3 Token\n');
 
-    const token: ClankerV3TokenInput = {
+    const token: ClankerV3Token = {
+      type: 'v3_1',
       name: 'My Token V3.1',
       symbol: 'TKN3.1',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',

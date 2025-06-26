@@ -34,9 +34,9 @@ export async function simulateDeployToken(
   account: Account,
   publicClient: PublicClient
 ) {
-  if (tx.chain?.id !== publicClient.chain?.id) {
+  if (tx.chainId !== publicClient.chain?.id) {
     throw new Error(
-      `Token chainId doesn't match public client chainId: ${tx.chain?.id} != ${publicClient.chain?.id}`
+      `Token chainId doesn't match public client chainId: ${tx.chainId} != ${publicClient.chain?.id}`
     );
   }
 

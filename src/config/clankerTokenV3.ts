@@ -2,9 +2,8 @@ import { isAddress, stringify } from 'viem';
 import * as z from 'zod/v4';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY } from '../constants.js';
-import { getTokenPairByAddress } from '../services/desiredPrice.js';
 import { findVanityAddress } from '../services/vanityAddress.js';
-import { getDesiredPriceAndPairAddress } from '../utils/desired-price.js';
+import { getDesiredPriceAndPairAddress, getTokenPairByAddress } from '../utils/desired-price.js';
 import { getRelativeUnixTimestamp } from '../utils/unix-timestamp.js';
 import {
   addressSchema,
@@ -13,9 +12,10 @@ import {
 } from '../utils/zod-onchain.js';
 import type { ClankerTokenConverter } from './clankerTokens.js';
 
+/** Clanker v3.1 token definition. */
 const clankerV3Token = z.strictObject({
-  /** Type of the token. This is used for internal logic and should not be changed. */
-  type: z.literal('v3'),
+  /** Type of the token. This is used for internal logic and must not be changed. */
+  type: z.literal('v3_1'),
   /** Name of the token. Example: "My Token". */
   name: z.string(),
   /** Symbol for the token. Example: "MTK". */
@@ -33,25 +33,33 @@ const clankerV3Token = z.strictObject({
   /** Defines the paired token and initial marketcap. Defaults to WETH (on Base) and 10 ETH mc. */
   pool: z
     .object({
+      /** Token to pair the clanker with. */
       quoteToken: addressSchema,
-      initialMarketCap: z.number(),
+      /** Initial marketcap for the clanker. */
+      initialMarketCap: z.number().default(10),
     })
     .default({
       quoteToken: '0x4200000000000000000000000000000000000006',
       initialMarketCap: 10,
     }),
+  /** Vault a percent of the tokens for some number of days. */
   vault: z
     .object({
+      /** What percentage of the tokens to vault. */
       percentage: z.number(),
+      /** How many days to vault for. */
       durationInDays: z.number(),
     })
     .default({
       percentage: 0,
       durationInDays: 0,
     }),
+  /** Buy some amount of tokens in the deployment transaction. */
   devBuy: z
     .object({
+      /** Value in ETH of the tokens to buy */
       ethAmount: z.number(),
+      /** If the paired token is not ETH, add a route for the ETH to buy the pair. */
       poolKey: z
         .object({
           currency0: addressSchema,
@@ -61,11 +69,13 @@ const clankerV3Token = z.strictObject({
           hooks: addressSchema,
         })
         .optional(),
+      /** If the paired token is not ETH, add an amount expected for the ETH -> pair buy. */
       amountOutMin: z.number().optional(),
     })
     .default({
       ethAmount: 0,
     }),
+  /** Rewards and admins for the token. */
   rewards: z
     .object({
       creatorReward: z.number().default(40),
@@ -82,12 +92,12 @@ export type ClankerV3Token = z.input<typeof clankerV3Token>;
 
 export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
   config: ClankerV3Token,
-  options: {
-    requestorAddress: `0x${string}`;
+  options?: {
+    requestorAddress?: `0x${string}`;
   }
 ) => {
-  const { requestorAddress } = options;
-  if (!isAddress(requestorAddress)) {
+  const requestorAddress = options?.requestorAddress;
+  if (!requestorAddress || !isAddress(requestorAddress)) {
     throw new Error(`Requestor address is invalid ${requestorAddress}`);
   }
 

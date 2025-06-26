@@ -54,7 +54,7 @@ async function main(): Promise<void> {
 
     // Deploy the token with full configuration
     const tokenAddress = await clanker.deployToken({
-      type: 'v3',
+      type: 'v3_1',
       name: 'My Token',
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',

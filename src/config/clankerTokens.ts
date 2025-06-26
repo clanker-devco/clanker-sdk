@@ -7,15 +7,15 @@ export type ClankerToken = ClankerV3Token | ClankerV4Token;
 
 export type ClankerTokenConverter<Token extends ClankerToken = ClankerToken> = (
   config: Token,
-  options: {
-    requestorAddress: `0x${string}`;
+  options?: {
+    requestorAddress?: `0x${string}`;
   }
 ) => Promise<
   ClankerTransactionConfig<ClankerFactory, 'deployToken'> & { expectedAddress?: `0x${string}` }
 >;
 
 export const clankerTokenConverters = {
-  v3: { converter: clankerV3Converter as ClankerTokenConverter },
+  v3_1: { converter: clankerV3Converter as ClankerTokenConverter },
   v4: { converter: clankerV4Converter as ClankerTokenConverter },
 } as const satisfies Record<
   NonNullable<ClankerToken['type']>,

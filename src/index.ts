@@ -112,12 +112,9 @@ export class Clanker {
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';
-export { TokenConfigV4Builder } from './config/v4TokenBuilder.js';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
 export * from './services/vanityAddress.js';
-// Re-export types and utilities
-export * from './types/index.js';
 export * from './utils/clankers.js';
 export {
   type AirdropEntry,

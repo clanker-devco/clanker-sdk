@@ -508,7 +508,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             : (answers.customPairedToken as `0x${string}`);
 
       const tokenConfig: ClankerV3Token = {
-        type: 'v3',
+        type: 'v3_1',
         name: answers.name,
         symbol: answers.symbol,
         image: answers.image,

@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { FEE_CONFIGS, FeeConfigs, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
+import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { Clanker } from '../../src/index.js';
 
 // Load environment variables
@@ -59,6 +59,13 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V4 Token\n');
 
+    await clanker.deployToken({
+      type: 'v4',
+      name: 'My Token',
+      symbol: 'TKN',
+      tokenAdmin: account.address,
+    });
+
     const { txHash, waitForTransaction, error } = await clanker.deployToken({
       type: 'v4',
       name: 'My Token',
@@ -101,7 +108,7 @@ async function main(): Promise<void> {
         // startingMarketCapInPairedToken: 10, // todo check
         positions: POOL_POSITIONS.Standard, // [...POOL_POSITIONS[PoolPositions.Project]]
       },
-      fees: FEE_CONFIGS[FeeConfigs.DynamicBasic],
+      fees: FEE_CONFIGS.DynamicBasic,
       vanity: true,
     });
     if (error) throw error;

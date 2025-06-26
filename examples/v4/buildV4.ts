@@ -59,8 +59,7 @@ async function main(): Promise<void> {
         merkleRoot: root,
         lockupDuration: 86400, // 1 day
         vestingDuration: 86400, // 1 day
-        entries: airdropEntries,
-        percentage: 10, // 10%
+        amount: airdropEntries.reduce((agg, { amount }) => agg + amount, 0),
       },
       devBuy: {
         ethAmount: 0.0001,
@@ -79,10 +78,11 @@ async function main(): Promise<void> {
           },
         ],
       },
+      // TODO have a helper function create the pool config from a market cap
       pool: {
         pairedToken: WETH_ADDRESS,
-        positions: POOL_POSITIONS.Standard, // other option: [...POOL_POSITIONS[PoolPositions.Project]]
-        startingMarketCapInPairedToken: 10, // todo check this
+        positions: POOL_POSITIONS.Standard, // other option: POOL_POSITIONS.Project
+        // startingMarketCapInPairedToken: 10, // TODO check this
       },
       fees: FEE_CONFIGS.DynamicBasic,
       // fees: { clankerFeeBps: 100, pairedFeeBps: 100}

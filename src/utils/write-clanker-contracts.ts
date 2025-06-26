@@ -39,7 +39,7 @@ export type ClankerTransactionConfig<
   gas?: bigint;
   gasPrice?: bigint;
   value?: bigint;
-  chain?: number;
+  chainId?: number;
 };
 
 export const estimateGasClankerContract = async <
