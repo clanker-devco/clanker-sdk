@@ -127,36 +127,6 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
   ],
 };
 
-// TODO
-export const poolConfigFromMarketCap = (
-  pairedToken: `0x${string}`,
-  marketCapOfPair: number,
-  options?: {
-    pairDecimals?: number;
-    tickSpacing?: number;
-  }
-): Required<ClankerV4Token['pool']> => {
-  const { pairDecimals, tickSpacing } = {
-    pairDecimals: 18,
-    tickSpacing: 200,
-    ...options,
-  };
-
-  const decimalAdjustment = 10 ** (18 - pairDecimals);
-  // Convert market cap to price, adjusted for decimal differences
-  const desiredPrice = marketCapOfPair * 0.00000000001 * decimalAdjustment;
-
-  const logBase = 1.0001;
-  const rawTick = Math.log(desiredPrice) / Math.log(logBase);
-
-  return {
-    pairedToken,
-    tickIfToken0IsClanker: Math.floor(rawTick / tickSpacing) * tickSpacing,
-    tickSpacing,
-    positions: [], // todo
-  };
-};
-
 export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
 }

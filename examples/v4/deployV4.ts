@@ -98,7 +98,6 @@ async function main(): Promise<void> {
       },
       pool: {
         pairedToken: WETH_ADDRESS,
-        // startingMarketCapInPairedToken: 10, // todo check
         positions: POOL_POSITIONS.Standard, // [...POOL_POSITIONS[PoolPositions.Project]]
       },
       fees: FEE_CONFIGS.DynamicBasic,

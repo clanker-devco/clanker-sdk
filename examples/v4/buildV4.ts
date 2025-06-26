@@ -82,7 +82,6 @@ async function main(): Promise<void> {
       pool: {
         pairedToken: WETH_ADDRESS,
         positions: POOL_POSITIONS.Standard, // other option: POOL_POSITIONS.Project
-        // startingMarketCapInPairedToken: 10, // TODO check this
       },
       fees: FEE_CONFIGS.DynamicBasic,
       // fees: { clankerFeeBps: 100, pairedFeeBps: 100}
