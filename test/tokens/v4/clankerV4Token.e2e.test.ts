@@ -121,6 +121,14 @@ describe('v4 end to end', () => {
           }),
         },
         {
+          to: tx.expectedAddress,
+          data: encodeFunctionData({
+            abi: ClankerToken_v4_abi,
+            functionName: 'balanceOf',
+            args: [admin.address],
+          }),
+        },
+        {
           to: CLANKER_VAULT_V4,
           data: encodeFunctionData({
             abi: ClankerVault_v4_abi,
@@ -133,8 +141,15 @@ describe('v4 end to end', () => {
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
-    const [creationResult, nameResult, symbolResult, imageResult, adminResult, vaultResult] =
-      res.results;
+    const [
+      creationResult,
+      nameResult,
+      symbolResult,
+      imageResult,
+      adminResult,
+      balanceResult,
+      vaultResult,
+    ] = res.results;
 
     const address = decodeFunctionResult({
       abi: Clanker_v4_abi,
@@ -166,6 +181,12 @@ describe('v4 end to end', () => {
       data: adminResult.data,
     });
 
+    const balance = decodeFunctionResult({
+      abi: ClankerToken_v4_abi,
+      functionName: 'balanceOf',
+      data: balanceResult.data,
+    });
+
     const [
       vaultToken,
       vaultAmount,
@@ -184,6 +205,8 @@ describe('v4 end to end', () => {
     expect(symbol).toEqual('SYM');
     expect(image).toEqual('www.example.com/image');
     expect(tokenAdmin).toEqual(admin.address);
+    // TODO CHECK THIS
+    expect(balance).toEqual(99850761959421881678276182n);
 
     expect(vaultToken).toEqual(tx.expectedAddress);
     expect(vaultAmount).toEqual((22n * DEFAULT_SUPPLY) / 100n);

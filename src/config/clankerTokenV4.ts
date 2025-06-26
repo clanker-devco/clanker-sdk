@@ -418,7 +418,9 @@ function encodeFeeConfig(config: z.infer<typeof clankerV4Token>['fees']): {
   hook: Address;
   poolData: `0x${string}`;
 } {
-  // Note - Fees hooks don't use bps for all units. Some are bps * 100, for example:
+  // TODO @lily check all units here
+
+  // Note - Fees hooks don't use bps for all units. Some are uniBps (bps * 100), for example:
   // - 1_000_000 = 100%
   // -   500_000 = 50%
   // -         0 = 0%
@@ -426,17 +428,20 @@ function encodeFeeConfig(config: z.infer<typeof clankerV4Token>['fees']): {
   if (config.type === 'static') {
     return {
       hook: CLANKER_HOOK_STATIC_FEE_V4,
-      poolData: encodeAbiParameters(STATIC_FEE_PARAMETERS, [config.clankerFee, config.pairedFee]),
+      poolData: encodeAbiParameters(STATIC_FEE_PARAMETERS, [
+        config.clankerFee * 100, // uniBps
+        config.pairedFee * 100, // uniBps
+      ]),
     };
   } else {
     return {
       hook: CLANKER_HOOK_DYNAMIC_FEE_V4,
       poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
-        config.baseFee * 100,
-        config.maxFee * 100,
+        config.baseFee * 100, // uniBps
+        config.maxFee * 100, // uniBps
         BigInt(config.referenceTickFilterPeriod),
         BigInt(config.resetPeriod),
-        config.resetTickFilter * 100,
+        config.resetTickFilter,
         BigInt(config.feeControlNumerator),
         config.decayFilterBps,
       ]),
