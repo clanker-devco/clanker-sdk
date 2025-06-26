@@ -1,4 +1,4 @@
-export const ClankerAirdrop_abi = [
+export const ClankerAirdrop_v4_abi = [
   {
     inputs: [{ internalType: 'address', name: 'factory_', type: 'address' }],
     stateMutability: 'nonpayable',
@@ -189,4 +189,4 @@ export const ClankerAirdrop_abi = [
     stateMutability: 'pure',
     type: 'function',
   },
-];
+] as const;

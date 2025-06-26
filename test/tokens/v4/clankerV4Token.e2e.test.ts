@@ -13,6 +13,7 @@ import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import {
   Clanker,
+  CLANKER_AIRDROP_V4,
   CLANKER_VAULT_V4,
   DEFAULT_SUPPLY,
   FEE_CONFIGS,
@@ -23,6 +24,7 @@ import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker';
 import { type ClankerV4Token, clankerV4Converter } from '../../../src/config/clankerTokenV4';
 import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
 import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
+import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop';
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -60,7 +62,7 @@ describe('v4 end to end', () => {
         vestingDuration: 1 * 24 * 60 * 60,
       },
       airdrop: {
-        merkleRoot: '0x0000000000000000000000000000000000000000000000000000000000000001',
+        merkleRoot: '0x0000000000000000000220000000000000100000000000000000000000000001',
         lockupDuration: 9 * 24 * 60 * 60,
         vestingDuration: 2 * 24 * 60 * 60,
         amount: 250_000_000,
@@ -136,6 +138,14 @@ describe('v4 end to end', () => {
             args: [tx.expectedAddress],
           }),
         },
+        {
+          to: CLANKER_AIRDROP_V4,
+          data: encodeFunctionData({
+            abi: ClankerAirdrop_v4_abi,
+            functionName: 'airdrops',
+            args: [tx.expectedAddress],
+          }),
+        },
       ],
       account: admin,
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
@@ -149,6 +159,7 @@ describe('v4 end to end', () => {
       adminResult,
       balanceResult,
       vaultResult,
+      airdropResult,
     ] = res.results;
 
     const address = decodeFunctionResult({
@@ -200,14 +211,30 @@ describe('v4 end to end', () => {
       data: vaultResult.data,
     });
 
+    const [
+      airdropMerkleRoot,
+      airdropTotalSupply,
+      airdropTotalClaimed,
+      airdropLockupEndTime,
+      airdropVestingEndTime,
+    ] = decodeFunctionResult({
+      abi: ClankerAirdrop_v4_abi,
+      functionName: 'airdrops',
+      data: airdropResult.data,
+    });
+
+    // Token
     expect(address).toEqual(tx.expectedAddress);
     expect(name).toEqual('TheName');
     expect(symbol).toEqual('SYM');
     expect(image).toEqual('www.example.com/image');
     expect(tokenAdmin).toEqual(admin.address);
+
+    // Dev buy
     // TODO CHECK THIS
     expect(balance).toEqual(99850761959421881678276182n);
 
+    // Vault
     expect(vaultToken).toEqual(tx.expectedAddress);
     expect(vaultAmount).toEqual((22n * DEFAULT_SUPPLY) / 100n);
     expect(vaultAmountClaimed).toEqual(0n);
@@ -220,5 +247,20 @@ describe('v4 end to end', () => {
       -2 // Expected max difference of 50 seconds (10s precision)
     );
     expect(vaultAdmin).toEqual(admin.address);
+
+    // Airdrop
+    expect(airdropMerkleRoot).toEqual(
+      '0x0000000000000000000220000000000000100000000000000000000000000001'
+    );
+    expect(airdropTotalSupply).toEqual(250_000_000_000000000000000000n);
+    expect(airdropTotalClaimed).toEqual(0n);
+    expect(Number(airdropLockupEndTime)).toBeCloseTo(
+      Math.floor(Date.now() / 1_000) + 9 * 24 * 60 * 60,
+      -2 // Expected max difference of 50 seconds (10s precision)
+    );
+    expect(Number(airdropVestingEndTime)).toBeCloseTo(
+      Math.floor(Date.now() / 1_000) + 9 * 24 * 60 * 60 + 2 * 24 * 60 * 60,
+      -2 // Expected max difference of 50 seconds (10s precision)
+    );
   });
 });
