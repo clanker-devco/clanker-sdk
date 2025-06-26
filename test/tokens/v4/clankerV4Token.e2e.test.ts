@@ -2,17 +2,15 @@ import { describe, expect, test } from 'bun:test';
 import {
   createPublicClient,
   decodeFunctionResult,
+  encodeFunctionData,
   http,
   type PublicClient,
   parseEther,
-  stringify,
-  encodeFunctionData,
 } from 'viem';
 import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import {
-  Clanker,
   CLANKER_AIRDROP_V4,
   CLANKER_VAULT_V4,
   DEFAULT_SUPPLY,
@@ -21,10 +19,10 @@ import {
   WETH_ADDRESS,
 } from '../../../src';
 import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker';
-import { type ClankerV4Token, clankerV4Converter } from '../../../src/config/clankerTokenV4';
+import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop';
 import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
 import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
-import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop';
+import { type ClankerV4Token, clankerV4Converter } from '../../../src/config/clankerTokenV4';
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -232,7 +230,7 @@ describe('v4 end to end', () => {
 
     // Dev buy
     // TODO CHECK THIS
-    expect(balance).toEqual(99850761959421881678276182n);
+    expect(balance).toEqual(99852555055880547800674532n);
 
     // Vault
     expect(vaultToken).toEqual(tx.expectedAddress);

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createPublicClient, http, type PublicClient } from 'viem';
+import { createPublicClient, http, isAddress, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { Clanker } from '../../../src';
@@ -23,6 +23,7 @@ describe('v3 deploy', () => {
     );
 
     expect(error).toBeUndefined();
+    expect(isAddress(result?.[0] || '')).toBeTrue();
     expect((result?.[0] || '').toLowerCase()).toEndWith('b07');
   });
 
@@ -68,6 +69,7 @@ describe('v3 deploy', () => {
     );
 
     expect(error).toBeUndefined();
+    expect(isAddress(result?.[0] || '')).toBeTrue();
     expect((result?.[0] || '').toLowerCase()).toEndWith('b07');
   });
 });

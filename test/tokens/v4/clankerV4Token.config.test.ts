@@ -61,7 +61,7 @@ test('basic', async () => {
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
         hook: CLANKER_HOOK_STATIC_FEE_V4,
-        poolData: encodeAbiParameters([{ type: 'uint24' }, { type: 'uint24' }], [100, 100]),
+        poolData: encodeAbiParameters([{ type: 'uint24' }, { type: 'uint24' }], [10_000, 10_000]),
       },
       mevModuleConfig: {
         mevModule: CLANKER_MEV_MODULE_V4,
@@ -175,8 +175,8 @@ test('vanity', async () => {
         tickSpacing: 200,
         hook: CLANKER_HOOK_DYNAMIC_FEE_V4,
         poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
-          50,
-          500,
+          5_000,
+          50_000,
           30n,
           120n,
           200,
