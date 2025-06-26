@@ -1,8 +1,8 @@
-import { expect, test } from 'bun:test';
-import { clankerV3Converter } from '../../../src/config/clankerTokenV3';
-import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
-import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from '../../../src';
+import { describe, expect, test } from 'bun:test';
 import { stringify } from 'viem';
+import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from '../../../src';
+import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
+import { clankerV3Converter } from '../../../src/config/clankerTokenV3';
 
 test('basic', async () => {
   const requestorAddress = '0x746d5412345883b0a4310181DCca3002110967B3';
@@ -239,3 +239,5 @@ test('custom mc', async () => {
   expect(tx.expectedAddress?.toLowerCase()).toEndWith('b07');
   expect(tx.chainId).toEqual(8453);
 });
+
+describe('validations', async () => {});

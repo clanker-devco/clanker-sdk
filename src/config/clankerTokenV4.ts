@@ -18,6 +18,7 @@ import {
   CLANKER_MEV_MODULE_V4,
   CLANKER_VAULT_V4,
   DEFAULT_SUPPLY,
+  POOL_POSITIONS,
   WETH_ADDRESS,
 } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
@@ -51,7 +52,7 @@ const clankerV4Token = z.strictObject({
   /** Id of the chain that the token will be deployed to. Defaults to base (8453). */
   chainId: z.literal(8453).default(8453),
   /** Admin for the token. They will be able to change fields like image, metadata, etc. */
-  tokenAdmin: addressSchema.refine((v) => isAddressEqual(v, zeroAddress), {
+  tokenAdmin: addressSchema.refine((v) => !isAddressEqual(v, zeroAddress), {
     error: 'Admin cannot be zero address',
   }),
   /** Metadata for the token. */
@@ -89,7 +90,7 @@ const clankerV4Token = z.strictObject({
     .prefault({
       pairedToken: WETH_ADDRESS,
       tickIfToken0IsClanker: -230400,
-      positions: [{ tickLower: -230400, tickUpper: 230400, positionBps: 10_000 }],
+      positions: POOL_POSITIONS.Standard,
     })
     .refine((v) => v.positions.some((p) => p.tickLower === v.tickIfToken0IsClanker), {
       error: 'One position must be touching the starting tick.',
@@ -132,8 +133,11 @@ const clankerV4Token = z.strictObject({
       lockupDuration: z.number().min(24 * 60 * 60),
       /** After the lockup, how long the tokens should vest for. Vesting is linear over the duration. In seconds. */
       vestingDuration: z.number().default(0),
-      /** How many tokens to lock up. Denoted in whole tokens (without the 18 decimals). */
-      amount: z.number().max(Number((DEFAULT_SUPPLY * 90n) / 100n / BigInt(1e18))),
+      /** How many tokens to lock up. Denoted in whole tokens (without the 18 decimals). Minimum is 25 bps of the supply. */
+      amount: z
+        .number()
+        .min(Number((DEFAULT_SUPPLY * 25n) / 10_000n / BigInt(1e18)))
+        .max(Number((DEFAULT_SUPPLY * 9_000n) / 10_000n / BigInt(1e18))),
     })
     .optional(),
   /** Token dev buy. Tokens are bought in the token creation transaction. */
@@ -233,7 +237,7 @@ export const clankerV4Converter: ClankerTokenConverter<ClankerV4Token> = async (
     };
   }
 
-  const metadata = stringify(cfg.metadata);
+  const metadata = stringify(cfg.metadata) || '';
   const socialContext = stringify(cfg.context);
 
   const { hook, poolData } = encodeFeeConfig(cfg.fees);
@@ -259,11 +263,20 @@ export const clankerV4Converter: ClankerTokenConverter<ClankerV4Token> = async (
         token: undefined,
       };
 
-  const airdropAmount = (cfg.airdrop?.amount || 0) * 1e18;
-  const bpsAirdropped = Math.ceil((airdropAmount * 10_000) / Number(DEFAULT_SUPPLY));
-  if (airdropAmount < (bpsAirdropped * Number(DEFAULT_SUPPLY)) / 10_000) {
+  const airdropAmount = BigInt(cfg.airdrop?.amount || 0) * BigInt(1e18);
+  // Ensure that we don't undercount the amount needed in the airdrop. Better that we allocate 1bp extra to
+  // the airdrop extension than allocate too little.
+  const bpsAirdropped =
+    (airdropAmount * 10_000n) / DEFAULT_SUPPLY +
+    ((airdropAmount * 10_000n) % DEFAULT_SUPPLY ? 1n : 0n);
+  const roundingVerificationAirdrop = (bpsAirdropped * DEFAULT_SUPPLY) / 10_000n;
+  if (airdropAmount > roundingVerificationAirdrop) {
     throw new Error(
-      `Precision error for airdrop. Expected ${airdropAmount} but only ${(bpsAirdropped * Number(DEFAULT_SUPPLY)) / 10_000} allocated.`
+      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${bpsAirdropped / 10_000n}%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
+    );
+  } else if (roundingVerificationAirdrop - airdropAmount > 1e18) {
+    throw new Error(
+      `Precision error for airdrop. Difference ${airdropAmount - roundingVerificationAirdrop} is too large.`
     );
   }
 
@@ -326,7 +339,7 @@ export const clankerV4Converter: ClankerTokenConverter<ClankerV4Token> = async (
                 {
                   extension: CLANKER_AIRDROP_V4,
                   msgValue: 0n,
-                  extensionBps: bpsAirdropped,
+                  extensionBps: Number(bpsAirdropped),
                   extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
                     cfg.airdrop.merkleRoot,
                     BigInt(cfg.airdrop.lockupDuration),
@@ -360,19 +373,19 @@ export const clankerV4Converter: ClankerTokenConverter<ClankerV4Token> = async (
 };
 
 // ABI parameter types
-const VAULT_EXTENSION_PARAMETERS = [
+export const VAULT_EXTENSION_PARAMETERS = [
   { type: 'address' },
   { type: 'uint256' },
   { type: 'uint256' },
 ] as const;
 
-const AIRDROP_EXTENSION_PARAMETERS = [
+export const AIRDROP_EXTENSION_PARAMETERS = [
   { type: 'bytes32' },
   { type: 'uint256' },
   { type: 'uint256' },
 ] as const;
 
-const DEVBUY_EXTENSION_PARAMETERS = [
+export const DEVBUY_EXTENSION_PARAMETERS = [
   {
     type: 'tuple',
     components: [
@@ -388,10 +401,10 @@ const DEVBUY_EXTENSION_PARAMETERS = [
 ] as const;
 
 // Static fee encoding parameters
-const STATIC_FEE_PARAMETERS = [{ type: 'uint24' }, { type: 'uint24' }] as const;
+export const STATIC_FEE_PARAMETERS = [{ type: 'uint24' }, { type: 'uint24' }] as const;
 
 // Dynamic fee encoding parameters
-const DYNAMIC_FEE_PARAMETERS = [
+export const DYNAMIC_FEE_PARAMETERS = [
   { type: 'uint24', name: 'baseFee' },
   { type: 'uint24', name: 'maxLpFee' },
   { type: 'uint256', name: 'referenceTickFilterPeriod' },
