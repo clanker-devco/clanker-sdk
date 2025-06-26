@@ -59,13 +59,6 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V4 Token\n');
 
-    await clanker.deployToken({
-      type: 'v4',
-      name: 'My Token',
-      symbol: 'TKN',
-      tokenAdmin: account.address,
-    });
-
     const { txHash, waitForTransaction, error } = await clanker.deployToken({
       type: 'v4',
       name: 'My Token',
