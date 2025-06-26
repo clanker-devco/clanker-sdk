@@ -1,5 +1,5 @@
 import type { ExtractAbiErrorNames } from 'abitype';
-import { BaseError, ContractFunctionRevertedError, InsufficientFundsError } from 'viem';
+import { BaseError, ContractFunctionRevertedError, InsufficientFundsError, stringify } from 'viem';
 import type { ClankerContract } from './clanker-contracts.js';
 
 type ClankerErrorName = ExtractAbiErrorNames<ClankerContract>;
@@ -34,11 +34,18 @@ const ErrorMapping: Partial<Record<ClankerErrorName, ClankerErrorData>> = {
     label: 'No fees to claim',
     rawName: 'NoFeesToClaim',
   },
+  InvalidVaultConfiguration: {
+    type: 'caller',
+    label: 'Invalid vault configuration',
+    rawName: 'InvalidVault',
+  },
 };
 
 export const understandError = (e: unknown): ClankerError => {
   if (!(e instanceof Error)) return ClankerError.unknown(new Error(`${e}`));
   if (!(e instanceof BaseError)) return ClankerError.unknown(e);
+
+  console.log(stringify(e));
 
   const revertError = e.walk((e) => e instanceof ContractFunctionRevertedError);
   if (revertError instanceof ContractFunctionRevertedError) {

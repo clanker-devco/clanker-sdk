@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { expect, test } from 'bun:test';
 import { stringify } from 'viem';
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from '../../../src';
 import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
@@ -81,7 +81,7 @@ test('full', async () => {
         initialMarketCap: 10,
       },
       vault: {
-        percentage: 37,
+        percentage: 21,
         durationInDays: 31,
       },
       devBuy: {
@@ -130,8 +130,8 @@ test('full', async () => {
         pairedTokenSwapAmountOutMinimum: 0n,
       },
       vaultConfig: {
+        vaultPercentage: 21,
         vaultDuration: BigInt(31 * 24 * 60 * 60),
-        vaultPercentage: 37,
       },
       rewardsConfig: {
         creatorReward: 60n,
@@ -173,7 +173,7 @@ test('custom mc', async () => {
         initialMarketCap: 5,
       },
       vault: {
-        percentage: 37,
+        percentage: 29,
         durationInDays: 31,
       },
       devBuy: {
@@ -224,7 +224,7 @@ test('custom mc', async () => {
       },
       vaultConfig: {
         vaultDuration: BigInt(31 * 24 * 60 * 60),
-        vaultPercentage: 37,
+        vaultPercentage: 29,
       },
       rewardsConfig: {
         creatorReward: 60n,
@@ -239,5 +239,3 @@ test('custom mc', async () => {
   expect(tx.expectedAddress?.toLowerCase()).toEndWith('b07');
   expect(tx.chainId).toEqual(8453);
 });
-
-describe('validations', async () => {});

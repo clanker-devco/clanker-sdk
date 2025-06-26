@@ -1,4 +1,4 @@
-export const CLANKER_VAULT_ABI = [
+export const ClankerVault_v3_1_abi = [
   {
     inputs: [
       { internalType: 'address', name: 'owner', type: 'address' },

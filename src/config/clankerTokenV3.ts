@@ -46,7 +46,7 @@ const clankerV3Token = z.strictObject({
   vault: z
     .object({
       /** What percentage of the tokens to vault. */
-      percentage: z.number(),
+      percentage: z.number().max(30),
       /** How many days to vault for. */
       durationInDays: z.number(),
     })
