@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: ['**']
 
+env:
+  TESTS_RPC_URL: ${{ vars.TESTS_RPC_URL }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest

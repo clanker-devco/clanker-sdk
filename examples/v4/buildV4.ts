@@ -1,4 +1,4 @@
-import { TokenConfigV4Builder } from '../../src/config/v4TokenBuilder.js';
+import { type ClankerTokenV4, clankerTokenV4Converter } from '../../src/config/clankerTokenV4.js';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
 
@@ -38,39 +38,33 @@ async function main(): Promise<void> {
     const airdropExtension = new AirdropExtension();
     const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
 
-    // Build token configuration using the builder pattern
-    const tokenConfig = await new TokenConfigV4Builder()
-      .withName(`My Token`)
-      .withSymbol('TKN')
-      .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
-      .withTokenAdmin(CREATOR_ADDRESS)
-      .withMetadata({
+    const token: ClankerTokenV4 = {
+      type: 'v4',
+      name: 'My Token',
+      symbol: 'TKN',
+      image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
+      tokenAdmin: CREATOR_ADDRESS,
+      metadata: {
         description: 'Token with custom configuration including vesting and rewards',
-        socialMediaUrls: [],
-        auditUrls: [],
-      })
-      .withContext({
+      },
+      context: {
         interface: 'Clanker SDK',
-        platform: '',
-        messageId: '',
-        id: '',
-      })
-      .withVault({
+      },
+      vault: {
         percentage: 10, // 10% of token supply
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
-      })
-      .withAirdrop({
+      },
+      airdrop: {
         merkleRoot: root,
         lockupDuration: 86400, // 1 day
         vestingDuration: 86400, // 1 day
-        entries: airdropEntries,
-        percentage: 10, // 10%
-      })
-      .withDevBuy({
+        amount: airdropEntries.reduce((agg, { amount }) => agg + amount, 0),
+      },
+      devBuy: {
         ethAmount: 0.0001,
-      })
-      .withRewardsRecipients({
+      },
+      rewards: {
         recipients: [
           {
             recipient: CREATOR_ADDRESS,
@@ -83,20 +77,16 @@ async function main(): Promise<void> {
             bps: 5000,
           },
         ],
-      })
-      .withPoolConfig({
+      },
+      pool: {
         pairedToken: WETH_ADDRESS,
-        positions: POOL_POSITIONS.Standard, // other option: [...POOL_POSITIONS[PoolPositions.Project]]
-        startingMarketCapInPairedToken: 10,
-      })
-      // example of dynamic fee config
-      .withDynamicFeeConfig(FEE_CONFIGS.DynamicBasic)
-      .withVanity()
-      // .withStaticFeeConfig({ clankerFeeBps: 100, pairedFeeBps: 100}) // 1% fee for both clanker and paired token (100 bps = 1%), 10% max LP fee (1000 bps = 10%)
-      .buildTransaction();
+        positions: POOL_POSITIONS.Standard, // other option: POOL_POSITIONS.Project
+      },
+      fees: FEE_CONFIGS.DynamicBasic, // or { clankerFee: 100, pairedFee: 100 }
+      vanity: true,
+    };
 
-    // without vanity address
-    // const deploymentData = clanker.buildV4(tokenConfig);
+    const tx = await clankerTokenV4Converter(token);
 
     // Example of how to get a Merkle proof for claiming
     const proof = airdropExtension.getMerkleProof(
@@ -108,11 +98,11 @@ async function main(): Promise<void> {
     console.log('Example Merkle proof for first entry:', proof);
 
     console.log('\n📝 Deployment Data Preview:');
-    console.log('Network:', tokenConfig.chainId);
-    console.log('Transaction To:', tokenConfig.transaction.to);
-    console.log('Transaction Value:', tokenConfig.transaction.value.toString(), 'wei');
-    console.log('Transaction Data:', tokenConfig.transaction.data);
-    console.log('Expected Address:', tokenConfig.expectedAddress);
+    console.log('Network:', tx.chainId);
+    console.log('Transaction To:', tx.address);
+    console.log('Transaction Value:', tx.value?.toString(), 'wei');
+    console.log('Transaction Data:', tx.args);
+    console.log('Expected Address:', tx.expectedAddress);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Build failed:', error.message);

@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const Clanker_v3_1_abi = [
   {
     inputs: [{ internalType: 'address', name: 'owner_', type: 'address' }],
@@ -685,4 +687,4 @@ export const Clanker_v3_1_abi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

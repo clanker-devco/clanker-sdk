@@ -54,7 +54,7 @@ async function main(): Promise<void> {
 
     // Deploy the token with full configuration
     const tokenAddress = await clanker.deployToken({
-      type: 'v3',
+      type: 'v3_1',
       name: 'My Token',
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
@@ -71,7 +71,7 @@ async function main(): Promise<void> {
       },
       pool: {
         quoteToken: '0x4200000000000000000000000000000000000006' as `0x${string}`, // WETH on Base
-        initialMarketCap: '10', // 10 ETH initial market cap
+        initialMarketCap: 10, // 10 ETH initial market cap
       },
       vault: {
         percentage: 10, // 10% of tokens vested
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
       devBuy: {
         ethAmount: 0, // 0 ETH initial buy
       },
-      rewardsConfig: {
+      rewards: {
         creatorReward: 40, // 40% creator reward
         creatorAdmin: account.address,
         creatorRewardRecipient: account.address,

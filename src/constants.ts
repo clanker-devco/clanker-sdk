@@ -3,6 +3,7 @@ export const DEFAULT_BASE_RPC = 'https://mainnet.base.org';
 
 // Common addresses
 import { base, baseSepolia } from 'viem/chains';
+import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 
 export const CLANKER_FACTORY_V2: `0x${string}` = '0x732560fa1d1A76350b1A500155BA978031B53833';
 export const LP_LOCKER_V2: `0x${string}` = '0x618A9840691334eE8d24445a4AdA4284Bf42417D';
@@ -82,11 +83,7 @@ export enum PoolPositions {
   Project = 'Project',
 }
 
-export enum FeeConfigs {
-  DynamicBasic = 'DynamicBasic',
-}
-
-export type PoolPosition = {
+type PoolPosition = {
   tickLower: number;
   tickUpper: number;
   positionBps: number;
@@ -98,29 +95,29 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
     {
       tickLower: -230400, // ~$27,000
       tickUpper: -120000, // ~$1.5B
-      positionBps: 10000, // All tokens in one LP position
+      positionBps: 10_000, // All tokens in one LP position
     },
   ],
   Project: [
     {
       tickLower: -230400, // ~$27K
       tickUpper: -214000, // ~$130K
-      positionBps: 1000, // 10% of LP
+      positionBps: 1_000, // 10% of LP
     },
     {
       tickLower: -214000, // ~$130K
       tickUpper: -155000, // ~$50M
-      positionBps: 5000, // 50% of LP
+      positionBps: 5_000, // 50% of LP
     },
     {
       tickLower: -202000, // ~$450K
       tickUpper: -155000, // ~$50M
-      positionBps: 1500, // 15% of LP
+      positionBps: 1_500, // 15% of LP
     },
     {
       tickLower: -155000, // ~$50M
       tickUpper: -120000, // ~$1.5B
-      positionBps: 2000, // 20% of LP
+      positionBps: 2_000, // 20% of LP
     },
     {
       tickLower: -141000, // ~$200M
@@ -130,20 +127,15 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
   ],
 };
 
-export type FeeConfig = {
-  baseFee: number;
-  maxLpFee: number;
-  referenceTickFilterPeriod: number;
-  resetPeriod: number;
-  resetTickFilter: number;
-  feeControlNumerator: number;
-  decayFilterBps: number;
-};
+export enum FeeConfigs {
+  DynamicBasic = 'DynamicBasic',
+}
 
-export const FEE_CONFIGS: Record<FeeConfigs, FeeConfig> = {
-  [FeeConfigs.DynamicBasic]: {
-    baseFee: 5000, // 0.5% minimum fee
-    maxLpFee: 50000, // 5% maximum fee
+export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> = {
+  DynamicBasic: {
+    type: 'dynamic',
+    baseFee: 50, // 0.5% minimum fee
+    maxFee: 500, // 5% maximum fee
     referenceTickFilterPeriod: 30, // 30 seconds
     resetPeriod: 120, // 2 minutes
     resetTickFilter: 200, // 2% price movement

@@ -1,14 +1,14 @@
-import type { Account, PublicClient, WalletClient } from 'viem';
-import { deployTokenV3 } from './deployment/v3.js';
-import { deployTokenV4, simulateDeploy } from './deployment/v4.js';
+import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
+import { clankerTokenConverters } from './config/clankerTokens.js';
+import type { ClankerTokenV3 } from './config/clankerTokenV3.js';
+import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
+import { deployToken, simulateDeployToken } from './deployment/deploy.js';
 import { availableFees } from './fees/availableFees.js';
 import { claimRewards } from './fees/claim.js';
-import type { TokenConfig, TokenConfigV4 } from './types/index.js';
-import type { BuildV4Result } from './types/v4.js';
 import type { ClankerError } from './utils/errors.js';
 
 type ClankerConfig = {
-  wallet?: WalletClient;
+  wallet?: WalletClient<Transport, Chain, Account>;
   publicClient?: PublicClient;
   simulateBeforeWrite?: boolean;
 };
@@ -18,7 +18,7 @@ type ClankerConfig = {
  * Provides methods for deploying and building tokens using V3 and V4 protocols
  */
 export class Clanker {
-  private readonly wallet?: WalletClient;
+  private readonly wallet?: WalletClient<Transport, Chain, Account>;
   private readonly publicClient?: PublicClient;
   private readonly simulate: boolean;
 
@@ -74,12 +74,19 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  async simulateDeployToken(cfg: TokenConfigV4 | BuildV4Result, account?: Account) {
+  async simulateDeployToken(token: ClankerTokenV3 | ClankerTokenV4, account?: Account) {
     const acc = account || this.wallet?.account;
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
-    return simulateDeploy(cfg, acc, this.publicClient);
+    const converter = clankerTokenConverters[token.type]?.converter;
+    if (!converter) throw new Error(`No converter for token type ${token.type}`);
+
+    const input = await converter(token, {
+      requestorAddress: acc.address,
+    });
+
+    return simulateDeployToken(input, acc, this.publicClient);
   }
 
   /**
@@ -88,29 +95,26 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  async deployToken(cfg: TokenConfig | TokenConfigV4 | BuildV4Result) {
+  async deployToken(token: ClankerTokenV3 | ClankerTokenV4) {
     if (!this.wallet) throw new Error('Wallet client required for deployment');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
-    switch (cfg.type) {
-      case 'v4':
-        return deployTokenV4(cfg, this.wallet, this.publicClient);
-      case 'v3':
-        return deployTokenV3(cfg, this.wallet, this.publicClient);
-      default:
-        throw new Error('Invalid config type');
-    }
+    const converter = clankerTokenConverters[token.type]?.converter;
+    if (!converter) throw new Error(`No converter for token type ${token.type}`);
+
+    const input = await converter(token, {
+      requestorAddress: this.wallet.account.address,
+    });
+
+    return deployToken(input, this.wallet, this.publicClient);
   }
 }
 
 // Re-export commonly used types
 export type { PublicClient, WalletClient } from 'viem';
-export { TokenConfigV4Builder } from './config/v4TokenBuilder.js';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
 export * from './services/vanityAddress.js';
-// Re-export types and utilities
-export * from './types/index.js';
 export * from './utils/clankers.js';
 export {
   type AirdropEntry,

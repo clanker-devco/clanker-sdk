@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { TokenConfigV3Builder } from '../../src/config/v3TokenBuilder.js';
+import type { ClankerTokenV3 } from '../../src/config/clankerTokenV3.js';
 import { Clanker } from '../../src/index.js';
 
 // Load environment variables
@@ -56,46 +56,43 @@ async function main(): Promise<void> {
 
     console.log('\n🚀 Deploying V3 Token\n');
 
-    // Build token configuration using the builder pattern
-    const tokenConfig = new TokenConfigV3Builder()
-      .withName('My Token V3.1')
-      .withSymbol('TKN3.1')
-      .withImage('ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
-      .withMetadata({
+    const token: ClankerTokenV3 = {
+      type: 'v3_1',
+      name: 'My Token V3.1',
+      symbol: 'TKN3.1',
+      image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
+      metadata: {
         description: 'SDK deployment',
-        socialMediaUrls: [],
-        auditUrls: [],
-      })
-      .withContext({
+      },
+      context: {
         interface: 'Clanker SDK',
         platform: 'Clanker',
         messageId: 'Deploy Example',
         id: 'TKN3-1',
-      })
-      .withVault({
+      },
+      vault: {
         percentage: 10, // 10% of token supply
         durationInDays: 30, // 30 days vesting
-      })
-      .withDevBuy({
+      },
+      devBuy: {
         ethAmount: 0,
-      })
-      .withRewards({
+      },
+      rewards: {
         creatorReward: 40, // 40% creator reward
         creatorAdmin: account.address,
         creatorRewardRecipient: account.address,
-        interfaceAdmin: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,
-        interfaceRewardRecipient: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace` as `0x${string}`,
-      });
-
-    // Add pool configuration directly to the config object
-    const config = tokenConfig.build();
-    config.pool = {
-      quoteToken: '0x4200000000000000000000000000000000000006' as `0x${string}`, // WETH on Base
-      initialMarketCap: '10', // 10 ETH initial market cap
+        interfaceAdmin: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace`,
+        interfaceRewardRecipient: `0x1eaf444ebDf6495C57aD52A04C61521bBf564ace`,
+      },
     };
 
-    // Deploy the token with v3 configuration
-    const tokenAddress = await clanker.deployToken(config);
+    // Add pool configuration directly to the config object
+    token.pool = {
+      quoteToken: '0x4200000000000000000000000000000000000006', // WETH on Base
+      initialMarketCap: 10, // 10 ETH initial market cap
+    };
+
+    const tokenAddress = await clanker.deployToken(token);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);

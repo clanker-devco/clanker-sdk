@@ -1,4 +1,4 @@
-export const ClankerLpLockerMultiple_abi = [
+export const ClankerLocker_v4_abi = [
   {
     inputs: [
       { internalType: 'address', name: 'owner_', type: 'address' },
@@ -355,4 +355,4 @@ export const ClankerLpLockerMultiple_abi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-];
+] as const;
