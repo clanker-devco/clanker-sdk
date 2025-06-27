@@ -34,5 +34,3 @@ export const addressSchema = z.custom<`0x${string}`>((val) => {
   if (!isAddress(val)) return false;
   return getAddress(val);
 }, 'String must be a valid address.');
-
-export const bpsSchema = z.number().min(0).max(10_000);
