@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { expect, test } from 'bun:test';
 import { encodeAbiParameters, stringify, zeroAddress } from 'viem';
 import {
   CLANKER_AIRDROP_V4,

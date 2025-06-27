@@ -4,7 +4,7 @@ import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { Clanker, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../../src';
 
-describe('v3 deploy', () => {
+describe('v4 deploy', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: base,

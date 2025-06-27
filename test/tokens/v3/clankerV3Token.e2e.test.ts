@@ -13,7 +13,7 @@ import { CLANKER_VAULT_V3_1, DEFAULT_SUPPLY } from '../../../src';
 import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
 import { ClankerToken_v3_1_abi } from '../../../src/abi/v3.1/ClankerToken';
 import { ClankerVault_v3_1_abi } from '../../../src/abi/v3.1/ClankerVault';
-import { type ClankerV3Token, clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
+import { type ClankerTokenV3, clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
 
 describe('v3 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -23,7 +23,7 @@ describe('v3 end to end', () => {
   }) as PublicClient;
 
   test('simulate', async () => {
-    const token: ClankerV3Token = {
+    const token: ClankerTokenV3 = {
       type: 'v3_1',
       name: 'TheName',
       symbol: 'SYM',
