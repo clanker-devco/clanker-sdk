@@ -25,7 +25,7 @@ describe('v3 deploy', () => {
 
     expect(error).toBeUndefined();
     expect(result).toBeDefined();
-    expect(isAddress(result)).toBeTrue();
+    expect(isAddress(result || '')).toBeTrue();
     expect((result || '').toLowerCase().endsWith('b07')).toBeFalse();
   });
 

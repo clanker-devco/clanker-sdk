@@ -78,13 +78,11 @@ async function main(): Promise<void> {
           },
         ],
       },
-      // TODO have a helper function create the pool config from a market cap
       pool: {
         pairedToken: WETH_ADDRESS,
         positions: POOL_POSITIONS.Standard, // other option: POOL_POSITIONS.Project
       },
-      fees: FEE_CONFIGS.DynamicBasic,
-      // fees: { clankerFeeBps: 100, pairedFeeBps: 100}
+      fees: FEE_CONFIGS.DynamicBasic, // or { clankerFee: 100, pairedFee: 100 }
       vanity: true,
     };
 
