@@ -40,7 +40,7 @@ const NULL_DEVBUY_POOL_CONFIG = {
 } as const;
 
 /** Clanker v4 token definition. */
-const clankerV4Token = z.strictObject({
+const clankerTokenV4 = z.strictObject({
   /** Type of the token. This is used for internal logic and must not be changed. */
   type: z.literal('v4'),
   /** Name of the token. Example: "My Token". */
@@ -218,12 +218,12 @@ const clankerV4Token = z.strictObject({
   /** Whether or not to enable the "0xb07" address suffix. */
   vanity: z.boolean().default(false),
 });
-export type ClankerV4Token = z.input<typeof clankerV4Token>;
+export type ClankerTokenV4 = z.input<typeof clankerTokenV4>;
 
-export const clankerV4Converter: ClankerTokenConverter<ClankerV4Token> = async (
-  config: ClankerV4Token
+export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = async (
+  config: ClankerTokenV4
 ) => {
-  const cfg = clankerV4Token.parse(config);
+  const cfg = clankerTokenV4.parse(config);
 
   if (!cfg.rewards) {
     cfg.rewards = {
@@ -414,7 +414,7 @@ export const DYNAMIC_FEE_PARAMETERS = [
   { type: 'uint24', name: 'decayFilterBps' },
 ] as const;
 
-function encodeFeeConfig(config: z.infer<typeof clankerV4Token>['fees']): {
+function encodeFeeConfig(config: z.infer<typeof clankerTokenV4>['fees']): {
   hook: Address;
   poolData: `0x${string}`;
 } {

@@ -1,9 +1,9 @@
 import type { ClankerFactory } from '../utils/clanker-contracts.js';
 import type { ClankerTransactionConfig } from '../utils/write-clanker-contracts.js';
-import { type ClankerV3Token, clankerV3Converter } from './clankerTokenV3.js';
-import { type ClankerV4Token, clankerV4Converter } from './clankerTokenV4.js';
+import { type ClankerTokenV3, clankerTokenV3Converter } from './clankerTokenV3.js';
+import { type ClankerTokenV4, clankerTokenV4Converter } from './clankerTokenV4.js';
 
-export type ClankerToken = ClankerV3Token | ClankerV4Token;
+export type ClankerToken = ClankerTokenV3 | ClankerTokenV4;
 
 export type ClankerTokenConverter<Token extends ClankerToken = ClankerToken> = (
   config: Token,
@@ -15,8 +15,8 @@ export type ClankerTokenConverter<Token extends ClankerToken = ClankerToken> = (
 >;
 
 export const clankerTokenConverters = {
-  v3_1: { converter: clankerV3Converter as ClankerTokenConverter },
-  v4: { converter: clankerV4Converter as ClankerTokenConverter },
+  v3_1: { converter: clankerTokenV3Converter as ClankerTokenConverter },
+  v4: { converter: clankerTokenV4Converter as ClankerTokenConverter },
 } as const satisfies Record<
   NonNullable<ClankerToken['type']>,
   {

@@ -28,7 +28,7 @@ import { ClankerHook_StaticFee_v4_abi } from '../../../src/abi/v4/ClankerHookSta
 import { ClankerLocker_v4_abi } from '../../../src/abi/v4/ClankerLocker';
 import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
 import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
-import { type ClankerV4Token, clankerV4Converter } from '../../../src/config/clankerTokenV4';
+import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -38,7 +38,7 @@ describe('v4 end to end', () => {
   }) as PublicClient;
 
   test('simulate static', async () => {
-    const token: ClankerV4Token = {
+    const token: ClankerTokenV4 = {
       type: 'v4',
       name: 'TheName',
       symbol: 'SYM',
@@ -92,7 +92,7 @@ describe('v4 end to end', () => {
       vanity: true,
     };
 
-    const tx = await clankerV4Converter(token);
+    const tx = await clankerTokenV4Converter(token);
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
     const res = await simulateCalls(publicClient, {
@@ -305,7 +305,7 @@ describe('v4 end to end', () => {
   });
 
   test('simulate dynamic', async () => {
-    const token: ClankerV4Token = {
+    const token: ClankerTokenV4 = {
       type: 'v4',
       name: 'TheName',
       symbol: 'SYM',
@@ -359,7 +359,7 @@ describe('v4 end to end', () => {
       vanity: true,
     };
 
-    const tx = await clankerV4Converter(token);
+    const tx = await clankerTokenV4Converter(token);
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
     const res = await simulateCalls(publicClient, {

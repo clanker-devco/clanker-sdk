@@ -8,7 +8,7 @@ import inquirer from 'inquirer';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import type { ClankerV3Token } from '../config/clankerTokenV3.js';
+import type { ClankerTokenV3 } from '../config/clankerTokenV3.js';
 import { Clanker } from '../index.js';
 import { validateConfig } from '../utils/validation.js';
 
@@ -507,7 +507,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             ? USDC_ADDRESS
             : (answers.customPairedToken as `0x${string}`);
 
-      const tokenConfig: ClankerV3Token = {
+      const tokenConfig: ClankerTokenV3 = {
         type: 'v3_1',
         name: answers.name,
         symbol: answers.symbol,

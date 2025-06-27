@@ -1,7 +1,7 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { clankerTokenConverters } from './config/clankerTokens.js';
-import type { ClankerV3Token } from './config/clankerTokenV3.js';
-import type { ClankerV4Token } from './config/clankerTokenV4.js';
+import type { ClankerTokenV3 } from './config/clankerTokenV3.js';
+import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from './deployment/deploy.js';
 import { availableFees } from './fees/availableFees.js';
 import { claimRewards } from './fees/claim.js';
@@ -74,7 +74,7 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  async simulateDeployToken(token: ClankerV3Token | ClankerV4Token, account?: Account) {
+  async simulateDeployToken(token: ClankerTokenV3 | ClankerTokenV4, account?: Account) {
     const acc = account || this.wallet?.account;
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
@@ -95,7 +95,7 @@ export class Clanker {
    * @returns Promise resolving to the address of the deployed token
    * @throws {Error} If wallet client or public client is not configured
    */
-  async deployToken(token: ClankerV3Token | ClankerV4Token) {
+  async deployToken(token: ClankerTokenV3 | ClankerTokenV4) {
     if (!this.wallet) throw new Error('Wallet client required for deployment');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 

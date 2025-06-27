@@ -3,7 +3,7 @@ export const DEFAULT_BASE_RPC = 'https://mainnet.base.org';
 
 // Common addresses
 import { base, baseSepolia } from 'viem/chains';
-import type { ClankerV4Token } from './config/clankerTokenV4.js';
+import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 
 export const CLANKER_FACTORY_V2: `0x${string}` = '0x732560fa1d1A76350b1A500155BA978031B53833';
 export const LP_LOCKER_V2: `0x${string}` = '0x618A9840691334eE8d24445a4AdA4284Bf42417D';
@@ -131,7 +131,7 @@ export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
 }
 
-export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerV4Token['fees']>> = {
+export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> = {
   DynamicBasic: {
     type: 'dynamic',
     baseFee: 50, // 0.5% minimum fee

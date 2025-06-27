@@ -2,11 +2,11 @@ import { expect, test } from 'bun:test';
 import { stringify } from 'viem';
 import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from '../../../src';
 import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
-import { clankerV3Converter } from '../../../src/config/clankerTokenV3';
+import { clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
 
 test('basic', async () => {
   const requestorAddress = '0x746d5412345883b0a4310181DCca3002110967B3';
-  const tx = await clankerV3Converter(
+  const tx = await clankerTokenV3Converter(
     {
       type: 'v3_1',
       name: 'TheName',
@@ -58,7 +58,7 @@ test('basic', async () => {
 test('full', async () => {
   const requestorAddress = '0x746d5412345883b0a4310181DCca3002110967B3';
 
-  const tx = await clankerV3Converter(
+  const tx = await clankerTokenV3Converter(
     {
       type: 'v3_1',
       name: 'TheName',
@@ -150,7 +150,7 @@ test('full', async () => {
 test('custom mc', async () => {
   const requestorAddress = '0x746d5412345883b0a4310181DCca3002110967B3';
 
-  const tx = await clankerV3Converter(
+  const tx = await clankerTokenV3Converter(
     {
       type: 'v3_1',
       name: 'TheName',

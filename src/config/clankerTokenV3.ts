@@ -13,7 +13,7 @@ import {
 import type { ClankerTokenConverter } from './clankerTokens.js';
 
 /** Clanker v3.1 token definition. */
-const clankerV3Token = z.strictObject({
+const clankerTokenV3 = z.strictObject({
   /** Type of the token. This is used for internal logic and must not be changed. */
   type: z.literal('v3_1'),
   /** Name of the token. Example: "My Token". */
@@ -88,10 +88,10 @@ const clankerV3Token = z.strictObject({
       creatorReward: 40,
     }),
 });
-export type ClankerV3Token = z.input<typeof clankerV3Token>;
+export type ClankerTokenV3 = z.input<typeof clankerTokenV3>;
 
-export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
-  config: ClankerV3Token,
+export const clankerTokenV3Converter: ClankerTokenConverter<ClankerTokenV3> = async (
+  config: ClankerTokenV3,
   options?: {
     requestorAddress?: `0x${string}`;
   }
@@ -101,7 +101,7 @@ export const clankerV3Converter: ClankerTokenConverter<ClankerV3Token> = async (
     throw new Error(`Requestor address is invalid ${requestorAddress}`);
   }
 
-  const cfg = clankerV3Token.parse(config);
+  const cfg = clankerTokenV3.parse(config);
 
   const { desiredPrice, pairAddress } = getDesiredPriceAndPairAddress(
     getTokenPairByAddress(cfg.pool.quoteToken),

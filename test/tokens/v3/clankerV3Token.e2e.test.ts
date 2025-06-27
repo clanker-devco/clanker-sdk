@@ -13,7 +13,7 @@ import { CLANKER_VAULT_V3_1, DEFAULT_SUPPLY } from '../../../src';
 import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
 import { ClankerToken_v3_1_abi } from '../../../src/abi/v3.1/ClankerToken';
 import { ClankerVault_v3_1_abi } from '../../../src/abi/v3.1/ClankerVault';
-import { type ClankerV3Token, clankerV3Converter } from '../../../src/config/clankerTokenV3';
+import { type ClankerV3Token, clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
 
 describe('v3 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -60,7 +60,7 @@ describe('v3 end to end', () => {
       },
     };
 
-    const tx = await clankerV3Converter(token, { requestorAddress: admin.address });
+    const tx = await clankerTokenV3Converter(token, { requestorAddress: admin.address });
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
     const res = await simulateCalls(publicClient, {

@@ -1,4 +1,4 @@
-import { type ClankerV4Token, clankerV4Converter } from '../../src/config/clankerTokenV4.js';
+import { type ClankerTokenV4, clankerTokenV4Converter } from '../../src/config/clankerTokenV4.js';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
 
@@ -38,7 +38,7 @@ async function main(): Promise<void> {
     const airdropExtension = new AirdropExtension();
     const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
 
-    const token: ClankerV4Token = {
+    const token: ClankerTokenV4 = {
       type: 'v4',
       name: 'My Token',
       symbol: 'TKN',
@@ -86,7 +86,7 @@ async function main(): Promise<void> {
       vanity: true,
     };
 
-    const tx = await clankerV4Converter(token);
+    const tx = await clankerTokenV4Converter(token);
 
     // Example of how to get a Merkle proof for claiming
     const proof = airdropExtension.getMerkleProof(
