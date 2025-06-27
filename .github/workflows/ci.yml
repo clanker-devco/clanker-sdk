@@ -7,7 +7,7 @@ on:
     branches: ['**']
 
 env:
-  env_var: ${{ vars.TESTS_RPC_URL }}
+  TESTS_RPC_URL: ${{ vars.TESTS_RPC_URL }}
 
 jobs:
   lint:
