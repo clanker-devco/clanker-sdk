@@ -98,7 +98,7 @@ async function main(): Promise<void> {
       },
       pool: {
         pairedToken: WETH_ADDRESS,
-        positions: POOL_POSITIONS.Standard, // [...POOL_POSITIONS[PoolPositions.Project]]
+        positions: POOL_POSITIONS.Standard, // POOL_POSITIONS.Project
       },
       fees: FEE_CONFIGS.DynamicBasic,
       vanity: true,

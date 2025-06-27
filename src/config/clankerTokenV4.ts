@@ -418,8 +418,6 @@ function encodeFeeConfig(config: z.infer<typeof clankerV4Token>['fees']): {
   hook: Address;
   poolData: `0x${string}`;
 } {
-  // TODO @lily check all units here
-
   // Note - Fees hooks don't use bps for all units. Some are uniBps (bps * 100), for example:
   // - 1_000_000 = 100%
   // -   500_000 = 50%
