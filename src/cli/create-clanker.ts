@@ -10,7 +10,6 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import type { ClankerTokenV3 } from '../config/clankerTokenV3.js';
 import { Clanker } from '../index.js';
-import { validateConfig } from '../utils/validation.js';
 
 // Load environment variables
 dotenv.config();
@@ -556,22 +555,19 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         },
       };
 
-      // Validate the token configuration
-      const tokenValidation = validateConfig(tokenConfig);
-
-      if (!tokenValidation.success) {
+      // Deploy token with validated configuration
+      const { txHash, waitForTransaction, error } = await clanker.deployToken(tokenConfig);
+      if (error) {
         console.error('\n❌ Token configuration validation failed:');
-        console.error(tokenValidation.error?.format());
+        console.error({ error });
         throw new Error('Invalid token configuration');
       }
 
-      console.log('\n✅ Token configuration is valid!');
-      console.log('\n📝 Review your token configuration:\n');
       console.log(JSON.stringify(tokenConfig, null, 2));
 
-      // Deploy token with validated configuration
-      const tokenAddress = await clanker.deployToken(tokenConfig);
+      console.log(`🚀 Deployment sent: ${txHash}`);
 
+      const { address: tokenAddress } = await waitForTransaction();
       console.log('\n✨ Deployment successful!');
       console.log(`📍 Token address: ${tokenAddress}`);
       console.log('\n🌐 View on:');
