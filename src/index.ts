@@ -110,8 +110,6 @@ export class Clanker {
   }
 }
 
-// Re-export commonly used types
-export type { PublicClient, WalletClient } from 'viem';
 export * from './constants.js';
 export { AirdropExtension } from './extensions/index.js';
 export * from './services/vanityAddress.js';
@@ -122,4 +120,3 @@ export {
   encodeAirdropData,
   getMerkleProof,
 } from './utils/merkleTree.js';
-export * from './utils/validation.js';
