@@ -8,7 +8,7 @@ describe('v3 deploy', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: base,
-    transport: http('https://base-mainnet.g.alchemy.com/v2/F-7fog7mLHqfwhp2vWeRCDBpkw6UEavb'),
+    transport: http(process.env.TESTS_RPC_URL),
   }) as PublicClient;
   const clanker = new Clanker({ publicClient });
 
