@@ -5,11 +5,11 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as dotenv from 'dotenv';
 import inquirer from 'inquirer';
-import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
+import { createPublicClient, createWalletClient, http, type PublicClient, stringify } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import type { ClankerTokenV3 } from '../config/clankerTokenV3.js';
-import { Clanker } from '../index.js';
+import { Clanker } from '../v3/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -506,7 +506,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
             ? USDC_ADDRESS
             : (answers.customPairedToken as `0x${string}`);
 
-      const tokenConfig: ClankerTokenV3 = {
+      const token: ClankerTokenV3 = {
         type: 'v3_1',
         name: answers.name,
         symbol: answers.symbol,
@@ -556,14 +556,14 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
       };
 
       // Deploy token with validated configuration
-      const { txHash, waitForTransaction, error } = await clanker.deployToken(tokenConfig);
+      const { txHash, waitForTransaction, error } = await clanker.deploy(token);
       if (error) {
         console.error('\n❌ Token configuration validation failed:');
         console.error({ error });
         throw new Error('Invalid token configuration');
       }
 
-      console.log(JSON.stringify(tokenConfig, null, 2));
+      console.log(stringify(token, null, 2));
 
       console.log(`🚀 Deployment sent: ${txHash}`);
 

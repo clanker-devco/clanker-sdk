@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
-import { Clanker } from '../../src/index.js';
+import { Clanker } from '../../src/v4/index.js';
 
 // Load environment variables
 dotenv.config();

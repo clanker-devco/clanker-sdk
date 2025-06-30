@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { Clanker } from '../../src/index.js';
+import { Clanker } from '../../src/v3/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -53,7 +53,7 @@ async function main(): Promise<void> {
     console.log('\n🚀 Deploying Token\n');
 
     // Deploy the token with full configuration
-    const tokenAddress = await clanker.deployToken({
+    const tokenAddress = await clanker.deploy({
       type: 'v3_1',
       name: 'My Token',
       symbol: 'TKN',
