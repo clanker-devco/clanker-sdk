@@ -8,7 +8,6 @@ test('basic', async () => {
   const requestorAddress = '0x746d5412345883b0a4310181DCca3002110967B3';
   const tx = await clankerTokenV3Converter(
     {
-      type: 'v3_1',
       name: 'TheName',
       symbol: 'SYM',
     },
@@ -60,7 +59,6 @@ test('full', async () => {
 
   const tx = await clankerTokenV3Converter(
     {
-      type: 'v3_1',
       name: 'TheName',
       symbol: 'SYM',
       image: '',
@@ -152,7 +150,6 @@ test('custom mc', async () => {
 
   const tx = await clankerTokenV3Converter(
     {
-      type: 'v3_1',
       name: 'TheName',
       symbol: 'SYM',
       image: '',

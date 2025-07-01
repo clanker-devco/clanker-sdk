@@ -41,8 +41,6 @@ const NULL_DEVBUY_POOL_CONFIG = {
 
 /** Clanker v4 token definition. */
 const clankerTokenV4 = z.strictObject({
-  /** Type of the token. This is used for internal logic and must not be changed. */
-  type: z.literal('v4'),
   /** Name of the token. Example: "My Token". */
   name: z.string(),
   /** Symbol for the token. Example: "MTK". */
