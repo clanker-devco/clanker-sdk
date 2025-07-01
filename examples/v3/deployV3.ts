@@ -3,7 +3,7 @@ import { createPublicClient, createWalletClient, http, type PublicClient } from 
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import type { ClankerTokenV3 } from '../../src/config/clankerTokenV3.js';
-import { Clanker } from '../../src/index.js';
+import { Clanker } from '../../src/v3/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -92,7 +92,7 @@ async function main(): Promise<void> {
       initialMarketCap: 10, // 10 ETH initial market cap
     };
 
-    const tokenAddress = await clanker.deployToken(token);
+    const tokenAddress = await clanker.deploy(token);
 
     console.log('Token deployed successfully!');
     console.log('Token address:', tokenAddress);

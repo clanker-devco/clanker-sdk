@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { createPublicClient, http, isAddress, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { Clanker } from '../../../src';
+import { Clanker } from '../../../src/v3';
 
 describe('v3 deploy', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -13,7 +13,7 @@ describe('v3 deploy', () => {
   const clanker = new Clanker({ publicClient });
 
   test('basic', async () => {
-    const { error, result } = await clanker.simulateDeployToken(
+    const { error, result } = await clanker.deploySimulate(
       {
         type: 'v3_1',
         name: 'TheName',
@@ -28,7 +28,7 @@ describe('v3 deploy', () => {
   });
 
   test('full', async () => {
-    const { error, result } = await clanker.simulateDeployToken(
+    const { error, result } = await clanker.deploySimulate(
       {
         type: 'v3_1',
         name: 'TheName',

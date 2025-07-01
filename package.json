@@ -6,7 +6,9 @@
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./cli": "./dist/cli/cli.js"
+    "./cli": "./dist/cli/cli.js",
+    "./v3": "./dist/v3/index.js",
+    "./v4": "./dist/v4/index.js"
   },
   "bin": {
     "clanker-sdk": "./dist/cli/cli.js"

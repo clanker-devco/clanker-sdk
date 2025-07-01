@@ -3,7 +3,7 @@ import { createPublicClient, createWalletClient, http, type PublicClient } from 
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { FEE_CONFIGS, POOL_POSITIONS } from '../../src/constants.js';
-import { Clanker } from '../../src/index.js';
+import { Clanker } from '../../src/v4/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -55,7 +55,7 @@ async function main(): Promise<void> {
     const FRIEND_EOA = '0x1234567890123456789012345678901234567890';
     const FRIEND_MULTISIG = '0x1234567890123456789012345678901234567890';
 
-    const tokenAddress = await clanker.deployToken({
+    const tokenAddress = await clanker.deploy({
       type: 'v4',
       name: 'My Cool Project Coin I',
       symbol: 'MCPCI',
@@ -104,7 +104,7 @@ async function main(): Promise<void> {
     console.log('Token address:', tokenAddress);
     console.log('View on BaseScan:', `https://basescan.org/token/${tokenAddress}`);
 
-    const tokenAddressNonWeth = await clanker.deployToken({
+    const tokenAddressNonWeth = await clanker.deploy({
       type: 'v4',
       name: 'My Cool Project Coin II',
       symbol: 'MCPCII',
