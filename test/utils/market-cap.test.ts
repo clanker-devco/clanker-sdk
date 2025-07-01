@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { getTickFromMarketCap } from '../../src/utils/market-cap';
 import { WETH_ADDRESS } from '../../src';
+import { getTickFromMarketCap } from '../../src/utils/market-cap';
 
 describe('market cap', () => {
   test('10 ETH', async () => {
