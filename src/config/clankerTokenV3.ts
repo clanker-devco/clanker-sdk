@@ -4,7 +4,6 @@ import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import { CLANKER_FACTORY_V3_1, DEFAULT_SUPPLY } from '../constants.js';
 import { findVanityAddress } from '../services/vanityAddress.js';
 import { getDesiredPriceAndPairAddress, getTokenPairByAddress } from '../utils/desired-price.js';
-import { getRelativeUnixTimestamp } from '../utils/unix-timestamp.js';
 import {
   addressSchema,
   ClankerContextSchema,
@@ -182,3 +181,20 @@ export const clankerTokenV3Converter: ClankerTokenConverter<ClankerTokenV3> = as
     chainId: cfg.chainId,
   };
 };
+
+function getRelativeUnixTimestamp(unixTimestamp: number) {
+  // Convert absolute timestamp to duration if provided
+  let vestingDuration = BigInt(0);
+  if (unixTimestamp && BigInt(unixTimestamp) > BigInt(0)) {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+    const targetTimestamp = BigInt(unixTimestamp);
+
+    if (targetTimestamp > currentTimestamp) {
+      vestingDuration = targetTimestamp - currentTimestamp;
+    } else {
+      console.warn('Target timestamp is in the past, using minimum duration');
+      vestingDuration = BigInt(31 * 24 * 60 * 60); // 31 days in seconds
+    }
+  }
+  return vestingDuration;
+}

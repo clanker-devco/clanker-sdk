@@ -42,6 +42,14 @@ export type ClankerTransactionConfig<
   chainId?: number;
 };
 
+/**
+ * Estimate gas for a clanker contract call and attempt to parse any errors
+ *
+ * @param client Public client to run the simulation via
+ * @param account Account (caller) to run the simulation from
+ * @param tx Transaction to run
+ * @returns Gas amount or errors from the estimation
+ */
 export const estimateGasClankerContract = async <
   const abi extends ClankerContract,
   _functionName extends ContractFunctionName<abi, 'nonpayable' | 'payable'>,
@@ -64,6 +72,14 @@ export const estimateGasClankerContract = async <
   }
 };
 
+/**
+ * Simulate a clanker contract and attempt to parse any errors.
+ *
+ * @param client Public client to run the simulation via
+ * @param account Account (caller) to run the simulation from
+ * @param tx Transaction to run
+ * @returns Result or errors from the simulation
+ */
 export const simulateClankerContract = async <
   const abi extends ClankerContract,
   functionName extends ContractFunctionName<abi, 'nonpayable' | 'payable'>,
@@ -86,6 +102,15 @@ export const simulateClankerContract = async <
   }
 };
 
+/**
+ * Execute a clanker contract and attempt to parse any errors.
+ *
+ * @param client Public client to run the simulation via
+ * @param wallet Wallet to execute the call from
+ * @param tx Transaction to submit
+ * @param options
+ * @returns Transaction hash or any errors
+ */
 export const writeClankerContract = async <
   abi extends ClankerContract,
   _chain extends Chain | undefined,

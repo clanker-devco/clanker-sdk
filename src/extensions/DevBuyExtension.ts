@@ -1,7 +1,18 @@
-import { encodeAbiParameters } from 'viem';
+import { type Address, encodeAbiParameters } from 'viem';
 import { CLANKER_DEVBUY_V4 } from '../constants.js';
-import type { DevBuyExtensionDataV4 } from '../types/v4.js';
 import type { IClankerExtension } from './IClankerExtension.js';
+
+export interface DevBuyExtensionDataV4 {
+  pairedTokenPoolKey: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  };
+  pairedTokenAmountOutMinimum: bigint;
+  recipient: Address;
+}
 
 export class DevBuyExtension implements IClankerExtension {
   readonly address = CLANKER_DEVBUY_V4;

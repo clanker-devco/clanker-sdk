@@ -23,12 +23,14 @@ export const ClankerContextSchema = z.strictObject({
   id: z.string().optional(),
 });
 
+/** Validate a hex string */
 export const hexSchema = z.custom<`0x${string}`>((val) => {
   if (!(typeof val === 'string')) return false;
   if (!isHex(val)) return false;
   return val;
 }, 'String must be valid hex.');
 
+/** Validate an EVM address */
 export const addressSchema = z.custom<`0x${string}`>((val) => {
   if (!(typeof val === 'string')) return false;
   if (!isAddress(val)) return false;
