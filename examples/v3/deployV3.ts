@@ -57,7 +57,6 @@ async function main(): Promise<void> {
     console.log('\n🚀 Deploying V3 Token\n');
 
     const token: ClankerTokenV3 = {
-      type: 'v3_1',
       name: 'My Token V3.1',
       symbol: 'TKN3.1',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',

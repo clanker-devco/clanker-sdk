@@ -14,8 +14,6 @@ import type { ClankerTokenConverter } from './clankerTokens.js';
 
 /** Clanker v3.1 token definition. */
 const clankerTokenV3 = z.strictObject({
-  /** Type of the token. This is used for internal logic and must not be changed. */
-  type: z.literal('v3_1'),
   /** Name of the token. Example: "My Token". */
   name: z.string(),
   /** Symbol for the token. Example: "MTK". */

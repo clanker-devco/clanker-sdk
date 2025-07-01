@@ -60,7 +60,6 @@ async function main(): Promise<void> {
     console.log('\n🚀 Deploying V4 Token\n');
 
     const { txHash, waitForTransaction, error } = await clanker.deploy({
-      type: 'v4',
       name: 'My Token',
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',

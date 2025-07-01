@@ -39,7 +39,6 @@ async function main(): Promise<void> {
     const { tree, root, entries } = airdropExtension.createMerkleTree(airdropEntries);
 
     const token: ClankerTokenV4 = {
-      type: 'v4',
       name: 'My Token',
       symbol: 'TKN',
       image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',

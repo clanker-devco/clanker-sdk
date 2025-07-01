@@ -25,7 +25,6 @@ import {
 test('basic', async () => {
   const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
   const tx = await clankerTokenV4Converter({
-    type: 'v4',
     name: 'TheName',
     symbol: 'SYM',
     tokenAdmin: admin,
@@ -78,7 +77,6 @@ test('basic', async () => {
 test('vanity', async () => {
   const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
   const tx = await clankerTokenV4Converter({
-    type: 'v4',
     name: 'TheName',
     symbol: 'SYM',
     tokenAdmin: admin,

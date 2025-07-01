@@ -24,7 +24,6 @@ describe('v3 end to end', () => {
 
   test('simulate', async () => {
     const token: ClankerTokenV3 = {
-      type: 'v3_1',
       name: 'TheName',
       symbol: 'SYM',
       image: 'www.example.com/image',

@@ -16,7 +16,6 @@ describe('v4 deploy', () => {
   test('basic', async () => {
     const { error, result } = await clanker.deploySimulate(
       {
-        type: 'v4',
         name: 'TheName',
         symbol: 'SYM',
         tokenAdmin: admin.address,
@@ -33,7 +32,6 @@ describe('v4 deploy', () => {
   test('full', async () => {
     const { error, result } = await clanker.deploySimulate(
       {
-        type: 'v4',
         name: 'TheName',
         symbol: 'SYM',
         image: 'www.example.com/image',

@@ -56,7 +56,6 @@ async function main(): Promise<void> {
     const FRIEND_MULTISIG = '0x1234567890123456789012345678901234567890';
 
     const tokenAddress = await clanker.deploy({
-      type: 'v4',
       name: 'My Cool Project Coin I',
       symbol: 'MCPCI',
       tokenAdmin: account.address,
@@ -105,7 +104,6 @@ async function main(): Promise<void> {
     console.log('View on BaseScan:', `https://basescan.org/token/${tokenAddress}`);
 
     const tokenAddressNonWeth = await clanker.deploy({
-      type: 'v4',
       name: 'My Cool Project Coin II',
       symbol: 'MCPCII',
       tokenAdmin: account.address,

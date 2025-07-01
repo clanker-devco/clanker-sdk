@@ -39,7 +39,6 @@ describe('v4 end to end', () => {
 
   test('simulate static', async () => {
     const token: ClankerTokenV4 = {
-      type: 'v4',
       name: 'TheName',
       symbol: 'SYM',
       image: 'www.example.com/image',
@@ -306,7 +305,6 @@ describe('v4 end to end', () => {
 
   test('simulate dynamic', async () => {
     const token: ClankerTokenV4 = {
-      type: 'v4',
       name: 'TheName',
       symbol: 'SYM',
       image: 'www.example.com/image',
