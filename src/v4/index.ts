@@ -15,6 +15,9 @@ type ClankerConfig = {
   publicClient?: PublicClient;
 };
 
+/**
+ * Clanker v4
+ */
 export class Clanker {
   private readonly wallet?: WalletClient<Transport, Chain, Account>;
   private readonly publicClient?: PublicClient;
@@ -24,6 +27,13 @@ export class Clanker {
     this.publicClient = config?.publicClient;
   }
 
+  /**
+   * Get an abi-typed transaction for claiming rewards on a token.
+   *
+   * @param token The token to claim for
+   * @param rewardRecipient The recipient to claim for
+   * @returns Abi transaction
+   */
   async getClaimRewardsTransaction(
     token: `0x${string}`,
     rewardRecipient: `0x${string}`
@@ -36,6 +46,15 @@ export class Clanker {
     };
   }
 
+  /**
+   * Simulate claiming rewards. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param token The token to simulate reward claiming for
+   * @param rewardRecipient The recipient to claim for
+   * @param account Optional account to simulate calling claiming for
+   * @returns The simulated output
+   */
   async claimRewardsSimulate(
     token: `0x${string}`,
     rewardRecipient: `0x${string}`,
@@ -50,6 +69,13 @@ export class Clanker {
     return simulateClankerContract(this.publicClient, acc, input);
   }
 
+  /**
+   * Claim rewards for a clanker token.
+   *
+   * @param token Token to claim rewards for
+   * @param rewardRecipient The recipient to claim for
+   * @returns Transaction hash of the claim or error
+   */
   async claimRewards(
     token: `0x${string}`,
     rewardRecipient: `0x${string}`
@@ -64,6 +90,13 @@ export class Clanker {
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
 
+  /**
+   * Get an abi-typed transaction for checking rewards on a token.
+   *
+   * @param token Token to check rewards for
+   * @param rewardRecipient The recipient to check rewards for
+   * @returns Abi transaction
+   */
   async getAvailableRewardsTransaction(token: `0x${string}`, rewardRecipient: `0x${string}`) {
     return {
       address: CLANKER_FEE_LOCKER_V4,
@@ -73,6 +106,13 @@ export class Clanker {
     } as const;
   }
 
+  /**
+   * Check available rewards for a token and recipient.
+   *
+   * @param token Token to check rewards for
+   * @param rewardRecipient The recipient to check rewards for
+   * @returns Amount of rewards for the `token` and `rewardRecipient`
+   */
   async availableRewards(token: `0x${string}`, rewardRecipient: `0x${string}`) {
     if (!rewardRecipient) throw new Error('Account required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
@@ -82,10 +122,23 @@ export class Clanker {
     return this.publicClient.readContract(tx);
   }
 
+  /**
+   * Get an abi-typed transaction for deploying a clanker.
+   *
+   * @param token The token to deploy
+   * @returns Abi transaction
+   */
   async getDeployTransaction(token: ClankerTokenV4) {
     return clankerTokenV4Converter(token);
   }
 
+  /**
+   * Simulate a token deployment
+   *
+   * @param token The token to deploy
+   * @param account Optional account for the deployer
+   * @returns Abi transaction
+   */
   async deploySimulate(token: ClankerTokenV4, account?: Account) {
     const acc = account || this.wallet?.account;
     if (!acc) throw new Error('Account or wallet client required for simulation');
@@ -96,6 +149,12 @@ export class Clanker {
     return simulateDeployToken(input, acc, this.publicClient);
   }
 
+  /**
+   * Deploy a token
+   *
+   * @param token The token to deploy
+   * @returns Transaction hash and awaitable function for full deployment
+   */
   async deploy(token: ClankerTokenV4) {
     if (!this.wallet) throw new Error('Wallet client required for deployment');
     if (!this.publicClient) throw new Error('Public client required for deployment');
