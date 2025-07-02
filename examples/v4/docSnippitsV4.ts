@@ -3,7 +3,7 @@ import { createPublicClient, createWalletClient, http, type PublicClient } from 
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { FEE_CONFIGS, POOL_POSITIONS } from '../../src/constants.js';
-import { Clanker } from '../../src/v4/index.js';
+import { ClankerV4 } from '../../src/v4/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -43,7 +43,7 @@ async function main(): Promise<void> {
     });
 
     // Initialize Clanker SDK
-    const clanker = new Clanker({
+    const clanker = new ClankerV4({
       wallet,
       publicClient,
     });

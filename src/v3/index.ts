@@ -15,7 +15,7 @@ type ClankerConfig = {
   publicClient?: PublicClient;
 };
 
-export class Clanker {
+export class ClankerV3 {
   private readonly wallet?: WalletClient<Transport, Chain, Account>;
   private readonly publicClient?: PublicClient;
 

@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
-import { Clanker } from '../../src/v4/index.js';
+import { ClankerV4 } from '../../src/v4/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
     }) as PublicClient;
 
     // Initialize Clanker SDK
-    const clanker = new Clanker({
+    const clanker = new ClankerV4({
       publicClient,
     });
 
