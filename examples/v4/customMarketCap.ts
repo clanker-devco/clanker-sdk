@@ -18,19 +18,6 @@ if (!PRIVATE_KEY) {
   );
 }
 
-/**
- * Example showing how to deploy a v4 token using the Clanker SDK
- * This example demonstrates:
- * - Token deployment with full v4 configuration
- * - Custom metadata and social links
- * - Pool configuration with static or dynamic fee hook
- * - Locker configuration
- * - MEV module configuration
- * - Extension configuration including:
- *   - Vault extension with lockup and vesting
- *   - Airdrop extension with merkle root
- *   - DevBuy extension with initial swap
- */
 async function main(): Promise<void> {
   try {
     console.log(`Starting main function...`);
