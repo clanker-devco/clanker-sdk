@@ -29,7 +29,7 @@ import {
   hexSchema,
 } from '../utils/zod-onchain.js';
 import type { ClankerTokenConverter } from './clankerTokens.js';
-import { clankerConfigFor } from '../utils/clankers.js';
+import { clankerConfigFor, type RelatedV4 } from '../utils/clankers.js';
 
 // Null DevBuy configuration when paired token is WETH
 const NULL_DEVBUY_POOL_CONFIG = {
@@ -313,7 +313,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
         lockerConfig: {
           locker: cfg.locker.locker,
           lockerData: encodeAbiParameters(ClankerLpLockerFeeConversion_Data_v4_abi, [
-            cfg.rewards.recipients.map(({ token }) => FeeInToInt[token]),
+            {
+              feePreference: cfg.rewards.recipients.map(({ token }) => FeeInToInt[token]),
+            },
           ]),
           rewardAdmins: cfg.rewards.recipients.map(({ admin }) => admin),
           rewardRecipients: cfg.rewards.recipients.map(({ recipient }) => recipient),
@@ -338,7 +340,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           ...(cfg.vault
             ? [
                 {
-                  extension: CLANKER_VAULT_V4,
+                  extension: (clankerConfig.related as RelatedV4).vault,
                   msgValue: 0n,
                   extensionBps: cfg.vault.percentage * 100,
                   extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
@@ -353,7 +355,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           ...(cfg.airdrop
             ? [
                 {
-                  extension: CLANKER_AIRDROP_V4,
+                  extension: (clankerConfig.related as RelatedV4).airdrop,
                   msgValue: 0n,
                   extensionBps: Number(bpsAirdropped),
                   extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
@@ -368,7 +370,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           ...(cfg.devBuy
             ? [
                 {
-                  extension: CLANKER_DEVBUY_V4,
+                  extension: (clankerConfig.related as RelatedV4).devbuy,
                   msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
                   extensionBps: 0,
                   extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [

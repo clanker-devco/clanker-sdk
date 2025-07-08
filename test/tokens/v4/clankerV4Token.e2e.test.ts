@@ -11,7 +11,7 @@ import {
   stringify,
 } from 'viem';
 import { simulateCalls } from 'viem/actions';
-import { baseSepolia } from 'viem/chains';
+import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import {
   CLANKER_AIRDROP_V4,
@@ -31,7 +31,7 @@ import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
 import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
 
-const chain = baseSepolia;
+const chain = base;
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -105,8 +105,20 @@ describe('v4 end to end', () => {
     const tx = await clankerTokenV4Converter(token);
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
-    console.log(token.chainId);
-    console.log(stringify(tx.args));
+    // 0x0000000000000000000000000000000000000000000000000000000000000020
+    //   0000000000000000000000000000000000000000000000000000000000000020
+    //   0000000000000000000000000000000000000000000000000000000000000003
+    //   0000000000000000000000000000000000000000000000000000000000000001
+    //   0000000000000000000000000000000000000000000000000000000000000002
+    //   0000000000000000000000000000000000000000000000000000000000000000
+
+    // 0x0000000000000000000000000000000000000000000000000000000000000020
+    //   0000000000000000000000000000000000000000000000000000000000000020
+    //   0000000000000000000000000000000000000000000000000000000000000003
+    //   0000000000000000000000000000000000000000000000000000000000000000
+    //   0000000000000000000000000000000000000000000000000000000000000002
+    //   0000000000000000000000000000000000000000000000000000000000000001
+    console.log(stringify(tx.args[0]));
 
     const res = await simulateCalls(publicClient, {
       calls: [
@@ -215,7 +227,7 @@ describe('v4 end to end', () => {
       feePref3Result,
     ] = res.results;
 
-    console.log(stringify(creationResult));
+    console.log(creationResult);
 
     const address = decodeFunctionResult({
       abi: Clanker_v4_abi,

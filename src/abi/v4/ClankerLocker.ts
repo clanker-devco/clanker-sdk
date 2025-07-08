@@ -451,10 +451,17 @@ export const ClankerLocker_v4_abi = [
   { type: 'error', name: 'ZeroRewardAmount', inputs: [] },
 ] as const;
 
+// export const ClankerLpLockerFeeConversion_Data_v4_abi = [
+//   {
+//     name: 'feePreference',
+//     type: 'uint8[]',
+//     internalType: 'enum IClankerLpLockerFeeConversion.FeeIn',
+//   },
+// ] as const;
+
 export const ClankerLpLockerFeeConversion_Data_v4_abi = [
   {
-    name: 'feePreference',
-    type: 'uint8[]',
-    internalType: 'enum IClankerLpLockerFeeConversion.FeeIn',
+    type: 'tuple',
+    components: [{ type: 'uint8[]', name: 'feePreference' }],
   },
 ] as const;

@@ -24,7 +24,7 @@ type RelatedV3_1 = {
   vault: `0x${string}`;
 };
 
-type RelatedV4 = {
+export type RelatedV4 = {
   locker: `0x${string}`;
   vault: `0x${string}`;
   airdrop: `0x${string}`;
