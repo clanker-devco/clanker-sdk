@@ -12,7 +12,6 @@ import { ClankerLpLockerFeeConversion_Data_v4_abi } from '../abi/v4/ClankerLocke
 import {
   CLANKER_AIRDROP_V4,
   CLANKER_DEVBUY_V4,
-  CLANKER_FACTORY_V4,
   CLANKER_HOOK_DYNAMIC_FEE_V4,
   CLANKER_HOOK_STATIC_FEE_V4,
   CLANKER_LOCKER_V4,
@@ -30,6 +29,7 @@ import {
   hexSchema,
 } from '../utils/zod-onchain.js';
 import type { ClankerTokenConverter } from './clankerTokens.js';
+import { clankerConfigFor } from '../utils/clankers.js';
 
 // Null DevBuy configuration when paired token is WETH
 const NULL_DEVBUY_POOL_CONFIG = {
@@ -289,8 +289,13 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
     );
   }
 
+  const clankerConfig = clankerConfigFor(cfg.chainId, 'clanker_v4');
+  if (!clankerConfig) {
+    throw new Error(`No clanker v4 configuration for chain ${cfg.chainId}`);
+  }
+
   return {
-    address: CLANKER_FACTORY_V4,
+    address: clankerConfig.address,
     abi: Clanker_v4_abi,
     functionName: 'deployToken',
     args: [

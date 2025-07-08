@@ -135,3 +135,7 @@ export const ClankerDeployments = Object.values(CLANKERS).reduce(
   },
   {} as Record<Chain, Partial<Record<Type, ClankerDeployment>>>
 );
+
+export const clankerConfigFor = (chainId: Chain, type: Type) => {
+  return Object.values(CLANKERS).find((cfg) => cfg.chainId === chainId && cfg.type === type);
+};

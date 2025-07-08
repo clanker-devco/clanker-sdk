@@ -8,9 +8,10 @@ import {
   type PublicClient,
   parseEther,
   parseEventLogs,
+  stringify,
 } from 'viem';
 import { simulateCalls } from 'viem/actions';
-import { base } from 'viem/chains';
+import { baseSepolia } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import {
   CLANKER_AIRDROP_V4,
@@ -30,7 +31,7 @@ import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
 import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
 
-const chain = base;
+const chain = baseSepolia;
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -103,6 +104,9 @@ describe('v4 end to end', () => {
 
     const tx = await clankerTokenV4Converter(token);
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
+
+    console.log(token.chainId);
+    console.log(stringify(tx.args));
 
     const res = await simulateCalls(publicClient, {
       calls: [
@@ -210,6 +214,8 @@ describe('v4 end to end', () => {
       feePref2Result,
       feePref3Result,
     ] = res.results;
+
+    console.log(stringify(creationResult));
 
     const address = decodeFunctionResult({
       abi: Clanker_v4_abi,
