@@ -1,7 +1,6 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
-import { CLANKER_FEE_LOCKER_V4 } from '../constants.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
 import type { ClankerError } from '../utils/errors.js';
 import {
@@ -9,6 +8,7 @@ import {
   simulateClankerContract,
   writeClankerContract,
 } from '../utils/write-clanker-contracts.js';
+import { CLANKERS } from '../utils/clankers.js';
 
 type ClankerConfig = {
   wallet?: WalletClient<Transport, Chain, Account>;
@@ -39,7 +39,7 @@ export class Clanker {
     rewardRecipient: `0x${string}`
   ): Promise<ClankerTransactionConfig<typeof ClankerFeeLocker_abi>> {
     return {
-      address: CLANKER_FEE_LOCKER_V4,
+      address: CLANKERS.clanker_v4.related.feeLocker,
       abi: ClankerFeeLocker_abi,
       functionName: 'claim',
       args: [rewardRecipient, token],
@@ -99,7 +99,7 @@ export class Clanker {
    */
   async getAvailableRewardsTransaction(token: `0x${string}`, rewardRecipient: `0x${string}`) {
     return {
-      address: CLANKER_FEE_LOCKER_V4,
+      address: CLANKERS.clanker_v4.related.feeLocker,
       abi: ClankerFeeLocker_abi,
       functionName: 'availableFees',
       args: [rewardRecipient, token],
