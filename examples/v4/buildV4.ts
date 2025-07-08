@@ -54,12 +54,12 @@ async function main(): Promise<void> {
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
       },
-      airdrop: {
-        merkleRoot: root,
-        lockupDuration: 86400, // 1 day
-        vestingDuration: 86400, // 1 day
-        amount: airdropEntries.reduce((agg, { amount }) => agg + amount, 0),
-      },
+      // airdrop: {
+      //   merkleRoot: root,
+      //   lockupDuration: 86400, // 1 day
+      //   vestingDuration: 86400, // 1 day
+      //   amount: airdropEntries.reduce((agg, { amount }) => agg + amount, 0),
+      // },
       devBuy: {
         ethAmount: 0.0001,
       },
@@ -69,11 +69,13 @@ async function main(): Promise<void> {
             recipient: CREATOR_ADDRESS,
             admin: CREATOR_ADDRESS,
             bps: 5000,
+            rewardsToken: 'both',
           },
           {
             recipient: INTERFACE_ADMIN_ADDRESS,
             admin: INTERFACE_ADMIN_ADDRESS,
             bps: 5000,
+            rewardsToken: 'paired',
           },
         ],
       },

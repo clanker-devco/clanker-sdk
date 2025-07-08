@@ -205,6 +205,8 @@ const clankerTokenV4 = z.strictObject({
             recipient: addressSchema,
             /** Bps of the total rewards this recipient should recieve. */
             bps: z.number().min(0).max(10_000),
+            /** Token to receive rewards in. */
+            rewardsToken: z.enum(['both', 'paired', 'clanker']).default('paired'),
           })
         )
         .min(1)
@@ -230,6 +232,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           admin: cfg.tokenAdmin,
           recipient: cfg.tokenAdmin,
           bps: 10_000,
+          rewardsToken: 'paired',
         },
       ],
     };
@@ -300,6 +303,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           rewardAdmins: cfg.rewards.recipients.map(({ admin }) => admin),
           rewardRecipients: cfg.rewards.recipients.map(({ recipient }) => recipient),
           rewardBps: cfg.rewards.recipients.map(({ bps }) => bps),
+          rewardsToken: cfg.rewards.recipients.map(({ rewardsToken }) => rewardsToken),
           tickLower: cfg.pool.positions.map(({ tickLower }) => tickLower),
           tickUpper: cfg.pool.positions.map(({ tickUpper }) => tickUpper),
           positionBps: cfg.pool.positions.map(({ positionBps }) => positionBps),
