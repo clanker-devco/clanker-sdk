@@ -367,8 +367,8 @@ describe('v4 end to end', () => {
       '0x0000000000000000000000000000000000000006',
     ]);
     expect(feePref1).toEqual(0);
-    expect(feePref2).toEqual(1);
-    expect(feePref3).toEqual(2);
+    expect(feePref2).toEqual(2);
+    expect(feePref3).toEqual(1);
 
     // Static fees
     const poolInitializedLog = parseEventLogs({
