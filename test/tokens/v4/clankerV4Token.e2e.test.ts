@@ -30,10 +30,12 @@ import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
 import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
 
+const chain = base;
+
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
-    chain: base,
+    chain,
     transport: http(process.env.TESTS_RPC_URL),
   }) as PublicClient;
 
@@ -43,7 +45,7 @@ describe('v4 end to end', () => {
       symbol: 'SYM',
       image: 'www.example.com/image',
       tokenAdmin: admin.address,
-      chainId: base.id,
+      chainId: chain.id,
       metadata: {
         description: 'des',
         socialMediaUrls: [],
@@ -80,11 +82,19 @@ describe('v4 end to end', () => {
             admin: '0x0000000000000000000000000000000000000001',
             recipient: '0x0000000000000000000000000000000000000002',
             bps: 7_000,
+            token: 'Both',
           },
           {
             admin: '0x0000000000000000000000000000000000000003',
             recipient: '0x0000000000000000000000000000000000000004',
-            bps: 3_000,
+            bps: 1_000,
+            token: 'Clanker',
+          },
+          {
+            admin: '0x0000000000000000000000000000000000000005',
+            recipient: '0x0000000000000000000000000000000000000006',
+            bps: 2_000,
+            token: 'Paired',
           },
         ],
       },
@@ -157,6 +167,30 @@ describe('v4 end to end', () => {
             args: [tx.expectedAddress],
           }),
         },
+        {
+          to: CLANKER_LOCKER_V4,
+          data: encodeFunctionData({
+            abi: ClankerLocker_v4_abi,
+            functionName: 'feePreferences',
+            args: [tx.expectedAddress, 0n],
+          }),
+        },
+        {
+          to: CLANKER_LOCKER_V4,
+          data: encodeFunctionData({
+            abi: ClankerLocker_v4_abi,
+            functionName: 'feePreferences',
+            args: [tx.expectedAddress, 1n],
+          }),
+        },
+        {
+          to: CLANKER_LOCKER_V4,
+          data: encodeFunctionData({
+            abi: ClankerLocker_v4_abi,
+            functionName: 'feePreferences',
+            args: [tx.expectedAddress, 2n],
+          }),
+        },
       ],
       account: admin,
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
@@ -172,6 +206,9 @@ describe('v4 end to end', () => {
       vaultResult,
       airdropResult,
       lockerResult,
+      feePref1Result,
+      feePref2Result,
+      feePref3Result,
     ] = res.results;
 
     const address = decodeFunctionResult({
@@ -241,6 +278,24 @@ describe('v4 end to end', () => {
       data: lockerResult.data,
     });
 
+    const feePref1 = decodeFunctionResult({
+      abi: ClankerLocker_v4_abi,
+      functionName: 'feePreferences',
+      data: feePref1Result.data,
+    });
+
+    const feePref2 = decodeFunctionResult({
+      abi: ClankerLocker_v4_abi,
+      functionName: 'feePreferences',
+      data: feePref2Result.data,
+    });
+
+    const feePref3 = decodeFunctionResult({
+      abi: ClankerLocker_v4_abi,
+      functionName: 'feePreferences',
+      data: feePref3Result.data,
+    });
+
     // Token
     expect(address).toEqual(tx.expectedAddress);
     expect(name).toEqual('TheName');
@@ -282,15 +337,20 @@ describe('v4 end to end', () => {
 
     // Reward recipients
     expect(locker.numPositions).toEqual(BigInt(POOL_POSITIONS.Project.length));
-    expect(locker.rewardBps).toEqual([7_000, 3_000]);
+    expect(locker.rewardBps).toEqual([7_000, 1_000, 2_000]);
     expect(locker.rewardAdmins).toEqual([
       '0x0000000000000000000000000000000000000001',
       '0x0000000000000000000000000000000000000003',
+      '0x0000000000000000000000000000000000000005',
     ]);
     expect(locker.rewardRecipients).toEqual([
       '0x0000000000000000000000000000000000000002',
       '0x0000000000000000000000000000000000000004',
+      '0x0000000000000000000000000000000000000006',
     ]);
+    expect(feePref1).toEqual(0);
+    expect(feePref2).toEqual(2);
+    expect(feePref3).toEqual(1);
 
     // Static fees
     const poolInitializedLog = parseEventLogs({
@@ -309,7 +369,7 @@ describe('v4 end to end', () => {
       symbol: 'SYM',
       image: 'www.example.com/image',
       tokenAdmin: admin.address,
-      chainId: base.id,
+      chainId: chain.id,
       metadata: {
         description: 'des',
         socialMediaUrls: [],
@@ -346,11 +406,13 @@ describe('v4 end to end', () => {
             admin: '0x0000000000000000000000000000000000000001',
             recipient: '0x0000000000000000000000000000000000000002',
             bps: 7_000,
+            token: 'Both',
           },
           {
             admin: '0x0000000000000000000000000000000000000003',
             recipient: '0x0000000000000000000000000000000000000004',
             bps: 3_000,
+            token: 'Both',
           },
         ],
       },

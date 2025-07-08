@@ -87,11 +87,13 @@ async function main(): Promise<void> {
             recipient: account.address,
             admin: account.address,
             bps: 5000,
+            token: 'Both',
           },
           {
             recipient: account.address,
             admin: account.address,
             bps: 5000,
+            token: 'Both',
           },
         ],
       },

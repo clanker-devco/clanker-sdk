@@ -81,11 +81,13 @@ async function main(): Promise<void> {
             recipient: MY_EOA,
             admin: MY_MULTISIG,
             bps: 8_000, // 80% of reward
+            token: 'Both',
           },
           {
             recipient: FRIEND_EOA,
             admin: FRIEND_MULTISIG,
             bps: 2_000, // 20% of reward
+            token: 'Both',
           },
         ],
       },
