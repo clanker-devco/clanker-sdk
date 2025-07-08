@@ -92,7 +92,7 @@ export const CLANKERS = {
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
     related: {
-      locker: '0x29d17C1A8D851d7d4cA97FAe97AcAdb398D9cCE0',
+      locker: '0x63D2DfEA64b3433F4071A98665bcD7Ca14d93496',
       vault: '0x8E845EAd15737bF71904A30BdDD3aEE76d6ADF6C',
       airdrop: '0x56Fa0Da89eD94822e46734e736d34Cab72dF344F',
       devbuy: '0x1331f0788F9c08C8F38D52c7a1152250A9dE00be',
@@ -108,12 +108,12 @@ export const CLANKERS = {
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
     related: {
-      locker: '0x33e2Eda238edcF470309b8c6D228986A1204c8f9',
+      locker: '0x824bB048a5EC6e06a09aEd115E9eEA4618DC2c8f',
       vault: '0xcC80d1226F899a78fC2E459a1500A13C373CE0A5',
       airdrop: '0x29d17C1A8D851d7d4cA97FAe97AcAdb398D9cCE0',
       devbuy: '0x691f97752E91feAcD7933F32a1FEdCeDae7bB59c',
       mevModule: '0x71DB365E93e170ba3B053339A917c11024e7a9d4',
-      feeLocker: '0x8F7EF51CF06f00aA796E8cdA498D712D4ecFE8E1',
+      feeLocker: '0x42A95190B4088C88Dd904d930c79deC1158bF09D',
       feeStaticHook: '0x3eC2a26b6eF16c288561692AE8D9681fa773A8cc',
       feeDynamicHook: '0xE63b0A59100698f379F9B577441A561bAF9828cc',
     } satisfies RelatedV4,

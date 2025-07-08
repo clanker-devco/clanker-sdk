@@ -8,6 +8,7 @@ import {
 } from 'viem';
 import * as z from 'zod/v4';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
+import { ClankerLpLockerFeeConversion_Data_v4_abi } from '../abi/v4/ClankerLocker.js';
 import {
   CLANKER_AIRDROP_V4,
   CLANKER_DEVBUY_V4,
@@ -39,6 +40,13 @@ const NULL_DEVBUY_POOL_CONFIG = {
   hooks: zeroAddress,
 } as const;
 
+export const FeeIn = ['Both', 'Paired', 'Clanker'] as const;
+const FeeInToInt: Record<(typeof FeeIn)[number], number> = {
+  Both: 0,
+  Paired: 1,
+  Clanker: 2,
+};
+
 /** Clanker v4 token definition. */
 const clankerTokenV4 = z.strictObject({
   /** Name of the token. Example: "My Token". */
@@ -48,7 +56,7 @@ const clankerTokenV4 = z.strictObject({
   /** Image for the token. This should be a normal or ipfs url. */
   image: z.string().default(''),
   /** Id of the chain that the token will be deployed to. Defaults to base (8453). */
-  chainId: z.literal(8453).default(8453),
+  chainId: z.literal([8453, 84532]).default(8453),
   /** Admin for the token. They will be able to change fields like image, metadata, etc. */
   tokenAdmin: addressSchema.refine((v) => !isAddressEqual(v, zeroAddress), {
     error: 'Admin cannot be zero address',
@@ -205,6 +213,8 @@ const clankerTokenV4 = z.strictObject({
             recipient: addressSchema,
             /** Bps of the total rewards this recipient should recieve. */
             bps: z.number().min(0).max(10_000),
+            /** Which token to take fees in. */
+            token: z.literal(FeeIn),
           })
         )
         .min(1)
@@ -230,6 +240,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           admin: cfg.tokenAdmin,
           recipient: cfg.tokenAdmin,
           bps: 10_000,
+          token: 'Both',
         },
       ],
     };
@@ -296,7 +307,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
         },
         lockerConfig: {
           locker: cfg.locker.locker,
-          lockerData: cfg.locker.lockerData,
+          lockerData: encodeAbiParameters(ClankerLpLockerFeeConversion_Data_v4_abi, [
+            cfg.rewards.recipients.map(({ token }) => FeeInToInt[token]),
+          ]),
           rewardAdmins: cfg.rewards.recipients.map(({ admin }) => admin),
           rewardRecipients: cfg.rewards.recipients.map(({ recipient }) => recipient),
           rewardBps: cfg.rewards.recipients.map(({ bps }) => bps),

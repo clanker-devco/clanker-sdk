@@ -69,11 +69,13 @@ async function main(): Promise<void> {
             recipient: CREATOR_ADDRESS,
             admin: CREATOR_ADDRESS,
             bps: 5000,
+            token: 'Both',
           },
           {
             recipient: INTERFACE_ADMIN_ADDRESS,
             admin: INTERFACE_ADMIN_ADDRESS,
             bps: 5000,
+            token: 'Paired',
           },
         ],
       },
