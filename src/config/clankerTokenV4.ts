@@ -10,18 +10,16 @@ import * as z from 'zod/v4';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerLpLockerFeeConversion_Data_v4_abi } from '../abi/v4/ClankerLocker.js';
 import {
-  CLANKER_AIRDROP_V4,
-  CLANKER_DEVBUY_V4,
   CLANKER_HOOK_DYNAMIC_FEE_V4,
   CLANKER_HOOK_STATIC_FEE_V4,
   CLANKER_LOCKER_V4,
   CLANKER_MEV_MODULE_V4,
-  CLANKER_VAULT_V4,
   DEFAULT_SUPPLY,
   POOL_POSITIONS,
   WETH_ADDRESS,
 } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
+import { clankerConfigFor, type RelatedV4 } from '../utils/clankers.js';
 import {
   addressSchema,
   ClankerContextSchema,
@@ -29,7 +27,6 @@ import {
   hexSchema,
 } from '../utils/zod-onchain.js';
 import type { ClankerTokenConverter } from './clankerTokens.js';
-import { clankerConfigFor, type RelatedV4 } from '../utils/clankers.js';
 
 // Null DevBuy configuration when paired token is WETH
 const NULL_DEVBUY_POOL_CONFIG = {
