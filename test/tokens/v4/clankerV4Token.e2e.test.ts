@@ -44,7 +44,7 @@ describe('v4 end to end', () => {
       chainId: base.id,
       metadata: {
         description: 'des',
-        socialMediaUrls: [],
+        socialMediaUrls: [{ platform: 'test', url: 'www.example.com' }],
         auditUrls: [],
       },
       context: {

@@ -85,8 +85,8 @@ async function deployToken() {
     metadata: {
       description: "Token with custom configuration including vesting and rewards",
       socialMediaUrls: [
-        "https://twitter.com/mytoken",
-        "https://t.me/mytoken",
+        { platform: "x", url: "https://twitter.com/mytoken" },
+        { platform: "telegram", url: "https://t.me/mytoken" },
       ],
       auditUrls: ["https://example.com/audit"],
     },

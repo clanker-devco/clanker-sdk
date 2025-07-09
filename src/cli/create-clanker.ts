@@ -87,7 +87,7 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
     customVaultDuration?: string;
     metadata: {
       description: string;
-      socialMediaUrls: string[];
+      socialMediaUrls: { platform: string; url: string }[];
       auditUrls: string[];
       telegram?: string;
       website?: string;
@@ -441,11 +441,15 @@ RPC_URL=your_custom_rpc_url (if not provided, will use default Base RPC)
         : parseInt(answers.vaultConfig.durationInDays, 10);
 
     // Clean up metadata
-    const socialMediaUrls = [];
-    if (answers.metadata.telegram) socialMediaUrls.push(answers.metadata.telegram);
-    if (answers.metadata.website) socialMediaUrls.push(answers.metadata.website);
-    if (answers.metadata.twitter) socialMediaUrls.push(answers.metadata.twitter);
-    if (answers.metadata.farcaster) socialMediaUrls.push(answers.metadata.farcaster);
+    const socialMediaUrls: { platform: string; url: string }[] = [];
+    if (answers.metadata.telegram)
+      socialMediaUrls.push({ platform: 'telegram', url: answers.metadata.telegram });
+    if (answers.metadata.website)
+      socialMediaUrls.push({ platform: 'website', url: answers.metadata.website });
+    if (answers.metadata.twitter)
+      socialMediaUrls.push({ platform: 'twitter', url: answers.metadata.twitter });
+    if (answers.metadata.farcaster)
+      socialMediaUrls.push({ platform: 'farcaster', url: answers.metadata.farcaster });
 
     const metadata = {
       description: answers.metadata.description,

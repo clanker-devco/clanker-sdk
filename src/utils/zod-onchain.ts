@@ -6,7 +6,7 @@ export const ClankerMetadataSchema = z.strictObject({
   /** Description of the token or token project. */
   description: z.string().optional(),
   /** Socials for the token. These may be displayed on aggregators. */
-  socialMediaUrls: z.array(z.url()).optional(),
+  socialMediaUrls: z.array(z.object({ platform: z.string(), url: z.string() })).optional(),
   /** Audits for other contracts or services offered by the project. */
   auditUrls: z.array(z.url()).optional(),
 });
