@@ -746,3 +746,13 @@ export const ClankerHook_DynamicFee_v4_abi = [
   { type: 'error', name: 'UnsupportedInitializePath', inputs: [] },
   { type: 'error', name: 'WethCannotBeClanker', inputs: [] },
 ] as const;
+
+export const ClankerHook_DynamicFee_Instantiation_v4_abi = [
+  { type: 'uint24', name: 'baseFee' },
+  { type: 'uint24', name: 'maxLpFee' },
+  { type: 'uint256', name: 'referenceTickFilterPeriod' },
+  { type: 'uint256', name: 'resetPeriod' },
+  { type: 'int24', name: 'resetTickFilter' },
+  { type: 'uint256', name: 'feeControlNumerator' },
+  { type: 'uint24', name: 'decayFilterBps' },
+] as const;

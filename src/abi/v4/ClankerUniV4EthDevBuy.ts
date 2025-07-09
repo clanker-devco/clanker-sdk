@@ -153,3 +153,18 @@ export const ClankerUniV4EthDevBuy_v4_abi = [
   { type: 'error', name: 'ReentrancyGuardReentrantCall', inputs: [] },
   { type: 'error', name: 'Unauthorized', inputs: [] },
 ] as const;
+
+export const ClankerUniV4EthDevBuy_Instantiation_v4_abi = [
+  {
+    type: 'tuple',
+    components: [
+      { type: 'address', name: 'currency0' },
+      { type: 'address', name: 'currency1' },
+      { type: 'uint24', name: 'fee' },
+      { type: 'int24', name: 'tickSpacing' },
+      { type: 'address', name: 'hooks' },
+    ],
+  },
+  { type: 'uint128' },
+  { type: 'address' },
+] as const;

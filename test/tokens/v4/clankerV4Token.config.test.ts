@@ -1,26 +1,13 @@
 import { expect, test } from 'bun:test';
 import { encodeAbiParameters, stringify, zeroAddress } from 'viem';
-import {
-  CLANKER_AIRDROP_V4,
-  CLANKER_DEVBUY_V4,
-  CLANKER_FACTORY_V4,
-  CLANKER_HOOK_DYNAMIC_FEE_V4,
-  CLANKER_HOOK_STATIC_FEE_V4,
-  CLANKER_LOCKER_V4,
-  CLANKER_MEV_MODULE_V4,
-  CLANKER_VAULT_V4,
-  FEE_CONFIGS,
-  POOL_POSITIONS,
-  WETH_ADDRESS,
-} from '../../../src';
+import { base } from 'viem/chains';
+import { CLANKERS, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src';
 import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker';
-import {
-  AIRDROP_EXTENSION_PARAMETERS,
-  clankerTokenV4Converter,
-  DEVBUY_EXTENSION_PARAMETERS,
-  DYNAMIC_FEE_PARAMETERS,
-  VAULT_EXTENSION_PARAMETERS,
-} from '../../../src/config/clankerTokenV4';
+import { ClankerAirdrop_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerAirdrop';
+import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee';
+import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerUniV4EthDevBuy';
+import { ClankerVault_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerVault';
+import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
 
 test('basic', async () => {
   const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
@@ -31,7 +18,7 @@ test('basic', async () => {
   });
 
   expect(tx.abi).toEqual(Clanker_v4_abi);
-  expect(tx.address).toEqual(CLANKER_FACTORY_V4);
+  expect(tx.address).toEqual(CLANKERS.clanker_v4.address);
   expect(tx.functionName).toEqual('deployToken');
   expect(tx.args).toEqual([
     {
@@ -46,7 +33,7 @@ test('basic', async () => {
         originatingChainId: 8453n,
       },
       lockerConfig: {
-        locker: CLANKER_LOCKER_V4,
+        locker: CLANKERS.clanker_v4.related.locker,
         lockerData:
           '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000',
         rewardAdmins: [admin],
@@ -57,14 +44,14 @@ test('basic', async () => {
         positionBps: [10_000],
       },
       poolConfig: {
-        pairedToken: WETH_ADDRESS,
+        pairedToken: WETH_ADDRESSES[base.id],
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
-        hook: CLANKER_HOOK_STATIC_FEE_V4,
+        hook: CLANKERS.clanker_v4.related.feeStaticHook,
         poolData: encodeAbiParameters([{ type: 'uint24' }, { type: 'uint24' }], [10_000, 10_000]),
       },
       mevModuleConfig: {
-        mevModule: CLANKER_MEV_MODULE_V4,
+        mevModule: CLANKERS.clanker_v4.related.mevModule,
         mevModuleData: '0x',
       },
       extensionConfigs: [],
@@ -93,7 +80,7 @@ test('vanity', async () => {
       id: '123',
     },
     pool: {
-      pairedToken: WETH_ADDRESS,
+      pairedToken: WETH_ADDRESSES[base.id],
       positions: POOL_POSITIONS.Project,
     },
     vault: {
@@ -137,7 +124,7 @@ test('vanity', async () => {
   });
 
   expect(tx.abi).toEqual(Clanker_v4_abi);
-  expect(tx.address).toEqual(CLANKER_FACTORY_V4);
+  expect(tx.address).toEqual(CLANKERS.clanker_v4.address);
   expect(tx.functionName).toEqual('deployToken');
   expect(tx.args).toEqual([
     {
@@ -161,7 +148,7 @@ test('vanity', async () => {
         originatingChainId: 8453n,
       },
       lockerConfig: {
-        locker: CLANKER_LOCKER_V4,
+        locker: CLANKERS.clanker_v4.related.locker,
         lockerData:
           '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002',
         rewardAdmins: [
@@ -180,11 +167,11 @@ test('vanity', async () => {
         positionBps: [1_000, 5_000, 1_500, 2_000, 500],
       },
       poolConfig: {
-        pairedToken: WETH_ADDRESS,
+        pairedToken: WETH_ADDRESSES[base.id],
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
-        hook: CLANKER_HOOK_DYNAMIC_FEE_V4,
-        poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
+        hook: CLANKERS.clanker_v4.related.feeDynamicHook,
+        poolData: encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
           5_000,
           50_000,
           30n,
@@ -195,14 +182,14 @@ test('vanity', async () => {
         ]),
       },
       mevModuleConfig: {
-        mevModule: CLANKER_MEV_MODULE_V4,
+        mevModule: CLANKERS.clanker_v4.related.mevModule,
         mevModuleData: '0x',
       },
       extensionConfigs: [
         {
-          extension: CLANKER_VAULT_V4,
+          extension: CLANKERS.clanker_v4.related.vault,
           extensionBps: 1_000,
-          extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
+          extensionData: encodeAbiParameters(ClankerVault_Instantiation_v4_abi, [
             admin,
             BigInt(8 * 24 * 60 * 60),
             BigInt(1 * 24 * 60 * 60),
@@ -210,9 +197,9 @@ test('vanity', async () => {
           msgValue: 0n,
         },
         {
-          extension: CLANKER_AIRDROP_V4,
+          extension: CLANKERS.clanker_v4.related.airdrop,
           extensionBps: 25,
-          extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
+          extensionData: encodeAbiParameters(ClankerAirdrop_Instantiation_v4_abi, [
             '0x0000000000000000000000000000000000000000000000000000000000000001',
             BigInt(9 * 24 * 60 * 60),
             BigInt(2 * 24 * 60 * 60),
@@ -220,9 +207,9 @@ test('vanity', async () => {
           msgValue: 0n,
         },
         {
-          extension: CLANKER_DEVBUY_V4,
+          extension: CLANKERS.clanker_v4.related.devbuy,
           extensionBps: 0,
-          extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
+          extensionData: encodeAbiParameters(ClankerUniV4EthDevBuy_Instantiation_v4_abi, [
             {
               currency0: zeroAddress,
               currency1: zeroAddress,

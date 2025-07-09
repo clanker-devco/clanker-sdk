@@ -1,5 +1,5 @@
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../../src/config/clankerTokenV4.js';
-import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
+import { FEE_CONFIGS, POOL_POSITIONS } from '../../src/constants.js';
 import { AirdropExtension } from '../../src/extensions/AirdropExtension.js';
 
 /**
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
         ],
       },
       pool: {
-        pairedToken: WETH_ADDRESS,
+        pairedToken: 'WETH',
         positions: POOL_POSITIONS.Standard, // other option: POOL_POSITIONS.Project
       },
       fees: FEE_CONFIGS.DynamicBasic, // or { clankerFee: 100, pairedFee: 100 }

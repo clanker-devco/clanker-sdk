@@ -1,5 +1,5 @@
 import { type Address, encodeAbiParameters } from 'viem';
-import { CLANKER_DEVBUY_V4 } from '../constants.js';
+import { CLANKERS } from '../utils/clankers.js';
 import type { IClankerExtension } from './IClankerExtension.js';
 
 export interface DevBuyExtensionDataV4 {
@@ -15,7 +15,7 @@ export interface DevBuyExtensionDataV4 {
 }
 
 export class DevBuyExtension implements IClankerExtension {
-  readonly address = CLANKER_DEVBUY_V4;
+  readonly address = CLANKERS.clanker_v4.related.devbuy;
   readonly name = 'DevBuy';
   readonly description = 'Performs an initial swap of the token using passed-in ETH';
   readonly maxAllocationPercentage = 90;

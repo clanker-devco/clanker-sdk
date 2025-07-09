@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { createPublicClient, http, isAddress, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../../src';
+import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src';
 import { Clanker } from '../../../src/v4';
 
 describe('v4 deploy', () => {
@@ -49,7 +49,7 @@ describe('v4 deploy', () => {
           id: '123',
         },
         pool: {
-          pairedToken: WETH_ADDRESS,
+          pairedToken: WETH_ADDRESSES[base.id],
           positions: POOL_POSITIONS.Project,
         },
         vault: {
