@@ -8,6 +8,7 @@ on:
 
 env:
   TESTS_RPC_URL: ${{ vars.TESTS_RPC_URL }}
+  TESTS_RPC_URL_SEPOLIA: ${{ vars.TESTS_RPC_URL_SEPOLIA }}
 
 jobs:
   lint:
