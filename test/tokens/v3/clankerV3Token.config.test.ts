@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { stringify } from 'viem';
-import { CLANKER_FACTORY_V3_1, WETH_ADDRESS } from '../../../src';
+import { base } from 'viem/chains';
+import { CLANKERS, WETH_ADDRESSES } from '../../../src';
 import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
 import { clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
 
@@ -15,7 +16,7 @@ test('basic', async () => {
   );
 
   expect(tx.abi).toEqual(Clanker_v3_1_abi);
-  expect(tx.address).toEqual(CLANKER_FACTORY_V3_1);
+  expect(tx.address).toEqual(CLANKERS.clanker_v3_1.address);
   expect(tx.functionName).toEqual('deployToken');
   expect(tx.args).toEqual([
     {
@@ -29,7 +30,7 @@ test('basic', async () => {
         originatingChainId: 8453n,
       },
       poolConfig: {
-        pairedToken: WETH_ADDRESS,
+        pairedToken: WETH_ADDRESSES[base.id],
         tickIfToken0IsNewToken: -230400,
       },
       initialBuyConfig: {
@@ -75,7 +76,7 @@ test('full', async () => {
         id: '123',
       },
       pool: {
-        quoteToken: WETH_ADDRESS,
+        quoteToken: WETH_ADDRESSES[base.id],
         initialMarketCap: 10,
       },
       vault: {
@@ -97,7 +98,7 @@ test('full', async () => {
   );
 
   expect(tx.abi).toEqual(Clanker_v3_1_abi);
-  expect(tx.address).toEqual(CLANKER_FACTORY_V3_1);
+  expect(tx.address).toEqual(CLANKERS.clanker_v3_1.address);
   expect(tx.functionName).toEqual('deployToken');
   expect(tx.args).toEqual([
     {
@@ -120,7 +121,7 @@ test('full', async () => {
         originatingChainId: 8453n,
       },
       poolConfig: {
-        pairedToken: WETH_ADDRESS,
+        pairedToken: WETH_ADDRESSES[base.id],
         tickIfToken0IsNewToken: -230400,
       },
       initialBuyConfig: {
@@ -188,7 +189,7 @@ test('custom mc', async () => {
   );
 
   expect(tx.abi).toEqual(Clanker_v3_1_abi);
-  expect(tx.address).toEqual(CLANKER_FACTORY_V3_1);
+  expect(tx.address).toEqual(CLANKERS.clanker_v3_1.address);
   expect(tx.functionName).toEqual('deployToken');
   expect(tx.args).toEqual([
     {
@@ -212,7 +213,6 @@ test('custom mc', async () => {
       },
       poolConfig: {
         pairedToken: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
-        // TODO check this
         tickIfToken0IsNewToken: -119200,
       },
       initialBuyConfig: {

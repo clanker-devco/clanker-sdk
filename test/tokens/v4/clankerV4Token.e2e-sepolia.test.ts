@@ -10,7 +10,7 @@ import {
   parseEventLogs,
 } from 'viem';
 import { simulateCalls } from 'viem/actions';
-import { base } from 'viem/chains';
+import { baseSepolia } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import {
   CLANKERS,
@@ -31,8 +31,8 @@ import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/confi
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
-    chain: base,
-    transport: http(process.env.TESTS_RPC_URL),
+    chain: baseSepolia,
+    transport: http(process.env.TESTS_RPC_URL_SEPOLIA),
   }) as PublicClient;
 
   test('simulate static', async () => {
@@ -41,7 +41,7 @@ describe('v4 end to end', () => {
       symbol: 'SYM',
       image: 'www.example.com/image',
       tokenAdmin: admin.address,
-      chainId: base.id,
+      chainId: baseSepolia.id,
       metadata: {
         description: 'des',
         socialMediaUrls: [],
@@ -54,7 +54,7 @@ describe('v4 end to end', () => {
         id: '123',
       },
       pool: {
-        pairedToken: WETH_ADDRESSES[base.id],
+        pairedToken: WETH_ADDRESSES[baseSepolia.id],
         positions: POOL_POSITIONS.Project,
       },
       vault: {
@@ -140,7 +140,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.vault,
+          to: CLANKERS.clanker_v4_sepolia.related.vault,
           data: encodeFunctionData({
             abi: ClankerVault_v4_abi,
             functionName: 'allocation',
@@ -148,7 +148,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.airdrop,
+          to: CLANKERS.clanker_v4_sepolia.related.airdrop,
           data: encodeFunctionData({
             abi: ClankerAirdrop_v4_abi,
             functionName: 'airdrops',
@@ -156,7 +156,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.locker,
+          to: CLANKERS.clanker_v4_sepolia.related.locker,
           data: encodeFunctionData({
             abi: ClankerLocker_v4_abi,
             functionName: 'tokenRewards',
@@ -164,7 +164,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.locker,
+          to: CLANKERS.clanker_v4_sepolia.related.locker,
           data: encodeFunctionData({
             abi: ClankerLocker_v4_abi,
             functionName: 'feePreferences',
@@ -172,7 +172,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.locker,
+          to: CLANKERS.clanker_v4_sepolia.related.locker,
           data: encodeFunctionData({
             abi: ClankerLocker_v4_abi,
             functionName: 'feePreferences',
@@ -180,7 +180,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.locker,
+          to: CLANKERS.clanker_v4_sepolia.related.locker,
           data: encodeFunctionData({
             abi: ClankerLocker_v4_abi,
             functionName: 'feePreferences',
@@ -365,7 +365,7 @@ describe('v4 end to end', () => {
       symbol: 'SYM',
       image: 'www.example.com/image',
       tokenAdmin: admin.address,
-      chainId: base.id,
+      chainId: baseSepolia.id,
       metadata: {
         description: 'des',
         socialMediaUrls: [],
@@ -378,7 +378,7 @@ describe('v4 end to end', () => {
         id: '123',
       },
       pool: {
-        pairedToken: WETH_ADDRESSES[base.id],
+        pairedToken: WETH_ADDRESSES[baseSepolia.id],
         positions: POOL_POSITIONS.Project,
       },
       vault: {
@@ -458,7 +458,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.vault,
+          to: CLANKERS.clanker_v4_sepolia.related.vault,
           data: encodeFunctionData({
             abi: ClankerVault_v4_abi,
             functionName: 'allocation',
@@ -466,7 +466,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.airdrop,
+          to: CLANKERS.clanker_v4_sepolia.related.airdrop,
           data: encodeFunctionData({
             abi: ClankerAirdrop_v4_abi,
             functionName: 'airdrops',
@@ -474,7 +474,7 @@ describe('v4 end to end', () => {
           }),
         },
         {
-          to: CLANKERS.clanker_v4.related.locker,
+          to: CLANKERS.clanker_v4_sepolia.related.locker,
           data: encodeFunctionData({
             abi: ClankerLocker_v4_abi,
             functionName: 'tokenRewards',

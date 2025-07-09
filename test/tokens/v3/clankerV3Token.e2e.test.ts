@@ -9,7 +9,7 @@ import {
 import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { CLANKER_VAULT_V3_1, DEFAULT_SUPPLY } from '../../../src';
+import { CLANKERS, DEFAULT_SUPPLY } from '../../../src';
 import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
 import { ClankerToken_v3_1_abi } from '../../../src/abi/v3.1/ClankerToken';
 import { ClankerVault_v3_1_abi } from '../../../src/abi/v3.1/ClankerVault';
@@ -94,7 +94,7 @@ describe('v3 end to end', () => {
           }),
         },
         {
-          to: CLANKER_VAULT_V3_1,
+          to: CLANKERS.clanker_v3_1.related.vault,
           data: encodeFunctionData({
             abi: ClankerVault_v3_1_abi,
             functionName: 'allocation',

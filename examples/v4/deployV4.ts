@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESS } from '../../src/constants.js';
+import { FEE_CONFIGS, POOL_POSITIONS } from '../../src/constants.js';
 import { Clanker } from '../../src/v4/index.js';
 
 // Load environment variables
@@ -98,7 +98,7 @@ async function main(): Promise<void> {
         ],
       },
       pool: {
-        pairedToken: WETH_ADDRESS,
+        pairedToken: '0x4200000000000000000000000000000000000006',
         positions: POOL_POSITIONS.Standard, // POOL_POSITIONS.Project
       },
       fees: FEE_CONFIGS.DynamicBasic,

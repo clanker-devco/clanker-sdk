@@ -1,5 +1,5 @@
 import { type Address, encodeAbiParameters } from 'viem';
-import { CLANKER_VAULT_V4 } from '../constants.js';
+import { CLANKERS } from '../utils/clankers.js';
 import type { IClankerExtension } from './IClankerExtension.js';
 
 export interface VaultExtensionData {
@@ -9,7 +9,7 @@ export interface VaultExtensionData {
 }
 
 export class VaultExtension implements IClankerExtension {
-  readonly address = CLANKER_VAULT_V4;
+  readonly address = CLANKERS.clanker_v4.related.vault;
   readonly name = 'Vault';
   readonly description = 'Vaults a portion of the token supply with optional linear vesting';
   readonly maxAllocationPercentage = 90;

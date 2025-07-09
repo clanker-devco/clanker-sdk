@@ -1,8 +1,8 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import { type ClankerTokenV3, clankerTokenV3Converter } from '../config/clankerTokenV3.js';
-import { CLANKER_FACTORY_V3_1 } from '../constants.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
+import { CLANKERS } from '../utils/clankers.js';
 import type { ClankerError } from '../utils/errors.js';
 import {
   type ClankerTransactionConfig,
@@ -37,7 +37,7 @@ export class Clanker {
     token: `0x${string}`
   ): Promise<ClankerTransactionConfig<typeof Clanker_v3_1_abi>> {
     return {
-      address: CLANKER_FACTORY_V3_1,
+      address: CLANKERS.clanker_v3_1.address,
       abi: Clanker_v3_1_abi,
       functionName: 'claimRewards',
       args: [token],

@@ -1,4 +1,5 @@
 import { isAddress, stringify } from 'viem';
+import { base } from 'viem/chains';
 import * as z from 'zod/v4';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import {
@@ -6,14 +7,14 @@ import {
   ANON_ADDRESS,
   CB_BTC_ADDRESS,
   CLANKER_ADDRESS,
-  CLANKER_FACTORY_V3_1,
   DEFAULT_SUPPLY,
   DEGEN_ADDRESS,
   HIGHER_ADDRESS,
   NATIVE_ADDRESS,
-  WETH_ADDRESS,
+  WETH_ADDRESSES,
 } from '../constants.js';
 import { findVanityAddress } from '../services/vanityAddress.js';
+import { CLANKERS } from '../utils/clankers.js';
 import {
   addressSchema,
   ClankerContextSchema,
@@ -149,7 +150,7 @@ export const clankerTokenV3Converter: ClankerTokenConverter<ClankerTokenV3> = as
 
   return {
     abi: Clanker_v3_1_abi,
-    address: CLANKER_FACTORY_V3_1,
+    address: CLANKERS.clanker_v3_1.address,
     functionName: 'deployToken',
     args: [
       {
@@ -220,7 +221,7 @@ type TokenPair =
   | null;
 
 const getTokenPairByAddress = (address: `0x${string}`): TokenPair => {
-  if (address === WETH_ADDRESS) {
+  if (address === WETH_ADDRESSES[base.id]) {
     return 'WETH';
   }
   if (address === DEGEN_ADDRESS) {
@@ -252,7 +253,7 @@ const getDesiredPriceAndPairAddress = (pair: TokenPair, marketCap: number = 10) 
   // So 0.0000000001 WETH = 1 TOKEN. Since we are deploying with 100000000000 tokens,
   // Then 100000000000 * 0.0000000001 == 10 WETH. So starting market cap is 10 WETH or about 40k.
   let desiredPrice = 0.0000000001;
-  let pairAddress = WETH_ADDRESS;
+  let pairAddress = WETH_ADDRESSES[base.id];
 
   // Only adjust the desired price for WETH pairs
   if (pair === 'WETH') {

@@ -1,5 +1,3 @@
-import { WETH_ADDRESS } from '../constants.js';
-
 /**
  * Calculate starting tick and spacing for a token pooled against ETH.
  *
@@ -15,7 +13,7 @@ export const getTickFromMarketCap = (marketCap: number) => {
   const tickIfToken0IsClanker = Math.floor(rawTick / tickSpacing) * tickSpacing;
 
   return {
-    pairedToken: WETH_ADDRESS,
+    pairedToken: 'WETH',
     tickIfToken0IsClanker,
     tickSpacing,
   };

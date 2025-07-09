@@ -9,17 +9,9 @@ import {
 import * as z from 'zod/v4';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerLpLockerFeeConversion_Data_v4_abi } from '../abi/v4/ClankerLocker.js';
-import {
-  CLANKER_HOOK_DYNAMIC_FEE_V4,
-  CLANKER_HOOK_STATIC_FEE_V4,
-  CLANKER_LOCKER_V4,
-  CLANKER_MEV_MODULE_V4,
-  DEFAULT_SUPPLY,
-  POOL_POSITIONS,
-  WETH_ADDRESS,
-} from '../constants.js';
+import { DEFAULT_SUPPLY, POOL_POSITIONS, SUPPORTED_CHAINS, WETH_ADDRESSES } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
-import { clankerConfigFor, type RelatedV4 } from '../utils/clankers.js';
+import { type ClankerDeployment, clankerConfigFor, type RelatedV4 } from '../utils/clankers.js';
 import {
   addressSchema,
   ClankerContextSchema,
@@ -53,7 +45,7 @@ const clankerTokenV4 = z.strictObject({
   /** Image for the token. This should be a normal or ipfs url. */
   image: z.string().default(''),
   /** Id of the chain that the token will be deployed to. Defaults to base (8453). */
-  chainId: z.literal([8453, 84532]).default(8453),
+  chainId: z.literal(SUPPORTED_CHAINS).default(8453),
   /** Admin for the token. They will be able to change fields like image, metadata, etc. */
   tokenAdmin: addressSchema.refine((v) => !isAddressEqual(v, zeroAddress), {
     error: 'Admin cannot be zero address',
@@ -68,7 +60,7 @@ const clankerTokenV4 = z.strictObject({
   pool: z
     .object({
       /** Token to pair the clanker with. */
-      pairedToken: addressSchema.default(WETH_ADDRESS),
+      pairedToken: z.union([z.literal('WETH'), addressSchema]).default('WETH'),
       /** Starting tick of the pool. */
       tickIfToken0IsClanker: z.number().default(-230400),
       /** Tick spacing. */
@@ -91,7 +83,7 @@ const clankerTokenV4 = z.strictObject({
         }),
     })
     .prefault({
-      pairedToken: WETH_ADDRESS,
+      pairedToken: 'WETH',
       tickIfToken0IsClanker: -230400,
       positions: POOL_POSITIONS.Standard,
     })
@@ -109,12 +101,12 @@ const clankerTokenV4 = z.strictObject({
   locker: z
     .object({
       /** Locker extension address. */
-      locker: z.literal(CLANKER_LOCKER_V4),
+      locker: z.union([z.literal('Locker'), addressSchema]),
       /** Locker extension specific data. Abi encoded hex of the parameters. */
       lockerData: hexSchema.default('0x'),
     })
     .prefault({
-      locker: CLANKER_LOCKER_V4,
+      locker: 'Locker',
     }),
   /** Token vault. Tokens are locked for some duration with possible vesting. */
   vault: z
@@ -246,8 +238,6 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
   const metadata = stringify(cfg.metadata) || '';
   const socialContext = stringify(cfg.context);
 
-  const { hook, poolData } = encodeFeeConfig(cfg.fees);
-
   const { salt, token: expectedAddress } = cfg.vanity
     ? await findVanityAddressV4(
         [
@@ -286,10 +276,12 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
     );
   }
 
-  const clankerConfig = clankerConfigFor(cfg.chainId, 'clanker_v4');
-  if (!clankerConfig) {
+  const clankerConfig = clankerConfigFor<ClankerDeployment<RelatedV4>>(cfg.chainId, 'clanker_v4');
+  if (!clankerConfig?.related) {
     throw new Error(`No clanker v4 configuration for chain ${cfg.chainId}`);
   }
+
+  const { hook, poolData } = encodeFeeConfig(cfg.fees, clankerConfig);
 
   return {
     address: clankerConfig.address,
@@ -308,7 +300,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           originatingChainId: BigInt(cfg.chainId),
         },
         lockerConfig: {
-          locker: cfg.locker.locker,
+          locker: cfg.locker.locker === 'Locker' ? clankerConfig.related.locker : cfg.locker.locker,
           lockerData: encodeAbiParameters(ClankerLpLockerFeeConversion_Data_v4_abi, [
             {
               feePreference: cfg.rewards.recipients.map(({ token }) => FeeInToInt[token]),
@@ -322,14 +314,15 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           positionBps: cfg.pool.positions.map(({ positionBps }) => positionBps),
         },
         poolConfig: {
-          pairedToken: cfg.pool.pairedToken,
+          pairedToken:
+            cfg.pool.pairedToken === 'WETH' ? WETH_ADDRESSES[cfg.chainId] : cfg.pool.pairedToken,
           tickIfToken0IsClanker: cfg.pool.tickIfToken0IsClanker,
           tickSpacing: cfg.pool.tickSpacing,
           hook: hook,
           poolData: poolData,
         },
         mevModuleConfig: {
-          mevModule: CLANKER_MEV_MODULE_V4,
+          mevModule: clankerConfig.related?.mevModule,
           mevModuleData: '0x',
         },
         extensionConfigs: [
@@ -337,7 +330,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           ...(cfg.vault
             ? [
                 {
-                  extension: (clankerConfig.related as RelatedV4).vault,
+                  extension: clankerConfig.related.vault,
                   msgValue: 0n,
                   extensionBps: cfg.vault.percentage * 100,
                   extensionData: encodeAbiParameters(VAULT_EXTENSION_PARAMETERS, [
@@ -352,7 +345,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           ...(cfg.airdrop
             ? [
                 {
-                  extension: (clankerConfig.related as RelatedV4).airdrop,
+                  extension: clankerConfig.related.airdrop,
                   msgValue: 0n,
                   extensionBps: Number(bpsAirdropped),
                   extensionData: encodeAbiParameters(AIRDROP_EXTENSION_PARAMETERS, [
@@ -367,7 +360,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
           ...(cfg.devBuy
             ? [
                 {
-                  extension: (clankerConfig.related as RelatedV4).devbuy,
+                  extension: clankerConfig.related.devbuy,
                   msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
                   extensionBps: 0,
                   extensionData: encodeAbiParameters(DEVBUY_EXTENSION_PARAMETERS, [
@@ -429,7 +422,10 @@ export const DYNAMIC_FEE_PARAMETERS = [
   { type: 'uint24', name: 'decayFilterBps' },
 ] as const;
 
-function encodeFeeConfig(config: z.infer<typeof clankerTokenV4>['fees']): {
+function encodeFeeConfig(
+  config: z.infer<typeof clankerTokenV4>['fees'],
+  clankerConfig: ClankerDeployment<RelatedV4>
+): {
   hook: Address;
   poolData: `0x${string}`;
 } {
@@ -440,7 +436,7 @@ function encodeFeeConfig(config: z.infer<typeof clankerTokenV4>['fees']): {
 
   if (config.type === 'static') {
     return {
-      hook: CLANKER_HOOK_STATIC_FEE_V4,
+      hook: clankerConfig.related.feeStaticHook,
       poolData: encodeAbiParameters(STATIC_FEE_PARAMETERS, [
         config.clankerFee * 100, // uniBps
         config.pairedFee * 100, // uniBps
@@ -448,7 +444,7 @@ function encodeFeeConfig(config: z.infer<typeof clankerTokenV4>['fees']): {
     };
   } else {
     return {
-      hook: CLANKER_HOOK_DYNAMIC_FEE_V4,
+      hook: clankerConfig.related.feeDynamicHook,
       poolData: encodeAbiParameters(DYNAMIC_FEE_PARAMETERS, [
         config.baseFee * 100, // uniBps
         config.maxFee * 100, // uniBps

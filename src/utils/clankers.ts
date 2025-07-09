@@ -35,12 +35,14 @@ export type RelatedV4 = {
   feeDynamicHook: `0x${string}`;
 };
 
-type ClankerDeployment = {
+type RelatedAddresses = RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4;
+
+export type ClankerDeployment<T extends RelatedAddresses = RelatedAddresses> = {
   abi: Abi;
   chainId: number;
   type: string;
   address: `0x${string}`;
-  related: RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4;
+  related: T;
 };
 
 export const CLANKERS = {
@@ -136,6 +138,11 @@ export const ClankerDeployments = Object.values(CLANKERS).reduce(
   {} as Record<Chain, Partial<Record<Type, ClankerDeployment>>>
 );
 
-export const clankerConfigFor = (chainId: Chain, type: Type) => {
-  return Object.values(CLANKERS).find((cfg) => cfg.chainId === chainId && cfg.type === type);
+export const clankerConfigFor = <T extends ClankerDeployment = ClankerDeployment>(
+  chainId: Chain,
+  type: Type
+) => {
+  return Object.values(CLANKERS).find((cfg) => cfg.chainId === chainId && cfg.type === type) as
+    | T
+    | undefined;
 };
