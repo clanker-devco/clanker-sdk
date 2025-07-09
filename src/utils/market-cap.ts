@@ -13,7 +13,7 @@ export const getTickFromMarketCap = (marketCap: number) => {
   const tickIfToken0IsClanker = Math.floor(rawTick / tickSpacing) * tickSpacing;
 
   return {
-    pairedToken: 'WETH',
+    pairedToken: 'WETH' as const,
     tickIfToken0IsClanker,
     tickSpacing,
   };
