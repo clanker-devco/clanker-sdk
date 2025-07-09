@@ -213,3 +213,9 @@ export const ClankerVault_v4_abi = [
   { type: 'error', name: 'Unauthorized', inputs: [] },
   { type: 'error', name: 'VaultLockupDurationTooShort', inputs: [] },
 ] as const;
+
+export const ClankerVault_Instantiation_v4_abi = [
+  { type: 'address' },
+  { type: 'uint256' },
+  { type: 'uint256' },
+] as const;

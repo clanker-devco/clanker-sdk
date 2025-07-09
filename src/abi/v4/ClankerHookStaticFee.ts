@@ -629,3 +629,8 @@ export const ClankerHook_StaticFee_v4_abi = [
   { type: 'error', name: 'UnsupportedInitializePath', inputs: [] },
   { type: 'error', name: 'WethCannotBeClanker', inputs: [] },
 ] as const;
+
+export const ClankerHook_StaticFee_Instantiation_v4_abi = [
+  { type: 'uint24' },
+  { type: 'uint24' },
+] as const;

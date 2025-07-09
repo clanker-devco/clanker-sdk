@@ -1,11 +1,6 @@
-// Default RPC URL for Base mainnet
-export const DEFAULT_BASE_RPC = 'https://mainnet.base.org';
-
-// Common addresses
-import { base, baseSepolia } from 'viem/chains';
 import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
+import type { Chain } from './utils/clankers.js';
 
-// Replace the old WETH_ADDRESS constant with this one
 export const DEGEN_ADDRESS: `0x${string}` = '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed';
 export const NATIVE_ADDRESS: `0x${string}` = '0x20DD04c17AFD5c9a8b3f2cdacaa8Ee7907385BEF';
 export const CLANKER_ADDRESS: `0x${string}` = '0x1bc0c42215582d5A085795f4baDbaC3ff36d1Bcb';
@@ -14,10 +9,7 @@ export const HIGHER_ADDRESS: `0x${string}` = '0x0578d8A44db98B23BF096A382e016e29
 export const CB_BTC_ADDRESS: `0x${string}` = '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf';
 export const A0X_ADDRESS: `0x${string}` = '0x820C5F0fB255a1D18fd0eBB0F1CCefbC4D546dA7';
 
-export const SUPPORTED_CHAINS = [base.id, baseSepolia.id] as const;
-export type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
-
-export const WETH_ADDRESSES: Record<SupportedChain, `0x${string}`> = {
+export const WETH_ADDRESSES: Record<Chain, `0x${string}`> = {
   8453: '0x4200000000000000000000000000000000000006',
   84532: '0x4200000000000000000000000000000000000006',
 };

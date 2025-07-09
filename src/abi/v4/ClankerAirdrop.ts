@@ -190,3 +190,9 @@ export const ClankerAirdrop_v4_abi = [
     type: 'function',
   },
 ] as const;
+
+export const ClankerAirdrop_Instantiation_v4_abi = [
+  { type: 'bytes32' },
+  { type: 'uint256' },
+  { type: 'uint256' },
+] as const;

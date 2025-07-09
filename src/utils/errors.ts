@@ -28,6 +28,10 @@ export class ClankerError extends Error {
   }
 }
 
+const IdToError: Record<`0x${string}`, string> = {
+  '0x7e5ba1ad': 'Hook not enabled.',
+};
+
 const ErrorMapping: Partial<Record<ClankerErrorName, ClankerErrorData>> = {
   NoFeesToClaim: {
     type: 'state',
@@ -44,6 +48,14 @@ const ErrorMapping: Partial<Record<ClankerErrorName, ClankerErrorData>> = {
     label: 'Base fee is set too low',
     rawName: 'BaseFeeTooLow',
   },
+};
+
+export const understandErrorCode = (e: `0x${string}`): ClankerError => {
+  return new ClankerError(new Error(e), {
+    type: 'caller',
+    label: 'Contract error.',
+    rawName: IdToError[e] || `Unknown hex: ${e}`,
+  });
 };
 
 export const understandError = (e: unknown): ClankerError => {
