@@ -72,8 +72,6 @@ export async function deployToken(
   const { gas, error: gasError } = await estimateGasClankerContract(publicClient, account, tx);
   if (gasError) return { error: gasError };
 
-  console.log('Estimated gas required:', gas.toString());
-
   const { txHash, error: txError } = await writeClankerContract(
     publicClient,
     wallet,
