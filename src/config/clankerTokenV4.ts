@@ -392,7 +392,14 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   };
 };
 
-function encodeFeeConfig(
+/**
+ * Encode a fee configuration for Clanker v4.
+ *
+ * @param config The fee configuration
+ * @param clankerConfig A clanker configuration
+ * @returns A correctly formatted fee configuration
+ */
+export function encodeFeeConfig(
   config: z.infer<typeof clankerTokenV4>['fees'],
   clankerConfig: ClankerDeployment<RelatedV4>
 ): {

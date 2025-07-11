@@ -1,3 +1,4 @@
+import { arbitrum, base, baseSepolia, unichain } from 'viem/chains';
 import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 import type { Chain } from './utils/clankers.js';
 
@@ -10,16 +11,11 @@ export const CB_BTC_ADDRESS: `0x${string}` = '0xcbB7C0000aB88B473b1f5aFd9ef80844
 export const A0X_ADDRESS: `0x${string}` = '0x820C5F0fB255a1D18fd0eBB0F1CCefbC4D546dA7';
 
 export const WETH_ADDRESSES: Record<Chain, `0x${string}`> = {
-  // Base
-  8453: '0x4200000000000000000000000000000000000006',
-  // Base sepolia
-  84532: '0x4200000000000000000000000000000000000006',
-  // Arbitrum
-  42161: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+  [arbitrum.id]: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+  [base.id]: '0x4200000000000000000000000000000000000006',
+  [baseSepolia.id]: '0x4200000000000000000000000000000000000006',
+  [unichain.id]: '0x4200000000000000000000000000000000000006',
 };
-
-export const INTERFACE_ADMIN_ADDRESS = '0xEea96d959963EaB488A3d4B7d5d347785cf1Eab8';
-export const INTERFACE_REWARD_RECIPIENT_ADDRESS = '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace';
 
 export const DEFAULT_SUPPLY = 100_000_000_000_000_000_000_000_000_000n;
 
