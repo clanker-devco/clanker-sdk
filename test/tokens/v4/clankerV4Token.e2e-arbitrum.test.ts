@@ -87,7 +87,7 @@ describe('v4 end to end', () => {
     expect(address).toEqual(tx.expectedAddress);
   });
 
-  test('arb simulate dynamic', async () => {
+  test('simulate dynamic', async () => {
     const token: ClankerTokenV4 = {
       name: 'TheName',
       symbol: 'SYM',
@@ -106,7 +106,7 @@ describe('v4 end to end', () => {
         id: '123',
       },
       pool: {
-        pairedToken: WETH_ADDRESSES[baseSepolia.id],
+        pairedToken: WETH_ADDRESSES[arbitrum.id],
         positions: POOL_POSITIONS.Project,
       },
       vault: {
