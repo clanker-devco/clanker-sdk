@@ -164,3 +164,5 @@ export class Clanker {
     return deployToken(input, this.wallet, this.publicClient);
   }
 }
+
+export { encodeFeeConfig } from '../config/clankerTokenV4.js';
