@@ -227,9 +227,11 @@ const clankerTokenV4 = z.strictObject({
 });
 export type ClankerTokenV4 = z.input<typeof clankerTokenV4>;
 
-export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = async (
-  config: ClankerTokenV4
-) => {
+export const clankerTokenV4Converter: ClankerTokenConverter<
+  ClankerTokenV4,
+  typeof Clanker_v4_abi,
+  'deployToken'
+> = async (config: ClankerTokenV4) => {
   const cfg = clankerTokenV4.parse(config);
 
   if (!cfg.rewards) {
@@ -248,6 +250,11 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
   const metadata = stringify(cfg.metadata) || '';
   const socialContext = stringify(cfg.context);
 
+  const clankerConfig = clankerConfigFor<ClankerDeployment<RelatedV4>>(cfg.chainId, 'clanker_v4');
+  if (!clankerConfig?.related) {
+    throw new Error(`No clanker v4 configuration for chain ${cfg.chainId}`);
+  }
+
   const { salt, token: expectedAddress } = cfg.vanity
     ? await findVanityAddressV4(
         [
@@ -262,7 +269,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
         ],
         cfg.tokenAdmin,
         '0x4b07',
-        { chainId: cfg.chainId }
+        clankerConfig
       )
     : {
         salt: zeroHash,
@@ -284,11 +291,6 @@ export const clankerTokenV4Converter: ClankerTokenConverter<ClankerTokenV4> = as
     throw new Error(
       `Precision error for airdrop. Difference ${airdropAmount - roundingVerificationAirdrop} is too large.`
     );
-  }
-
-  const clankerConfig = clankerConfigFor<ClankerDeployment<RelatedV4>>(cfg.chainId, 'clanker_v4');
-  if (!clankerConfig?.related) {
-    throw new Error(`No clanker v4 configuration for chain ${cfg.chainId}`);
   }
 
   const { hook, poolData } = encodeFeeConfig(cfg.fees, clankerConfig);

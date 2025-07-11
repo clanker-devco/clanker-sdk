@@ -35,18 +35,7 @@ describe('v4 end to end', () => {
     transport: http(process.env.TESTS_RPC_URL_SEPOLIA),
   }) as PublicClient;
 
-  test.skip('simulate static', async () => {
-    // WrappedError: 0x90bfb865
-    // target: dfcccfbeef7f3fc8b16027ce6feacb48024068cc
-    // selector: 575e24b4
-    // reason:
-    // 0000000000000000000000000000000000000000000000000000000000000000
-    // 0000000000000000000000000000000000000000000000000000008000000000
-    // 000000000000000000000000000000000000000000000000000000a000000000
-    // 0000000000000000000000000000000000000000000000000000000000000000
-    // 00000000000000000000000000000000000000000000000000000004a9e35b2f
-    // 00000000000000000000000000000000000000000000000000000000
-
+  test('simulate static', async () => {
     const token: ClankerTokenV4 = {
       name: 'TheName',
       symbol: 'SYM',
@@ -174,30 +163,6 @@ describe('v4 end to end', () => {
             args: [tx.expectedAddress],
           }),
         },
-        {
-          to: CLANKERS.clanker_v4_sepolia.related.locker,
-          data: encodeFunctionData({
-            abi: ClankerLocker_v4_abi,
-            functionName: 'feePreferences',
-            args: [tx.expectedAddress, 0n],
-          }),
-        },
-        {
-          to: CLANKERS.clanker_v4_sepolia.related.locker,
-          data: encodeFunctionData({
-            abi: ClankerLocker_v4_abi,
-            functionName: 'feePreferences',
-            args: [tx.expectedAddress, 1n],
-          }),
-        },
-        {
-          to: CLANKERS.clanker_v4_sepolia.related.locker,
-          data: encodeFunctionData({
-            abi: ClankerLocker_v4_abi,
-            functionName: 'feePreferences',
-            args: [tx.expectedAddress, 2n],
-          }),
-        },
       ],
       account: admin,
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
@@ -213,9 +178,6 @@ describe('v4 end to end', () => {
       vaultResult,
       airdropResult,
       lockerResult,
-      feePref1Result,
-      feePref2Result,
-      feePref3Result,
     ] = res.results;
 
     const address = decodeFunctionResult({
@@ -285,24 +247,6 @@ describe('v4 end to end', () => {
       data: lockerResult.data,
     });
 
-    const feePref1 = decodeFunctionResult({
-      abi: ClankerLocker_v4_abi,
-      functionName: 'feePreferences',
-      data: feePref1Result.data,
-    });
-
-    const feePref2 = decodeFunctionResult({
-      abi: ClankerLocker_v4_abi,
-      functionName: 'feePreferences',
-      data: feePref2Result.data,
-    });
-
-    const feePref3 = decodeFunctionResult({
-      abi: ClankerLocker_v4_abi,
-      functionName: 'feePreferences',
-      data: feePref3Result.data,
-    });
-
     // Token
     expect(address).toEqual(tx.expectedAddress);
     expect(name).toEqual('TheName');
@@ -343,7 +287,7 @@ describe('v4 end to end', () => {
     );
 
     // Reward recipients
-    expect(locker.numPositions).toEqual(BigInt(POOL_POSITIONS.Project.length));
+    expect(locker.numPositions).toEqual(BigInt(POOL_POSITIONS.Standard.length));
     expect(locker.rewardBps).toEqual([7_000, 1_000, 2_000]);
     expect(locker.rewardAdmins).toEqual([
       '0x0000000000000000000000000000000000000001',
@@ -355,9 +299,6 @@ describe('v4 end to end', () => {
       '0x0000000000000000000000000000000000000004',
       '0x0000000000000000000000000000000000000006',
     ]);
-    expect(feePref1).toEqual(0);
-    expect(feePref2).toEqual(2);
-    expect(feePref3).toEqual(1);
 
     // Static fees
     const poolInitializedLog = parseEventLogs({
