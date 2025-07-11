@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { createPublicClient, http, parseEther } from 'viem';
 import { simulateContract } from 'viem/actions';
-import { arbitrum, baseSepolia } from 'viem/chains';
+import { arbitrum } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
