@@ -98,7 +98,11 @@ const clankerTokenV3 = z.strictObject({
 });
 export type ClankerTokenV3 = z.input<typeof clankerTokenV3>;
 
-export const clankerTokenV3Converter: ClankerTokenConverter<ClankerTokenV3> = async (
+export const clankerTokenV3Converter: ClankerTokenConverter<
+  ClankerTokenV3,
+  typeof Clanker_v3_1_abi,
+  'deployToken'
+> = async (
   config: ClankerTokenV3,
   options?: {
     requestorAddress?: `0x${string}`;

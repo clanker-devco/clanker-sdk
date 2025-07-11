@@ -35,7 +35,7 @@ describe('v4 end to end', () => {
     transport: http(process.env.TESTS_RPC_URL_SEPOLIA),
   }) as PublicClient;
 
-  test.skip('simulate static', async () => {
+  test('simulate static', async () => {
     // WrappedError: 0x90bfb865
     // target: dfcccfbeef7f3fc8b16027ce6feacb48024068cc
     // selector: 575e24b4
