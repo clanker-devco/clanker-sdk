@@ -1,8 +1,14 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
+import { base } from 'viem/chains';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
-import { CLANKERS } from '../utils/clankers.js';
+import {
+  type Chain as ClankerChain,
+  type ClankerDeployment,
+  clankerConfigFor,
+  type RelatedV4,
+} from '../utils/clankers.js';
 import type { ClankerError } from '../utils/errors.js';
 import {
   type ClankerTransactionConfig,
@@ -36,10 +42,18 @@ export class Clanker {
    */
   async getClaimRewardsTransaction(
     token: `0x${string}`,
-    rewardRecipient: `0x${string}`
+    rewardRecipient: `0x${string}`,
+    options?: { chain?: Chain }
   ): Promise<ClankerTransactionConfig<typeof ClankerFeeLocker_abi>> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
     return {
-      address: CLANKERS.clanker_v4.related.feeLocker,
+      address: config?.related.feeLocker,
       abi: ClankerFeeLocker_abi,
       functionName: 'claim',
       args: [rewardRecipient, token],
@@ -97,9 +111,20 @@ export class Clanker {
    * @param rewardRecipient The recipient to check rewards for
    * @returns Abi transaction
    */
-  async getAvailableRewardsTransaction(token: `0x${string}`, rewardRecipient: `0x${string}`) {
+  async getAvailableRewardsTransaction(
+    token: `0x${string}`,
+    rewardRecipient: `0x${string}`,
+    options?: { chain?: Chain }
+  ) {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
     return {
-      address: CLANKERS.clanker_v4.related.feeLocker,
+      address: config.related.feeLocker,
       abi: ClankerFeeLocker_abi,
       functionName: 'availableFees',
       args: [rewardRecipient, token],
