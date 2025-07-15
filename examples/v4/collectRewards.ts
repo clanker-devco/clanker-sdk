@@ -51,7 +51,10 @@ async function main(): Promise<void> {
 
   console.log('\n💰 Collecting Rewards for token: ', TOKEN_ADDRESS, '\n');
 
-  const { txHash, error } = await clanker.claimRewards(FEE_OWNER_ADDRESS, TOKEN_ADDRESS);
+  const { txHash, error } = await clanker.claimRewards({
+    token: TOKEN_ADDRESS,
+    rewardRecipient: FEE_OWNER_ADDRESS,
+  });
   if (error) {
     console.error('Claim failed:', error.message);
     process.exit(1);
