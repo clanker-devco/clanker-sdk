@@ -13,10 +13,10 @@ describe('v4 fees', () => {
   const clanker = new Clanker({ publicClient });
 
   test('claim', async () => {
-    const tx = await clanker.getClaimRewardsTransaction(
-      '0x4200000000000000000000000000000000000006',
-      '0x46e2c233a4C5CcBD6f48073F8808E0e4b3296477'
-    );
+    const tx = await clanker.getClaimRewardsTransaction({
+      token: '0x4200000000000000000000000000000000000006',
+      rewardRecipient: '0x46e2c233a4C5CcBD6f48073F8808E0e4b3296477',
+    });
 
     const { results } = await simulateCalls(publicClient, {
       calls: [{ to: tx.address, ...tx }],
