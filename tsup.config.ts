@@ -7,6 +7,7 @@ export default defineConfig({
     'src/index.ts',
     'src/v3/index.ts',
     'src/v4/index.ts',
+    'src/v4/extensions/index.ts',
     'src/cli/cli.ts',
     'src/cli/create-clanker.ts',
   ],
