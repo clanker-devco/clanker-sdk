@@ -5,7 +5,11 @@ import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { ClankerAirdrop_v4_abi } from '../../src/abi/v4/ClankerAirdrop.js';
 import { clankerTokenV4Converter } from '../../src/config/clankerTokenV4.js';
-import { Airdrop } from '../../src/v4/extensions/airdrop.js';
+import {
+  createAirdrop,
+  getAirdropProofs,
+  getClaimAirdropTransaction,
+} from '../../src/v4/extensions/index.js';
 
 describe('airdrop', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -14,14 +18,8 @@ describe('airdrop', () => {
     transport: http(process.env.TESTS_RPC_URL),
   }) as PublicClient;
 
-  const airdrop = new Airdrop();
-
   test('claim', async () => {
-    const {
-      tree,
-      total,
-      root: merkleRoot,
-    } = airdrop.for([
+    const { tree, airdrop } = createAirdrop([
       { account: '0x0000000000000000000000000000000000000001', amount: 200_000_000 },
       { account: '0x0000000000000000000000000000000000000002', amount: 50_000_000 },
     ]);
@@ -32,23 +30,22 @@ describe('airdrop', () => {
       tokenAdmin: admin.address,
       chainId: base.id,
       airdrop: {
-        merkleRoot,
+        ...airdrop,
         lockupDuration: 86_400, // 1 day
         vestingDuration: 0,
-        amount: total,
       },
       vanity: true,
     });
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
-    const { proofs: proofs1 } = airdrop.getProofs(
+    const { proofs: proofs1 } = getAirdropProofs(
       tree,
       '0x0000000000000000000000000000000000000001'
     );
     const proof1 = proofs1[0];
     if (!proof1) throw new Error('Expected proofs');
 
-    const claim1Tx = airdrop.getClaimTransaction({
+    const claim1Tx = getClaimAirdropTransaction({
       token: tx.expectedAddress,
       recipient: proof1.entry.account,
       amount: proof1.entry.amount,
@@ -56,14 +53,14 @@ describe('airdrop', () => {
       chainId: base.id,
     });
 
-    const { proofs: proofs2 } = airdrop.getProofs(
+    const { proofs: proofs2 } = getAirdropProofs(
       tree,
       '0x0000000000000000000000000000000000000002'
     );
     const proof2 = proofs2[0];
     if (!proof2) throw new Error('Expected proofs');
 
-    const claim2Tx = airdrop.getClaimTransaction({
+    const claim2Tx = getClaimAirdropTransaction({
       token: tx.expectedAddress,
       recipient: proof2.entry.account,
       amount: proof2.entry.amount,
@@ -114,11 +111,7 @@ describe('airdrop', () => {
   });
 
   test('claim vesting', async () => {
-    const {
-      tree,
-      total,
-      root: merkleRoot,
-    } = airdrop.for([
+    const { tree, airdrop } = createAirdrop([
       { account: '0x0000000000000000000000000000000000000001', amount: 200_000_000 },
       { account: '0x0000000000000000000000000000000000000002', amount: 50_000_000 },
     ]);
@@ -129,23 +122,22 @@ describe('airdrop', () => {
       tokenAdmin: admin.address,
       chainId: base.id,
       airdrop: {
-        merkleRoot,
+        ...airdrop,
         lockupDuration: 86_400, // 1 day
         vestingDuration: 86_400,
-        amount: total,
       },
       vanity: true,
     });
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
-    const { proofs: proofs1 } = airdrop.getProofs(
+    const { proofs: proofs1 } = getAirdropProofs(
       tree,
       '0x0000000000000000000000000000000000000001'
     );
     const proof1 = proofs1[0];
     if (!proof1) throw new Error('Expected proofs');
 
-    const claim1Tx = airdrop.getClaimTransaction({
+    const claim1Tx = getClaimAirdropTransaction({
       token: tx.expectedAddress,
       recipient: proof1.entry.account,
       amount: proof1.entry.amount,
@@ -153,14 +145,14 @@ describe('airdrop', () => {
       chainId: base.id,
     });
 
-    const { proofs: proofs2 } = airdrop.getProofs(
+    const { proofs: proofs2 } = getAirdropProofs(
       tree,
       '0x0000000000000000000000000000000000000002'
     );
     const proof2 = proofs2[0];
     if (!proof2) throw new Error('Expected proofs');
 
-    const claim2Tx = airdrop.getClaimTransaction({
+    const claim2Tx = getClaimAirdropTransaction({
       token: tx.expectedAddress,
       recipient: proof2.entry.account,
       amount: proof2.entry.amount,
