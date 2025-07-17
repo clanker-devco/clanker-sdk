@@ -113,6 +113,29 @@ export function getAirdropProofs(
 }
 
 /**
+ * Get all proofs for an account given a token that has a merkle tree associated with it. The token and tree must have been registered with the Clanker service.
+ *
+ * @param token The token with the airdrop.
+ * @param account The account to check for.
+ * @returns All proofs and their associated entries for claiming.
+ */
+export async function fetchAirdropProofs(
+  token: `0x${string}`,
+  account: `0x${string}`
+): Promise<{
+  proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[];
+}> {
+  return fetch(
+    `https://www.clanker.world/api/airdrops/claim?tokenAddress=${token}&claimerAddress=${account}`
+  ).then(
+    (r) =>
+      r.json() as Promise<{
+        proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[];
+      }>
+  );
+}
+
+/**
  * Create a transaction to claim a specific airdrop for.
  *
  * @param token The token that did the airdrop
