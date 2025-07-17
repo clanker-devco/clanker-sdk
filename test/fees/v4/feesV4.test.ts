@@ -2,8 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { createPublicClient, http, type Log, type PublicClient, parseEventLogs } from 'viem';
 import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
-import { ClankerFeeLocker_abi } from '../../../src/abi/v4/ClankerFeeLocker';
-import { Clanker } from '../../../src/v4';
+import { ClankerFeeLocker_abi } from '../../../src/abi/v4/ClankerFeeLocker.js';
+import { Clanker } from '../../../src/v4/index.js';
 
 describe('v4 fees', () => {
   const publicClient = createPublicClient({

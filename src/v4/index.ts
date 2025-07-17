@@ -25,8 +25,8 @@ type ClankerConfig = {
  * Clanker v4
  */
 export class Clanker {
-  private readonly wallet?: WalletClient<Transport, Chain, Account>;
-  private readonly publicClient?: PublicClient;
+  readonly wallet?: WalletClient<Transport, Chain, Account>;
+  readonly publicClient?: PublicClient;
 
   constructor(config?: ClankerConfig) {
     this.wallet = config?.wallet;

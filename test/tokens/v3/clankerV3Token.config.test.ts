@@ -1,9 +1,9 @@
 import { expect, test } from 'bun:test';
 import { stringify } from 'viem';
 import { base } from 'viem/chains';
-import { CLANKERS, WETH_ADDRESSES } from '../../../src';
-import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
-import { clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
+import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker.js';
+import { clankerTokenV3Converter } from '../../../src/config/clankerTokenV3.js';
+import { CLANKERS, WETH_ADDRESSES } from '../../../src/index.js';
 
 test('basic', async () => {
   const requestorAddress = '0x746d5412345883b0a4310181DCca3002110967B3';

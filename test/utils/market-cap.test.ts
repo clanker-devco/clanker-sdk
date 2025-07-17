@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { getTickFromMarketCap } from '../../src/utils/market-cap';
+import { getTickFromMarketCap } from '../../src/utils/market-cap.js';
 
 describe('market cap', () => {
   test('10 ETH', async () => {

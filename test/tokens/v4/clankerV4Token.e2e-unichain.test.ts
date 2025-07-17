@@ -3,8 +3,11 @@ import { createPublicClient, http, parseEther } from 'viem';
 import { simulateContract } from 'viem/actions';
 import { unichain } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src';
-import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
+import {
+  type ClankerTokenV4,
+  clankerTokenV4Converter,
+} from '../../../src/config/clankerTokenV4.js';
+import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');

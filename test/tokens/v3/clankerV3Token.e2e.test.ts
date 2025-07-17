@@ -9,11 +9,14 @@ import {
 import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { CLANKERS, DEFAULT_SUPPLY } from '../../../src';
-import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker';
-import { ClankerToken_v3_1_abi } from '../../../src/abi/v3.1/ClankerToken';
-import { ClankerVault_v3_1_abi } from '../../../src/abi/v3.1/ClankerVault';
-import { type ClankerTokenV3, clankerTokenV3Converter } from '../../../src/config/clankerTokenV3';
+import { Clanker_v3_1_abi } from '../../../src/abi/v3.1/Clanker.js';
+import { ClankerToken_v3_1_abi } from '../../../src/abi/v3.1/ClankerToken.js';
+import { ClankerVault_v3_1_abi } from '../../../src/abi/v3.1/ClankerVault.js';
+import {
+  type ClankerTokenV3,
+  clankerTokenV3Converter,
+} from '../../../src/config/clankerTokenV3.js';
+import { CLANKERS, DEFAULT_SUPPLY } from '../../../src/index.js';
 
 describe('v3 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');

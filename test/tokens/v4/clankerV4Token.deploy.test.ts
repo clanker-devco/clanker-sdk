@@ -2,8 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { createPublicClient, http, isAddress, type PublicClient } from 'viem';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src';
-import { Clanker } from '../../../src/v4';
+import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
+import { Clanker } from '../../../src/v4/index.js';
 
 describe('v4 deploy', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
