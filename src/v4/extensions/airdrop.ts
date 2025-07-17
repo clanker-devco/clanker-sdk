@@ -125,14 +125,24 @@ export async function fetchAirdropProofs(
 ): Promise<{
   proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[];
 }> {
-  return fetch(
+  const { proofs } = await fetch(
     `https://www.clanker.world/api/airdrops/claim?tokenAddress=${token}&claimerAddress=${account}`
   ).then(
     (r) =>
       r.json() as Promise<{
-        proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[];
+        proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: string } }[];
       }>
   );
+
+  return {
+    proofs: proofs.map(({ proof, entry: { account, amount } }) => ({
+      proof,
+      entry: {
+        account,
+        amount: BigInt(amount),
+      },
+    })),
+  };
 }
 
 /**

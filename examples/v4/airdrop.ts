@@ -2,7 +2,11 @@ import { sleep } from 'bun';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { createAirdrop, registerAirdrop } from '../../src/v4/extensions/airdrop.js';
+import {
+  createAirdrop,
+  fetchAirdropProofs,
+  registerAirdrop,
+} from '../../src/v4/extensions/airdrop.js';
 import { Clanker } from '../../src/v4/index.js';
 
 const CHAIN = base;
@@ -63,3 +67,6 @@ await sleep(10_000);
 console.log(`Registering airdrop...`);
 await registerAirdrop(address, tree);
 console.log(`Airdrop registered!`);
+
+const proofs = await fetchAirdropProofs(address, '0x308112D06027Cd838627b94dDFC16ea6B4D90004');
+console.log(`Proofs for 0x308112D06027Cd838627b94dDFC16ea6B4D90004: `, proofs);
