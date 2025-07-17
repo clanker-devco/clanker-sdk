@@ -12,21 +12,24 @@ import {
 import { simulateCalls } from 'viem/actions';
 import { baseSepolia } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
+import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker.js';
+import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop.js';
+import { ClankerHook_DynamicFee_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee.js';
+import { ClankerHook_StaticFee_v4_abi } from '../../../src/abi/v4/ClankerHookStaticFee.js';
+import { ClankerLocker_v4_abi } from '../../../src/abi/v4/ClankerLocker.js';
+import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken.js';
+import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault.js';
+import {
+  type ClankerTokenV4,
+  clankerTokenV4Converter,
+} from '../../../src/config/clankerTokenV4.js';
 import {
   CLANKERS,
   DEFAULT_SUPPLY,
   FEE_CONFIGS,
   POOL_POSITIONS,
   WETH_ADDRESSES,
-} from '../../../src';
-import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker';
-import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop';
-import { ClankerHook_DynamicFee_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee';
-import { ClankerHook_StaticFee_v4_abi } from '../../../src/abi/v4/ClankerHookStaticFee';
-import { ClankerLocker_v4_abi } from '../../../src/abi/v4/ClankerLocker';
-import { ClankerToken_v4_abi } from '../../../src/abi/v4/ClankerToken';
-import { ClankerVault_v4_abi } from '../../../src/abi/v4/ClankerVault';
-import { type ClankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
+} from '../../../src/index.js';
 
 describe('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');

@@ -1,18 +1,11 @@
 import { describe, expect, test } from 'bun:test';
-import {
-  createPublicClient,
-  http,
-  type Log,
-  type PublicClient,
-  parseEther,
-  parseEventLogs,
-} from 'viem';
+import { createPublicClient, http, type Log, type PublicClient, parseEventLogs } from 'viem';
 import { simulateBlocks } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { ClankerAirdrop_v4_abi } from '../../src/abi/v4/ClankerAirdrop';
-import { clankerTokenV4Converter } from '../../src/config/clankerTokenV4';
-import { Airdrop } from '../../src/v4/extensions/airdrop';
+import { ClankerAirdrop_v4_abi } from '../../src/abi/v4/ClankerAirdrop.js';
+import { clankerTokenV4Converter } from '../../src/config/clankerTokenV4.js';
+import { Airdrop } from '../../src/v4/extensions/airdrop.js';
 
 describe('airdrop', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -60,8 +53,7 @@ describe('airdrop', () => {
       recipient: proof1.entry.account,
       amount: proof1.entry.amount,
       proof: proof1.proof,
-      account: admin,
-      chain: base,
+      chainId: base.id,
     });
 
     const { proofs: proofs2 } = airdrop.getProofs(
@@ -76,8 +68,7 @@ describe('airdrop', () => {
       recipient: proof2.entry.account,
       amount: proof2.entry.amount,
       proof: proof2.proof,
-      account: admin,
-      chain: base,
+      chainId: base.id,
     });
 
     const [, claimAirdrop1Block, claimAirdrop2Block] = await simulateBlocks(publicClient, {
@@ -95,8 +86,6 @@ describe('airdrop', () => {
           calls: [{ to: claim2Tx.address, ...claim2Tx }],
         },
       ],
-      account: admin,
-      stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
     const [claimAirdrop1Tx] = claimAirdrop1Block.calls;
@@ -161,8 +150,7 @@ describe('airdrop', () => {
       recipient: proof1.entry.account,
       amount: proof1.entry.amount,
       proof: proof1.proof,
-      account: admin,
-      chain: base,
+      chainId: base.id,
     });
 
     const { proofs: proofs2 } = airdrop.getProofs(
@@ -177,8 +165,7 @@ describe('airdrop', () => {
       recipient: proof2.entry.account,
       amount: proof2.entry.amount,
       proof: proof2.proof,
-      account: admin,
-      chain: base,
+      chainId: base.id,
     });
 
     const [
@@ -210,8 +197,6 @@ describe('airdrop', () => {
           calls: [{ to: claim2Tx.address, ...claim2Tx }],
         },
       ],
-      account: admin,
-      stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
     // console.log(claimAirdrop1Block);

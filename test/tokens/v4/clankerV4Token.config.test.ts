@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
 import { encodeAbiParameters, stringify, zeroAddress } from 'viem';
 import { base } from 'viem/chains';
-import { CLANKERS, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src';
-import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker';
-import { ClankerAirdrop_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerAirdrop';
-import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee';
-import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerUniV4EthDevBuy';
-import { ClankerVault_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerVault';
-import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4';
+import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker.js';
+import { ClankerAirdrop_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerAirdrop.js';
+import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee.js';
+import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerUniV4EthDevBuy.js';
+import { ClankerVault_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerVault.js';
+import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
+import { CLANKERS, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
 
 test('basic', async () => {
   const admin = '0x746d5412345883b0a4310181DCca3002110967B3';

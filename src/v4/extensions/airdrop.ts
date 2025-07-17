@@ -1,12 +1,6 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import type { MerkleTree } from '@openzeppelin/merkle-tree/dist/merkletree.js';
-import {
-  type Account,
-  type Chain,
-  isAddressEqual,
-  stringify,
-  type WriteContractParameters,
-} from 'viem';
+import { isAddressEqual, stringify } from 'viem';
 import * as z from 'zod/v4';
 import { ClankerAirdrop_v4_abi } from '../../abi/v4/ClankerAirdrop.js';
 import {
@@ -15,7 +9,10 @@ import {
   clankerConfigFor,
   type RelatedV4,
 } from '../../utils/clankers.js';
-import { writeClankerContract } from '../../utils/write-clanker-contracts.js';
+import {
+  type ClankerTransactionConfig,
+  writeClankerContract,
+} from '../../utils/write-clanker-contracts.js';
 import { addressSchema } from '../../utils/zod-onchain.js';
 import type { Clanker } from '../index.js';
 
@@ -92,26 +89,20 @@ export class Airdrop {
     recipient,
     amount,
     proof,
-    chain,
-    account,
+    chainId,
   }: {
-    account: Account;
-    chain: Chain;
+    chainId: ClankerChain;
     token: `0x${string}`;
     recipient: `0x${string}`;
     amount: bigint;
     proof: `0x${string}`[];
-  }): WriteContractParameters<typeof ClankerAirdrop_v4_abi, 'claim'> {
-    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
-      chain.id as ClankerChain,
-      'clanker_v4'
-    );
-    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+  }): ClankerTransactionConfig<typeof ClankerAirdrop_v4_abi, 'claim'> {
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
+    if (!config) throw new Error(`Clanker is not ready on ${chainId}`);
 
     return {
-      account,
+      chainId,
       address: config.related.airdrop,
-      chain,
       abi: ClankerAirdrop_v4_abi,
       functionName: 'claim',
       args: [token, recipient, amount, proof],
@@ -130,7 +121,10 @@ export class Airdrop {
   }) {
     if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
     if (!data.clanker.wallet) throw new Error('Wallet client required on clanker');
-    const tx = this.getClaimTransaction(data);
+    const tx = this.getClaimTransaction({
+      chainId: data.clanker.wallet.chain.id as ClankerChain,
+      ...data,
+    });
 
     return writeClankerContract(data.clanker.publicClient, data.clanker.wallet, tx);
   }

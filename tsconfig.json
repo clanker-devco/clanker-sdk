@@ -23,6 +23,6 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src/**/*", "examples/**/*"],
+  "include": ["src/**/*", "examples/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }
