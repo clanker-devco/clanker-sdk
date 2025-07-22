@@ -1,6 +1,7 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { base } from 'viem/chains';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
+import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
 import {
@@ -194,6 +195,106 @@ export class Clanker {
     const input = await this.getDeployTransaction(token);
 
     return deployToken(input, this.wallet, this.publicClient);
+  }
+
+  /**
+   * Get an abi-typed transaction for claiming vaulted tokens.
+   *
+   * @param token The token to claim for
+   * @returns Abi transaction
+   */
+  // NOTE: We use 'any' here to avoid ABI type constraint issues with the vault ABI.
+  async getVaultClaimTransaction(
+    { token }: { token: `0x${string}` },
+    options?: { chain?: Chain }
+  ): Promise<any> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+    return {
+      address: config.related.vault,
+      abi: ClankerVault_v4_abi,
+      functionName: 'claim',
+      args: [token],
+    };
+  }
+
+  /**
+   * Claim vaulted tokens for a clanker token.
+   *
+   * @param token Token to claim vaulted tokens for
+   * @returns Transaction hash of the claim or error
+   */
+  async claimVaultedTokens({ token }: { token: `0x${string}` }) {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+    const input = await this.getVaultClaimTransaction({ token });
+    return writeClankerContract(this.publicClient, this.wallet, input);
+  }
+
+  /**
+   * Get the amount of vaulted tokens available to claim.
+   *
+   * @param token Token to check claimable vault amount for
+   * @returns Amount of tokens available to claim
+   */
+  async getVaultClaimableAmount({ token }: { token: `0x${string}` }) {
+    if (!this.publicClient) throw new Error('Public client required');
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+    try {
+      return await this.publicClient.readContract({
+        address: config.related.vault,
+        abi: ClankerVault_v4_abi,
+        functionName: 'amountAvailableToClaim',
+        args: [token],
+      });
+    } catch (err: any) {
+      // If the contract returns no data, treat as 0 available to claim
+      if (
+        (err?.name === 'ContractFunctionExecutionError' ||
+          err?.name === 'ContractFunctionZeroDataError') &&
+        err?.message?.includes('returned no data')
+      ) {
+        return 0n;
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Get the transaction object for claiming vaulted tokens (for offline signing or inspection).
+   *
+   * @param token The token to claim for
+   * @param chainId Optional chain ID to override default
+   * @returns Transaction object for claiming vaulted tokens
+   */
+  static getVaultClaimTransactionObject({
+    token,
+    chainId,
+    vaultAddress,
+  }: {
+    token: `0x${string}`;
+    chainId?: number;
+    vaultAddress?: `0x${string}`;
+  }) {
+    // If vaultAddress is not provided, user must supply it (for offline usage)
+    if (!vaultAddress)
+      throw new Error('vaultAddress is required when using static getVaultClaimTransactionObject');
+    return {
+      address: vaultAddress,
+      abi: ClankerVault_v4_abi,
+      functionName: 'claim',
+      args: [token],
+      chainId,
+    };
   }
 }
 
