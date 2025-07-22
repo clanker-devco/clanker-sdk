@@ -1,5 +1,5 @@
 import type { Abi } from 'viem';
-import { arbitrum, base, baseSepolia, unichain } from 'viem/chains';
+import { arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
 import { Clanker_v0_abi } from '../abi/v0/Clanker.js';
 import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';
@@ -88,6 +88,16 @@ export const CLANKERS = {
       vault: '0x42A95190B4088C88Dd904d930c79deC1158bF09D',
     } satisfies RelatedV3_1,
   },
+  clanker_v3_1_monadTestnet: {
+    abi: Clanker_v3_1_abi,
+    chainId: monadTestnet.id,
+    type: 'clanker_v3_1',
+    address: '0xA0C65813DD1Cde7092922a57548Ec1eD25994318',
+    related: {
+      locker: '0xcd89C55d36097a64f777066A6cc8F2c31B7541F7',
+      vault: '0x9505A57Bf782058890f078bE301575cD75045a9b',
+    } satisfies RelatedV3_1,
+  },
   clanker_v4: {
     abi: Clanker_v4_abi,
     chainId: base.id,
@@ -161,6 +171,7 @@ export type Type = Clankers[keyof Clankers]['type'];
 export type Chain = Clankers[keyof Clankers]['chainId'];
 export const Chains = [...new Set(Object.values(CLANKERS).map(({ chainId }) => chainId))];
 
+/** All deployments of Clanker */
 export const ClankerDeployments = Object.values(CLANKERS).reduce(
   (agg, cur) => {
     if (!agg[cur.chainId]) agg[cur.chainId] = {};
@@ -170,6 +181,13 @@ export const ClankerDeployments = Object.values(CLANKERS).reduce(
   {} as Record<Chain, Partial<Record<Type, ClankerDeployment>>>
 );
 
+/**
+ * Get a specific clanker deployment.
+ *
+ * @param chainId Chain id of the deployment.
+ * @param type Version of the deployment.
+ * @returns The deployment if it exists.
+ */
 export const clankerConfigFor = <T extends ClankerDeployment = ClankerDeployment>(
   chainId: Chain,
   type: Type
