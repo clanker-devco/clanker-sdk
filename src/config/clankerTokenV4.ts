@@ -127,6 +127,8 @@ const clankerTokenV4 = z.strictObject({
       lockupDuration: z.number().min(7 * 24 * 60 * 60),
       /** After the lockup, how long the tokens should vest for. Vesting is linear over the duration. In seconds. */
       vestingDuration: z.number().default(0),
+      /** Recipient for the vault extension. Defaults to tokenAdmin if not set. */
+      recipient: addressSchema.optional(),
     })
     .optional(),
   /** Token airdrop. Tokens are locked for some duration with possible vesting. */
@@ -346,7 +348,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
                   msgValue: 0n,
                   extensionBps: cfg.vault.percentage * 100,
                   extensionData: encodeAbiParameters(ClankerVault_Instantiation_v4_abi, [
-                    cfg.tokenAdmin,
+                    cfg.vault.recipient ?? cfg.tokenAdmin,
                     BigInt(cfg.vault.lockupDuration),
                     BigInt(cfg.vault.vestingDuration),
                   ]),

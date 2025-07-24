@@ -77,6 +77,7 @@ async function main(): Promise<void> {
         percentage: 10, // 10% of token supply
         lockupDuration: 2592000, // 30 days in seconds
         vestingDuration: 2592000, // 30 days in seconds
+        recipient: account.address, // explicitly set vault recipient, defaults to tokenAdmin if not set
       },
       devBuy: {
         ethAmount: 0,
