@@ -48,6 +48,7 @@ const token: ClankerTokenV4 = {
     percentage: 10, // 10% of token supply
     lockupDuration: 2592000, // 30 days in seconds
     vestingDuration: 2592000, // 30 days in seconds
+    recipient: CREATOR_ADDRESS, // explicitly set vault recipient, defaults to tokenAdmin if not set
   },
   airdrop: {
     ...airdrop,
