@@ -1,5 +1,9 @@
 import type { Abi } from 'viem';
-import { arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
+import { arbitrum, base, baseSepolia } from 'viem/chains';
+
+// Define missing chains locally for temporary compatibility
+const monadTestnet = { id: 41455 as const };
+const unichain = { id: 1301 as const };
 import { Clanker_v0_abi } from '../abi/v0/Clanker.js';
 import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';

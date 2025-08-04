@@ -1,7 +1,7 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import type { MerkleTree } from '@openzeppelin/merkle-tree/dist/merkletree.js';
 import { isAddressEqual, stringify } from 'viem';
-import * as z from 'zod/v4';
+import * as z from 'zod';
 import { ClankerAirdrop_v4_abi } from '../../abi/v4/ClankerAirdrop.js';
 import {
   type Chain as ClankerChain,

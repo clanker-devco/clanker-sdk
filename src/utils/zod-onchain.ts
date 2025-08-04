@@ -1,5 +1,5 @@
 import { getAddress, isAddress, isHex } from 'viem';
-import * as z from 'zod/v4';
+import * as z from 'zod';
 
 /** Metadata for a Clanker. */
 export const ClankerMetadataSchema = z.strictObject({
@@ -8,7 +8,7 @@ export const ClankerMetadataSchema = z.strictObject({
   /** Socials for the token. These may be displayed on aggregators. */
   socialMediaUrls: z.array(z.object({ platform: z.string(), url: z.string() })).optional(),
   /** Audits for other contracts or services offered by the project. */
-  auditUrls: z.array(z.url()).optional(),
+  auditUrls: z.array(z.string().url()).optional(),
 });
 
 /** Social provenance for a Clanker. Used for provenance and will be verified by aggregators. */

@@ -1,6 +1,6 @@
 import { isAddress, stringify } from 'viem';
 import { base } from 'viem/chains';
-import * as z from 'zod/v4';
+import * as z from 'zod';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import {
   A0X_ADDRESS,
