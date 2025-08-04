@@ -6,7 +6,7 @@ import {
   zeroAddress,
   zeroHash,
 } from 'viem';
-import * as z from 'zod/v4';
+import * as z from 'zod';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerAirdrop_Instantiation_v4_abi } from '../abi/v4/ClankerAirdrop.js';
 import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../abi/v4/ClankerHookDynamicFee.js';
@@ -22,6 +22,7 @@ import {
   clankerConfigFor,
   type RelatedV4,
 } from '../utils/clankers.js';
+import { getTickFromMarketCapV2 } from '../utils/market-cap-v2.js';
 import {
   addressSchema,
   ClankerContextSchema,
@@ -92,7 +93,7 @@ const clankerTokenV4 = z.strictObject({
           error: 'Positions must sum to 100%',
         }),
     })
-    .prefault({
+    .default({
       pairedToken: 'WETH',
       tickIfToken0IsClanker: -230400,
       positions: POOL_POSITIONS.Standard,
@@ -115,7 +116,7 @@ const clankerTokenV4 = z.strictObject({
       /** Locker extension specific data. Abi encoded hex of the parameters. */
       lockerData: hexSchema.default('0x'),
     })
-    .prefault({
+    .default({
       locker: 'Locker',
     }),
   /** Token vault. Tokens are locked for some duration with possible vesting. */
@@ -401,6 +402,56 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
  * @param clankerConfig A clanker configuration
  * @returns A correctly formatted fee configuration
  */
+/**
+ * Helper function to calculate the correct tick for a given market cap and paired token.
+ * This automatically handles decimal differences between tokens.
+ *
+ * @param marketCap Target market cap in paired token units
+ * @param pairedToken Address of the paired token or 'WETH'
+ * @param chainId Chain ID where the token will be deployed
+ * @returns Configuration object with the correct tick and spacing
+ */
+export function calculatePoolConfigFromMarketCap(
+  marketCap: number,
+  pairedToken: Address | 'WETH',
+  chainId: number
+): {
+  tickIfToken0IsClanker: number;
+  tickSpacing: number;
+  adjustmentInfo?: {
+    pairedTokenDecimals: number;
+    adjustmentFactor: number;
+    adjustedDesiredPrice: number;
+  };
+} {
+  if (pairedToken === 'WETH') {
+    // Use legacy calculation for WETH
+    const desiredPrice = marketCap * 0.00000000001;
+    const logBase = 1.0001;
+    const tickSpacing = 200;
+    const rawTick = Math.log(desiredPrice) / Math.log(logBase);
+    const tickIfToken0IsClanker = Math.floor(rawTick / tickSpacing) * tickSpacing;
+
+    return {
+      tickIfToken0IsClanker,
+      tickSpacing,
+    };
+  }
+
+  // Use decimal-aware calculation for other tokens
+  const result = getTickFromMarketCapV2(marketCap, pairedToken, chainId as Chain);
+
+  return {
+    tickIfToken0IsClanker: result.tickIfToken0IsClanker,
+    tickSpacing: result.tickSpacing,
+    adjustmentInfo: {
+      pairedTokenDecimals: result.pairedTokenDecimals,
+      adjustmentFactor: result.adjustmentFactor,
+      adjustedDesiredPrice: result.adjustedDesiredPrice,
+    },
+  };
+}
+
 export function encodeFeeConfig(
   config: z.infer<typeof clankerTokenV4>['fees'],
   clankerConfig: ClankerDeployment<RelatedV4>
