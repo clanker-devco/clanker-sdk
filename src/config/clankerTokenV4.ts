@@ -56,7 +56,7 @@ const clankerTokenV4 = z.strictObject({
   /** Image for the token. This should be a normal or ipfs url. */
   image: z.string().default(''),
   /** Id of the chain that the token will be deployed to. Defaults to base (8453). */
-  chainId: z.literal(Chains).default(8453),
+  chainId: z.union([z.literal(8453), z.literal(42161), z.literal(84532), z.literal(41455), z.literal(1301)]).default(8453),
   /** Admin for the token. They will be able to change fields like image, metadata, etc. */
   tokenAdmin: addressSchema.refine((v) => !isAddressEqual(v, zeroAddress), {
     error: 'Admin cannot be zero address',
@@ -236,6 +236,25 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   'deployToken'
 > = async (config: ClankerTokenV4) => {
   const cfg = clankerTokenV4.parse(config);
+
+  // Auto-populate dev buy pool key for WBTC on Arbitrum
+  if (cfg.devBuy && cfg.pool.pairedToken !== 'WETH') {
+    const poolConfig = calculatePoolConfigFromMarketCap(
+      1, // marketCap doesn't matter for pool key lookup
+      cfg.pool.pairedToken,
+      cfg.chainId
+    );
+    if (poolConfig.devBuyPoolKey) {
+      // Check if poolKey is the null config (by checking if all values are zero/null)
+      const isNullConfig = cfg.devBuy.poolKey.currency0 === zeroAddress &&
+                          cfg.devBuy.poolKey.currency1 === zeroAddress &&
+                          cfg.devBuy.poolKey.fee === 0;
+      
+      if (isNullConfig) {
+        cfg.devBuy.poolKey = poolConfig.devBuyPoolKey;
+      }
+    }
+  }
 
   if (!cfg.rewards) {
     cfg.rewards = {
@@ -423,6 +442,13 @@ export function calculatePoolConfigFromMarketCap(
     adjustmentFactor: number;
     adjustedDesiredPrice: number;
   };
+  devBuyPoolKey?: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  };
 } {
   if (pairedToken === 'WETH') {
     // Use legacy calculation for WETH
@@ -441,6 +467,26 @@ export function calculatePoolConfigFromMarketCap(
   // Use decimal-aware calculation for other tokens
   const result = getTickFromMarketCapV2(marketCap, pairedToken, chainId as Chain);
 
+  // Provide dev buy pool key for known token pairs
+  let devBuyPoolKey: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  } | undefined;
+
+  // WBTC/ETH pool key for Arbitrum
+  if (chainId === 42161 && pairedToken === '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f') {
+    devBuyPoolKey = {
+      currency0: '0x0000000000000000000000000000000000000000', // ETH
+      currency1: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f', // WBTC
+      fee: 500, // 0.05% fee tier
+      tickSpacing: 10,
+      hooks: '0x0000000000000000000000000000000000000000',
+    };
+  }
+
   return {
     tickIfToken0IsClanker: result.tickIfToken0IsClanker,
     tickSpacing: result.tickSpacing,
@@ -449,6 +495,7 @@ export function calculatePoolConfigFromMarketCap(
       adjustmentFactor: result.adjustmentFactor,
       adjustedDesiredPrice: result.adjustedDesiredPrice,
     },
+    devBuyPoolKey,
   };
 }
 

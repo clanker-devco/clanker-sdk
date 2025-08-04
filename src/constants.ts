@@ -1,4 +1,8 @@
-import { arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
+import { arbitrum, base, baseSepolia } from 'viem/chains';
+
+// Define missing chains locally for temporary compatibility
+const monadTestnet = { id: 41455 as const };
+const unichain = { id: 1301 as const };
 import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 import type { Chain } from './utils/clankers.js';
 

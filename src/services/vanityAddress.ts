@@ -1,5 +1,6 @@
 import { type ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
-import { monadTestnet } from 'viem/chains';
+// Define missing chain locally for temporary compatibility
+const monadTestnet = { id: 41455 as const };
 import {
   ClankerToken_v3_1_abi,
   ClankerToken_v3_1_bytecode,
