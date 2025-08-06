@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test';
-import { createPublicClient, http, isAddress, parseEther, type PublicClient } from 'viem';
+import { createPublicClient, http, isAddress, type PublicClient, parseEther } from 'viem';
+import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
-import { Clanker } from '../../../src/v3/index.js';
 import { clankerTokenV3Converter } from '../../../src/config/clankerTokenV3.js';
-import { simulateCalls } from 'viem/actions';
+import { Clanker } from '../../../src/v3/index.js';
 
 describe('v3 deploy', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -12,7 +12,7 @@ describe('v3 deploy', () => {
     chain: base,
     transport: http(process.env.TESTS_RPC_URL),
   }) as PublicClient;
-  const clanker = new Clanker({ publicClient });
+  const _clanker = new Clanker({ publicClient });
 
   test('basic', async () => {
     const token = {

@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test';
-import { createPublicClient, http, isAddress, parseEther, type PublicClient } from 'viem';
+import { createPublicClient, http, isAddress, type PublicClient, parseEther } from 'viem';
+import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
+import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
 import { Clanker } from '../../../src/v4/index.js';
-import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
-import { simulateCalls } from 'viem/actions';
 
 describe('v4 deploy', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
@@ -13,7 +13,7 @@ describe('v4 deploy', () => {
     chain: base,
     transport: http(process.env.TESTS_RPC_URL),
   }) as PublicClient;
-  const clanker = new Clanker({ publicClient });
+  const _clanker = new Clanker({ publicClient });
 
   test('basic', async () => {
     const token = {

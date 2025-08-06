@@ -4,8 +4,8 @@ import {
   decodeFunctionResult,
   encodeFunctionData,
   http,
-  parseEther,
   type PublicClient,
+  parseEther,
 } from 'viem';
 import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
