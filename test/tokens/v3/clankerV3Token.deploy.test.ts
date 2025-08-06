@@ -28,8 +28,8 @@ describe('v3 deploy', () => {
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
-    expect(res.error).toBeUndefined();
-    expect(res.results?.[0].status).toBe('success');
+    const [deployResult] = res.results;
+    expect(deployResult.status).toBe('success');
   });
 
   test('full', async () => {
@@ -37,7 +37,7 @@ describe('v3 deploy', () => {
       name: 'TheName',
       symbol: 'SYM',
       image: '',
-      chainId: 8453,
+      chainId: 8453 as const,
       metadata: {
         description: 'des',
         socialMediaUrls: [],
@@ -50,7 +50,7 @@ describe('v3 deploy', () => {
         id: '123',
       },
       pool: {
-        quoteToken: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
+        quoteToken: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed' as `0x${string}`,
         initialMarketCap: 5,
       },
       vault: {
@@ -62,10 +62,10 @@ describe('v3 deploy', () => {
       },
       rewards: {
         creatorReward: 60,
-        creatorAdmin: '0x0000000000000000000000000000000000000001',
-        creatorRewardRecipient: '0x0000000000000000000000000000000000000002',
-        interfaceAdmin: '0x0000000000000000000000000000000000000003',
-        interfaceRewardRecipient: '0x0000000000000000000000000000000000000004',
+        creatorAdmin: '0x0000000000000000000000000000000000000001' as `0x${string}`,
+        creatorRewardRecipient: '0x0000000000000000000000000000000000000002' as `0x${string}`,
+        interfaceAdmin: '0x0000000000000000000000000000000000000003' as `0x${string}`,
+        interfaceRewardRecipient: '0x0000000000000000000000000000000000000004' as `0x${string}`,
       },
     };
 
@@ -78,8 +78,8 @@ describe('v3 deploy', () => {
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
-    expect(res.error).toBeUndefined();
-    expect(res.results?.[0].status).toBe('success');
+    const [deployResult] = res.results;
+    expect(deployResult.status).toBe('success');
     expect(isAddress(tx.expectedAddress)).toBeTrue();
     expect(tx.expectedAddress.toLowerCase()).toEndWith('b07');
   });

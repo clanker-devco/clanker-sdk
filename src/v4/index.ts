@@ -207,6 +207,7 @@ export class Clanker {
   async getVaultClaimTransaction(
     { token }: { token: `0x${string}` },
     options?: { chain?: Chain }
+    // biome-ignore lint/suspicious/noExplicitAny: ABI type constraints require any
   ): Promise<any> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
@@ -256,12 +257,17 @@ export class Clanker {
         functionName: 'amountAvailableToClaim',
         args: [token],
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If the contract returns no data, treat as 0 available to claim
       if (
-        (err?.name === 'ContractFunctionExecutionError' ||
-          err?.name === 'ContractFunctionZeroDataError') &&
-        err?.message?.includes('returned no data')
+        err &&
+        typeof err === 'object' &&
+        'name' in err &&
+        (err.name === 'ContractFunctionExecutionError' ||
+          err.name === 'ContractFunctionZeroDataError') &&
+        'message' in err &&
+        typeof err.message === 'string' &&
+        err.message.includes('returned no data')
       ) {
         return 0n;
       }

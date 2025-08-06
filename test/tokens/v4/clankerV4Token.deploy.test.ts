@@ -30,8 +30,8 @@ describe('v4 deploy', () => {
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
-    expect(res.error).toBeUndefined();
-    expect(res.results?.[0].status).toBe('success');
+    const [deployResult] = res.results;
+    expect(deployResult.status).toBe('success');
   });
 
   test('full', async () => {
@@ -62,7 +62,8 @@ describe('v4 deploy', () => {
         vestingDuration: 1 * 24 * 60 * 60,
       },
       airdrop: {
-        merkleRoot: '0x0000000000000000000220000000000000100000000000000000000000000001',
+        merkleRoot:
+          '0x0000000000000000000220000000000000100000000000000000000000000001' as `0x${string}`,
         lockupDuration: 9 * 24 * 60 * 60,
         vestingDuration: 2 * 24 * 60 * 60,
         amount: 250_000_000,
@@ -74,16 +75,16 @@ describe('v4 deploy', () => {
       rewards: {
         recipients: [
           {
-            admin: '0x0000000000000000000000000000000000000001',
-            recipient: '0x0000000000000000000000000000000000000002',
+            admin: '0x0000000000000000000000000000000000000001' as `0x${string}`,
+            recipient: '0x0000000000000000000000000000000000000002' as `0x${string}`,
             bps: 5_000,
-            token: 'Both',
+            token: 'Both' as const,
           },
           {
-            admin: '0x0000000000000000000000000000000000000003',
-            recipient: '0x0000000000000000000000000000000000000004',
+            admin: '0x0000000000000000000000000000000000000003' as `0x${string}`,
+            recipient: '0x0000000000000000000000000000000000000004' as `0x${string}`,
             bps: 5_000,
-            token: 'Both',
+            token: 'Both' as const,
           },
         ],
       },
@@ -99,8 +100,8 @@ describe('v4 deploy', () => {
       stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
-    expect(res.error).toBeUndefined();
-    expect(res.results?.[0].status).toBe('success');
+    const [deployResult] = res.results;
+    expect(deployResult.status).toBe('success');
     expect(isAddress(tx.expectedAddress)).toBeTrue();
     expect(tx.expectedAddress.toLowerCase()).toEndWith('b07');
   });
