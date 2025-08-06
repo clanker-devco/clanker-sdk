@@ -20,11 +20,9 @@ describe('v4 deploy', () => {
       name: 'TheName',
       symbol: 'SYM',
       tokenAdmin: admin.address,
-      vanity: true,
     };
 
     const tx = await clankerTokenV4Converter(token);
-    if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
     const res = await simulateCalls(publicClient, {
       calls: [{ to: tx.address, ...tx }],
@@ -34,8 +32,6 @@ describe('v4 deploy', () => {
 
     expect(res.error).toBeUndefined();
     expect(res.results?.[0].status).toBe('success');
-    expect(isAddress(tx.expectedAddress)).toBeTrue();
-    expect(tx.expectedAddress.toLowerCase().endsWith('b07')).toBeFalse();
   });
 
   test('full', async () => {

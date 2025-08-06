@@ -18,11 +18,9 @@ describe('v3 deploy', () => {
     const token = {
       name: 'TheName',
       symbol: 'SYM',
-      vanity: true,
     };
 
-    const tx = await clankerTokenV3Converter(token);
-    if (!tx.expectedAddress) throw new Error('Expected "expected address".');
+    const tx = await clankerTokenV3Converter(token, { requestorAddress: admin.address });
 
     const res = await simulateCalls(publicClient, {
       calls: [{ to: tx.address, ...tx }],
@@ -32,8 +30,6 @@ describe('v3 deploy', () => {
 
     expect(res.error).toBeUndefined();
     expect(res.results?.[0].status).toBe('success');
-    expect(isAddress(tx.expectedAddress)).toBeTrue();
-    expect(tx.expectedAddress.toLowerCase()).toEndWith('b07');
   });
 
   test('full', async () => {
@@ -73,7 +69,7 @@ describe('v3 deploy', () => {
       },
     };
 
-    const tx = await clankerTokenV3Converter(token);
+    const tx = await clankerTokenV3Converter(token, { requestorAddress: admin.address });
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
     const res = await simulateCalls(publicClient, {
