@@ -578,7 +578,7 @@ describe('v4 end to end', () => {
       logs: creationResult.logs as Log[],
     })[0];
 
-    expect(poolInitializedLog.args.baseFee).toEqual(5_000);
+    expect(poolInitializedLog.args.baseFee).toEqual(10_000);
     expect(poolInitializedLog.args.maxLpFee).toEqual(50_000);
     expect(poolInitializedLog.args.referenceTickFilterPeriod).toEqual(30n);
     expect(poolInitializedLog.args.resetPeriod).toEqual(120n);
