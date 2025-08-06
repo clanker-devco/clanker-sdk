@@ -4,6 +4,7 @@ import {
   decodeFunctionResult,
   encodeFunctionData,
   http,
+  parseEther,
   type PublicClient,
 } from 'viem';
 import { simulateCalls } from 'viem/actions';
@@ -106,6 +107,7 @@ describe('v3 end to end', () => {
         },
       ],
       account: admin,
+      stateOverrides: [{ address: admin.address, balance: parseEther('10000') }],
     });
 
     const [creationResult, nameResult, symbolResult, imageResult, adminResult, vaultResult] =
