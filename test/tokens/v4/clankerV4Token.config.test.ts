@@ -172,7 +172,7 @@ test('vanity', async () => {
         tickSpacing: 200,
         hook: CLANKERS.clanker_v4.related.feeDynamicHook,
         poolData: encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
-          5_000,
+          10_000,
           50_000,
           30n,
           120n,
