@@ -77,7 +77,7 @@ export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> =
   DynamicBasic: {
     type: 'dynamic',
     baseFee: 100, // 1% minimum fee
-    maxFee: 900, // 9% maximum fee
+    maxFee: 500, // 5% maximum fee
     referenceTickFilterPeriod: 30, // 30 seconds
     resetPeriod: 120, // 2 minutes
     resetTickFilter: 200, // 2% price movement
