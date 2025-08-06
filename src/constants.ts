@@ -76,7 +76,7 @@ export enum FeeConfigs {
 export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> = {
   DynamicBasic: {
     type: 'dynamic',
-    baseFee: 50, // 0.5% minimum fee
+    baseFee: 100, // 1% minimum fee
     maxFee: 500, // 5% maximum fee
     referenceTickFilterPeriod: 30, // 30 seconds
     resetPeriod: 120, // 2 minutes
