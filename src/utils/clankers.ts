@@ -1,5 +1,5 @@
 import type { Abi } from 'viem';
-import { arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
+import { abstract, arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
 import { Clanker_v0_abi } from '../abi/v0/Clanker.js';
 import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';
@@ -96,6 +96,16 @@ export const CLANKERS = {
     related: {
       locker: '0xcd89C55d36097a64f777066A6cc8F2c31B7541F7',
       vault: '0x9505A57Bf782058890f078bE301575cD75045a9b',
+    } satisfies RelatedV3_1,
+  },
+  clanker_v3_1_abstract: {
+    abi: Clanker_v3_1_abi,
+    chainId: abstract.id,
+    type: 'clanker_v3_1',
+    address: '0x043ac6264F5A45c7518DC480b348Da41bdabbac2',
+    related: {
+      locker: '0xF5eBBd10d2faF7970dBdb9E960639ABCd612c48D',
+      vault: '0x858eaD172d10b3E2Fc20F9C80726a2735c7B7a4B',
     } satisfies RelatedV3_1,
   },
   clanker_v4: {

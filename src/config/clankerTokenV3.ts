@@ -1,5 +1,5 @@
 import { isAddress, stringify } from 'viem';
-import { base } from 'viem/chains';
+import { abstract, base } from 'viem/chains';
 import * as z from 'zod/v4';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import {
@@ -31,7 +31,7 @@ const clankerTokenV3 = z.strictObject({
   /** Image for the token. This should be a normal or ipfs url. */
   image: z.string().default(''),
   /** Id of the chain that the token will be deployed to. Defaults to base (8453). */
-  chainId: z.literal(8453).default(8453),
+  chainId: z.literal([8453, abstract.id]).default(8453),
   /** Metadata for the token. */
   metadata: ClankerMetadataSchema.optional(),
   /** Social provenance for the token. Interface defaults to "SDK" if not set. */
@@ -154,7 +154,10 @@ export const clankerTokenV3Converter: ClankerTokenConverter<
 
   return {
     abi: Clanker_v3_1_abi,
-    address: CLANKERS.clanker_v3_1.address,
+    address:
+      cfg.chainId === abstract.id
+        ? CLANKERS.clanker_v3_1_abstract.address
+        : CLANKERS.clanker_v3_1.address,
     functionName: 'deployToken',
     args: [
       {
