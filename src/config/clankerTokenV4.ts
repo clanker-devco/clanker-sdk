@@ -210,7 +210,7 @@ const clankerTokenV4 = z.strictObject({
           z.object({
             /** Admin for the reward position. Can change the admin or recipient. */
             admin: addressSchema,
-            /** Recipient for the reward position. Recieves the proportional rewards. */
+            /** Recipient for the reward position. Receives the proportional rewards. */
             recipient: addressSchema,
             /** Bps of the total rewards this recipient should recieve. */
             bps: z.number().min(0).max(10_000),
