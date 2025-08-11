@@ -2,6 +2,7 @@ import { type ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem'
 import { abstract, monadTestnet } from 'viem/chains';
 import {
   ClankerToken_v3_1_abi,
+  ClankerToken_v3_1_abstract_abi,
   ClankerToken_v3_1_abstract_bytecode,
   ClankerToken_v3_1_bytecode,
   ClankerToken_v3_1_monad_abi,
@@ -19,7 +20,12 @@ export const findVanityAddress = async (
   }
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {
   const data = encodeDeployData({
-    abi: options?.chainId === monadTestnet.id ? ClankerToken_v3_1_monad_abi : ClankerToken_v3_1_abi,
+    abi:
+      options?.chainId === abstract.id
+        ? ClankerToken_v3_1_abstract_abi
+        : options?.chainId === monadTestnet.id
+          ? ClankerToken_v3_1_monad_abi
+          : ClankerToken_v3_1_abi,
     bytecode:
       options?.chainId === abstract.id
         ? ClankerToken_v3_1_abstract_bytecode
