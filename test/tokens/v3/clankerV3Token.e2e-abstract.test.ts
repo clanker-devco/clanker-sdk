@@ -8,7 +8,7 @@ import {
   clankerTokenV3Converter,
 } from '../../../src/config/clankerTokenV3.js';
 
-describe('v3 end to end', () => {
+describe('v3 end to end (abstract)', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: abstract,
@@ -40,9 +40,9 @@ describe('v3 end to end', () => {
         percentage: 22,
         durationInDays: 35,
       },
-      // devBuy: {
-      //   ethAmount: 0.01,
-      // },
+      devBuy: {
+        ethAmount: 0.01,
+      },
       rewards: {
         creatorReward: 60,
         creatorAdmin: '0x0000000000000000000000000000000000000001',
