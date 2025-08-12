@@ -285,13 +285,21 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
     (airdropAmount * 10_000n) / DEFAULT_SUPPLY +
     ((airdropAmount * 10_000n) % DEFAULT_SUPPLY ? 1n : 0n);
   const roundingVerificationAirdrop = (bpsAirdropped * DEFAULT_SUPPLY) / 10_000n;
-  if (airdropAmount > roundingVerificationAirdrop) {
+
+  const roundedAirdropTooLow = airdropAmount > roundingVerificationAirdrop;
+  if (roundedAirdropTooLow) {
+    // Error if the requested airdrop amount is more than the rounded amount.
     throw new Error(
       `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${bpsAirdropped / 10_000n}%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
     );
-  } else if (roundingVerificationAirdrop - airdropAmount > 1e18) {
+  }
+
+  const roundedAirdropTooHigh =
+    ((roundingVerificationAirdrop - airdropAmount) * 10_000n) / DEFAULT_SUPPLY > 1n;
+  if (roundedAirdropTooHigh) {
+    // Error if the `roundingVerificationAirdrop` has a value more than 1bps away from the requested airdrop amount
     throw new Error(
-      `Precision error for airdrop. Difference ${airdropAmount - roundingVerificationAirdrop} is too large.`
+      `Precision error for airdrop. Difference ${roundingVerificationAirdrop - airdropAmount} is too large.`
     );
   }
 
