@@ -1,4 +1,4 @@
-import { describe, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import { createPublicClient, http, type PublicClient, parseEther } from 'viem';
 import { simulateContract } from 'viem/actions';
 import { abstract } from 'viem/chains';
@@ -55,12 +55,13 @@ describe('v3 end to end (abstract)', () => {
     const tx = await clankerTokenV3Converter(token, { requestorAddress: admin.address });
     if (!tx.expectedAddress) throw new Error('Expected "expected address".');
 
-    const res = await simulateContract(publicClient, {
+    const { result } = await simulateContract(publicClient, {
       ...tx,
       account: admin,
       stateOverride: [{ address: admin.address, balance: parseEther('10000') }],
     });
+    const [address] = result;
 
-    console.log(res);
+    expect(address).toEqual(tx.expectedAddress);
   });
 });
