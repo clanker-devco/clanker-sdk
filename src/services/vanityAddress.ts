@@ -1,7 +1,9 @@
 import { type ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
-import { monadTestnet } from 'viem/chains';
+import { abstract, monadTestnet } from 'viem/chains';
 import {
   ClankerToken_v3_1_abi,
+  ClankerToken_v3_1_abstract_abi,
+  ClankerToken_v3_1_abstract_bytecode,
   ClankerToken_v3_1_bytecode,
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
@@ -18,18 +20,27 @@ export const findVanityAddress = async (
   }
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {
   const data = encodeDeployData({
-    abi: options?.chainId === monadTestnet.id ? ClankerToken_v3_1_monad_abi : ClankerToken_v3_1_abi,
+    abi:
+      options?.chainId === abstract.id
+        ? ClankerToken_v3_1_abstract_abi
+        : options?.chainId === monadTestnet.id
+          ? ClankerToken_v3_1_monad_abi
+          : ClankerToken_v3_1_abi,
     bytecode:
-      options?.chainId === monadTestnet.id
-        ? ClankerToken_v3_1_monad_bytecode
-        : ClankerToken_v3_1_bytecode,
+      options?.chainId === abstract.id
+        ? ClankerToken_v3_1_abstract_bytecode
+        : options?.chainId === monadTestnet.id
+          ? ClankerToken_v3_1_monad_bytecode
+          : ClankerToken_v3_1_bytecode,
     args,
   });
 
   const deployer =
-    options?.chainId === monadTestnet.id
-      ? '0xA0C65813DD1Cde7092922a57548Ec1eD25994318'
-      : CLANKERS.clanker_v3_1.address;
+    options?.chainId === abstract.id
+      ? CLANKERS.clanker_v3_1_abstract.address
+      : options?.chainId === monadTestnet.id
+        ? CLANKERS.clanker_v3_1_monadTestnet.address
+        : CLANKERS.clanker_v3_1.address;
 
   const response = await fetch(
     `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(data)}&suffix=${suffix}`
