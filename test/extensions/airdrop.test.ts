@@ -125,7 +125,7 @@ describe('airdrop', () => {
 
     const { airdrop } = createAirdrop(drop);
 
-    await expect(
+    expect(
       clankerTokenV4Converter({
         name: 'Airdrop Test Token',
         symbol: 'AIRDROP',
