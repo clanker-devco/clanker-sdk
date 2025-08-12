@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { createPublicClient, http, type Log, type PublicClient, parseEventLogs } from 'viem';
+import {
+  createPublicClient,
+  http,
+  type Log,
+  type PublicClient,
+  parseEventLogs,
+  zeroAddress,
+} from 'viem';
 import { simulateBlocks } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
@@ -108,6 +115,30 @@ describe('airdrop', () => {
     expect(claim2Log.args.user).toEqual('0x0000000000000000000000000000000000000002');
     expect(claim2Log.args.totalUserAmountClaimed).toEqual(50000000000000000000000000n);
     expect(claim2Log.args.userAmountStillLocked).toEqual(0n);
+  });
+
+  test('airdrop creation with large values', async () => {
+    const drop = [];
+    for (let i = 0; i < 870; i++) {
+      drop.push({ account: zeroAddress, amount: 17_261_219 });
+    }
+
+    const { airdrop } = createAirdrop(drop);
+
+    await expect(
+      clankerTokenV4Converter({
+        name: 'Airdrop Test Token',
+        symbol: 'AIRDROP',
+        tokenAdmin: admin.address,
+        chainId: base.id,
+        airdrop: {
+          ...airdrop,
+          lockupDuration: 86_400, // 1 day
+          vestingDuration: 86_400,
+        },
+        vanity: true,
+      })
+    ).resolves.toBeDefined();
   });
 
   test('claim vesting', async () => {
