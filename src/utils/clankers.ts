@@ -19,7 +19,7 @@ type RelatedV3 = {
   locker: `0x${string}`;
 };
 
-type RelatedV3_1 = {
+export type RelatedV3_1 = {
   locker: `0x${string}`;
   vault: `0x${string}`;
 };

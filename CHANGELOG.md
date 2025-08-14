@@ -1,5 +1,8 @@
 # Clanker SDK - Changelog
 
+4.1.19
+- (QoL) Expose RelatedV3_1 type
+
 4.1.16
 - (Chain) Abstract
 
