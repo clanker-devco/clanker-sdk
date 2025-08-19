@@ -102,7 +102,7 @@ async function main(): Promise<void> {
         pairedToken: '0x4200000000000000000000000000000000000006',
         positions: POOL_POSITIONS.Standard, // POOL_POSITIONS.Project
       },
-      fees: FEE_CONFIGS.StaticBasic,
+      fees: FEE_CONFIGS.DynamicBasic, // or FEE_CONFIGS.StaticBasic
       vanity: true,
     });
     if (error) throw error;
