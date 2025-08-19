@@ -72,9 +72,15 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
 
 export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
+  StaticBasic = 'StaticBasic',
 }
 
 export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> = {
+  StaticBasic: {
+    type: 'static',
+    clankerFee: 100,
+    pairedFee: 100,
+  },
   DynamicBasic: {
     type: 'dynamic',
     baseFee: 100, // 1% minimum fee
