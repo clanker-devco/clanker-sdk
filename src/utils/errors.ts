@@ -28,8 +28,17 @@ export class ClankerError extends Error {
   }
 }
 
-const IdToError: Record<`0x${string}`, string> = {
-  '0x7e5ba1ad': 'Hook not enabled.',
+const SignatureToError: Record<`0x${string}`, ClankerErrorData> = {
+  '0x7e5ba1ad': {
+    type: 'state',
+    label: 'Hook not enabled.',
+    rawName: 'HookNotEnabled',
+  },
+  '0x8b063d73': {
+    type: 'state',
+    label: 'Too little received (likely dev buy).',
+    rawName: 'V4TooLittleReceived',
+  },
 };
 
 const ErrorMapping: Partial<Record<ClankerErrorName, ClankerErrorData>> = {
@@ -51,11 +60,14 @@ const ErrorMapping: Partial<Record<ClankerErrorName, ClankerErrorData>> = {
 };
 
 export const understandErrorCode = (e: `0x${string}`): ClankerError => {
-  return new ClankerError(new Error(e), {
-    type: 'caller',
-    label: 'Contract error.',
-    rawName: IdToError[e] || `Unknown hex: ${e}`,
-  });
+  return new ClankerError(
+    new Error(e),
+    SignatureToError[e] || {
+      type: 'caller',
+      label: 'Contract error.',
+      rawName: `Unknown hex: ${e}`,
+    }
+  );
 };
 
 export const understandError = (e: unknown): ClankerError => {
@@ -67,9 +79,12 @@ export const understandError = (e: unknown): ClankerError => {
     const errorName = revertError.data?.errorName ?? '';
 
     const mapping = ErrorMapping[errorName as ClankerErrorName];
-    if (!mapping) return ClankerError.unknown(e, errorName);
+    if (mapping) return new ClankerError(e, mapping);
 
-    return new ClankerError(e, mapping);
+    const signatureToError = SignatureToError[revertError.signature || '0x'];
+    if (signatureToError) return new ClankerError(e, signatureToError);
+
+    return ClankerError.unknown(e, errorName);
   }
 
   const fundsError = e.walk((e) => e instanceof InsufficientFundsError);

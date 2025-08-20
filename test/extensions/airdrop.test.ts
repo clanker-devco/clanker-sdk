@@ -222,8 +222,6 @@ describe('airdrop', () => {
       ],
     });
 
-    // console.log(claimAirdrop1Block);
-
     const [claimAirdrop1Tx] = claimAirdrop1Block.calls;
     const claim1Log = parseEventLogs({
       abi: ClankerAirdrop_v4_abi,
