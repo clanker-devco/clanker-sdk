@@ -1,19 +1,25 @@
-import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
+import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrum } from 'viem/chains';
 import { Clanker } from '../../src/v4/index.js';
 
-const CHAIN = arbitrum;
+/**
+ * Simple Token Deployment
+ *
+ * Example showing how to deploy a v4 token using the Clanker SDK
+ */
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-if (!PRIVATE_KEY) throw new Error('Missing `PRIVATE_KEY`');
+const CHAIN = arbitrum;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+if (!PRIVATE_KEY || !isHex(PRIVATE_KEY)) throw new Error('Missing PRIVATE_KEY env var');
 
 const account = privateKeyToAccount(PRIVATE_KEY);
 
 const publicClient = createPublicClient({ chain: CHAIN, transport: http() }) as PublicClient;
 const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
 
-const clanker = new Clanker({ publicClient, wallet });
+// Initialize Clanker SDK
+const clanker = new Clanker({ wallet, publicClient });
 
 console.log('\n🚀 Deploying V4 Token\n');
 

@@ -3,6 +3,8 @@ import { FEE_CONFIGS, POOL_POSITIONS } from '../../src/constants.js';
 import { createAirdrop, getAirdropProofs } from '../../src/v4/extensions/airdrop.js';
 
 /**
+ * Building a V4 Token
+ *
  * Example showing how to build V4 token deployment data without deploying
  * This example demonstrates:
  * - Building token configuration with full v4 configuration
