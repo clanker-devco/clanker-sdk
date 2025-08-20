@@ -1,12 +1,8 @@
-import * as dotenv from 'dotenv';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import type { ClankerTokenV3 } from '../../src/config/clankerTokenV3.js';
 import { Clanker } from '../../src/v3/index.js';
-
-// Load environment variables
-dotenv.config();
 
 // Validate environment variables
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;

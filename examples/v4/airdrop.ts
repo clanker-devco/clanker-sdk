@@ -1,5 +1,5 @@
 import { sleep } from 'bun';
-import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
+import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import {
@@ -22,13 +22,13 @@ import { Clanker } from '../../src/v4/index.js';
  */
 
 const CHAIN = base;
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-if (!PRIVATE_KEY) throw new Error('Missing `PRIVATE_KEY`');
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+if (!PRIVATE_KEY || !isHex(PRIVATE_KEY)) throw new Error('Missing PRIVATE_KEY env var');
 
 const account = privateKeyToAccount(PRIVATE_KEY);
 
-const publicClient = createPublicClient({ chain: CHAIN, transport: http() }) as PublicClient;
-const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
+const publicClient = createPublicClient({ chain: base, transport: http() }) as PublicClient;
+const wallet = createWalletClient({ account, chain: base, transport: http() });
 
 const clanker = new Clanker({ publicClient, wallet });
 

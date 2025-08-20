@@ -36,7 +36,6 @@
   "dependencies": {
     "@openzeppelin/merkle-tree": "^1.0.8",
     "abitype": "^1.0.8",
-    "dotenv": "^16.4.7",
     "inquirer": "^8.2.6",
     "viem": "^2.7.9",
     "zod": "^3.24.4"

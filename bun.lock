@@ -6,7 +6,6 @@
       "dependencies": {
         "@openzeppelin/merkle-tree": "^1.0.8",
         "abitype": "^1.0.8",
-        "dotenv": "^16.4.7",
         "inquirer": "^8.2.6",
         "viem": "^2.7.9",
         "zod": "^3.24.4",
@@ -160,8 +159,6 @@
     "debug": ["debug@4.4.0", "", { "dependencies": { "ms": "^2.1.3" } }, ""],
 
     "defaults": ["defaults@1.0.4", "", { "dependencies": { "clone": "^1.0.2" } }, "sha512-eFuaLoy/Rxalv2kr+lqMlUnrDWV+3j4pljOIJgLIhI058IQfWJ7vXhyEIHu+HtC738klGALYxOKDO0bQP3tg8A=="],
-
-    "dotenv": ["dotenv@16.4.7", "", {}, ""],
 
     "eastasianwidth": ["eastasianwidth@0.2.0", "", {}, ""],
 
