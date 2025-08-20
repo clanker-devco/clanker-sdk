@@ -42,10 +42,6 @@ import { Clanker } from 'clanker-sdk';
 import { createPublicClient, createWalletClient, http, PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import * as dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 // Validate environment variables
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;

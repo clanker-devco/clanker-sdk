@@ -3,16 +3,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as dotenv from 'dotenv';
 import inquirer from 'inquirer';
 import { createPublicClient, createWalletClient, http, type PublicClient, stringify } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import type { ClankerTokenV3 } from '../config/clankerTokenV3.js';
 import { Clanker } from '../v3/index.js';
-
-// Load environment variables
-dotenv.config();
 
 // Read ASCII art from file
 const ASCII_ART = fs.readFileSync(path.join(__dirname, 'ascii.txt'), 'utf8');
