@@ -1,13 +1,12 @@
-import {
-  parseEther,
-  type Account,
-  type Chain,
-  type ContractFunctionArgs,
-  type ContractFunctionName,
-  type PublicClient,
-  type SimulateContractReturnType,
-  type Transport,
-  type WalletClient,
+import type {
+  Account,
+  Chain,
+  ContractFunctionArgs,
+  ContractFunctionName,
+  PublicClient,
+  SimulateContractReturnType,
+  Transport,
+  WalletClient,
 } from 'viem';
 import { estimateContractGas, simulateContract, writeContract } from 'viem/actions';
 import type { ClankerContract } from './clanker-contracts.js';
@@ -94,11 +93,7 @@ export const simulateClankerContract = async <
   try {
     const result: SimulateContractReturnType<abi, functionName> = await simulateContract(client, {
       ...tx,
-      account: '0xDd5373bD673eBD60D6B682C5C93BF47DfD7ae5B3',
-      stateOverrides: [
-        { address: '0xDd5373bD673eBD60D6B682C5C93BF47DfD7ae5B3', balance: parseEther('10000') },
-      ],
-
+      account,
       // biome-ignore lint: It's difficult to type tx correctly
     } as any);
     return result;
