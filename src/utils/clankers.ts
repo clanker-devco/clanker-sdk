@@ -35,7 +35,14 @@ export type RelatedV4 = {
   feeDynamicHook: `0x${string}`;
 };
 
-type RelatedAddresses = RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4;
+export type RelatedV4_1 = RelatedV4 & {
+  sniperAuctionV2: `0x${string}`;
+  sniperUtilV2: `0x${string}`;
+  staticHookV2: `0x${string}`;
+  dynamicHookV2: `0x${string}`;
+};
+
+type RelatedAddresses = RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4 | RelatedV4_1;
 
 export type ClankerDeployment<T extends RelatedAddresses = RelatedAddresses> = {
   abi: Abi;
@@ -122,8 +129,12 @@ export const CLANKERS = {
       feeLocker: '0xF3622742b1E446D92e45E22923Ef11C2fcD55D68',
       feeStaticHook: '0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC',
       feeDynamicHook: '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC',
-    } satisfies RelatedV4,
-  },
+      sniperAuctionV2: '0xebB25BB797D82CB78E1bc70406b13233c0854413',
+      sniperUtilV2: '0xC5AA2945d52a4096b946891ef8e01668f82eB74E',
+      staticHookV2: '0x9a0194F92284421E6953E332c6217fA6CFa568cC',
+      dynamicHookV2: '0x3765e0791a745F086ACAA63A46837298D32FA8CC',
+    } satisfies RelatedV4_1,
+  } satisfies ClankerDeployment<RelatedV4_1>,
   clanker_v4_sepolia: {
     abi: Clanker_v4_abi,
     chainId: baseSepolia.id,
