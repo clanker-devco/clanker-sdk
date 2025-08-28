@@ -402,3 +402,14 @@ export const ClankerMev_SniperAuction_v4_1_abi = [
   { type: 'error', name: 'TimeDecayLongerThanMaxMevDelay', inputs: [] },
   { type: 'error', name: 'TimeDecayMustBeGreaterThanZero', inputs: [] },
 ];
+
+export const Clanker_MevSniperAuction_InitData_v4_1_abi = [
+  {
+    type: 'tuple',
+    components: [
+      { name: 'startingFee', type: 'uint24', internalType: 'uint24' },
+      { name: 'endingFee', type: 'uint24', internalType: 'uint24' },
+      { name: 'secondsToDecay', type: 'uint256', internalType: 'uint256' },
+    ],
+  },
+];
