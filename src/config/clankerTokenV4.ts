@@ -14,6 +14,8 @@ import { ClankerHook_StaticFee_Instantiation_v4_abi } from '../abi/v4/ClankerHoo
 import { ClankerLpLocker_Instantiation_v4_abi } from '../abi/v4/ClankerLocker.js';
 import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../abi/v4/ClankerUniV4EthDevBuy.js';
 import { ClankerVault_Instantiation_v4_abi } from '../abi/v4/ClankerVault.js';
+import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../abi/v4.1/ClankerMevSniperAuction.js';
+import { Clanker_PoolInitializationData_v4_1_abi } from '../abi/v4.1/ClankerPool.js';
 import { DEFAULT_SUPPLY, POOL_POSITIONS, WETH_ADDRESSES } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import {
@@ -330,7 +332,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
     );
   }
 
-  const { hook, poolData } = encodeFeeConfig(cfg.fees, clankerConfig);
+  const { hook, poolData } = encodeFeeConfig(cfg, clankerConfig);
 
   return {
     address: clankerConfig.address,
@@ -372,26 +374,15 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
         },
         mevModuleConfig: {
           mevModule: clankerConfig.related?.mevModuleV2 || clankerConfig.related?.mevModule,
-          mevModuleData: encodeAbiParameters(
-            [
-              {
-                type: 'tuple',
-                components: [
-                  { name: 'startingFee', type: 'uint24', internalType: 'uint24' },
-                  { name: 'endingFee', type: 'uint24', internalType: 'uint24' },
-                  { name: 'secondsToDecay', type: 'uint256', internalType: 'uint256' },
-                ],
-              },
-            ],
-            [
-              // todo
-              {
-                startingFee: 150_000,
-                endingFee: 50_000,
-                secondsToDecay: 25n,
-              },
-            ]
-          ),
+          mevModuleData: clankerConfig.related?.mevModuleV2
+            ? encodeAbiParameters(Clanker_MevSniperAuction_InitData_v4_1_abi, [
+                {
+                  startingFee: cfg.sniperFees.startingFee,
+                  endingFee: cfg.sniperFees.endingFee,
+                  secondsToDecay: BigInt(cfg.sniperFees.secondsToDecay),
+                },
+              ])
+            : '0x',
         },
         extensionConfigs: [
           // vaulting extension
@@ -450,26 +441,6 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
 };
 
 /**
- *
- struct PoolInitializationData {
-     address extension;
-     bytes extensionData;
-     bytes feeData;
- }
- */
-
-const PoolInitializationData_abi = [
-  {
-    type: 'tuple',
-    components: [
-      { name: 'extension', type: 'address', internalType: 'address' },
-      { name: 'extensionData', type: 'bytes', internalType: 'bytes' },
-      { name: 'feeData', type: 'bytes', internalType: 'bytes' },
-    ],
-  },
-];
-
-/**
  * Encode a fee configuration for Clanker v4.
  *
  * @param config The fee configuration
@@ -477,69 +448,73 @@ const PoolInitializationData_abi = [
  * @returns A correctly formatted fee configuration
  */
 export function encodeFeeConfig(
-  config: z.infer<typeof clankerTokenV4>['fees'],
+  tokenConfig: z.infer<typeof clankerTokenV4>,
   clankerConfig: ClankerDeployment<RelatedV4>
 ): {
   hook: Address;
   poolData: `0x${string}`;
 } {
+  const config = tokenConfig.fees;
+
   // Note - Fees hooks don't use bps for all units. Some are uniBps (bps * 100), for example:
   // - 1_000_000 = 100%
   // -   500_000 = 50%
   // -         0 = 0%
 
   if (config.type === 'static') {
-    return {
-      hook: clankerConfig.related.feeStaticHook,
-      poolData: encodeAbiParameters(PoolInitializationData_abi, [
-        {
-          extension: '0x',
-          extensionData: '',
-          feeData: encodeAbiParameters(ClankerHook_StaticFee_Instantiation_v4_abi, [
-            config.clankerFee * 100, // uniBps
-            config.pairedFee * 100, // uniBps
-          ]),
-        },
-      ]),
-    };
-    // return {
-    //   hook: clankerConfig.related.feeStaticHook,
-    //   poolData: encodeAbiParameters(ClankerHook_StaticFee_Instantiation_v4_abi, [
-    //     config.clankerFee * 100, // uniBps
-    //     config.pairedFee * 100, // uniBps
-    //   ]),
-    // };
-  } else {
-    return {
-      hook: clankerConfig.related.feeStaticHook,
-      poolData: encodeAbiParameters(PoolInitializationData_abi, [
-        {
-          extension: '0x',
-          extensionData: '',
-          feeData: encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
-            config.baseFee * 100, // uniBps
-            config.maxFee * 100, // uniBps
-            BigInt(config.referenceTickFilterPeriod),
-            BigInt(config.resetPeriod),
-            config.resetTickFilter,
-            BigInt(config.feeControlNumerator),
-            config.decayFilterBps,
-          ]),
-        },
-      ]),
-    };
+    const feeData = encodeAbiParameters(ClankerHook_StaticFee_Instantiation_v4_abi, [
+      config.clankerFee * 100, // uniBps
+      config.pairedFee * 100, // uniBps
+    ]);
 
-    // return {
-    //   hook: clankerConfig.related.feeDynamicHook,
-    //   poolData: encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
-    //     config.baseFee * 100, // uniBps
-    //     config.maxFee * 100, // uniBps
-    //     BigInt(config.referenceTickFilterPeriod),
-    //     BigInt(config.resetPeriod),
-    //     config.resetTickFilter,
-    //     BigInt(config.feeControlNumerator),
-    //     config.decayFilterBps,
-    //   ]),
-    // };
+    if (clankerConfig.related.feeStaticHookV2) {
+      return {
+        hook: clankerConfig.related.feeStaticHookV2,
+        poolData: encodeAbiParameters(Clanker_PoolInitializationData_v4_1_abi, [
+          {
+            extension: tokenConfig.poolExtension.address,
+            extensionData: tokenConfig.poolExtension.initData,
+            feeData,
+          },
+        ]),
+      };
+    }
+
+    return {
+      hook: clankerConfig.related.feeStaticHook,
+      poolData: feeData,
+    };
   }
+
+  if (config.type === 'dynamic') {
+    const feeData = encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
+      config.baseFee * 100, // uniBps
+      config.maxFee * 100, // uniBps
+      BigInt(config.referenceTickFilterPeriod),
+      BigInt(config.resetPeriod),
+      config.resetTickFilter,
+      BigInt(config.feeControlNumerator),
+      config.decayFilterBps,
+    ]);
+
+    if (clankerConfig.related.feeDynamicHookV2) {
+      return {
+        hook: clankerConfig.related.feeStaticHook,
+        poolData: encodeAbiParameters(Clanker_PoolInitializationData_v4_1_abi, [
+          {
+            extension: tokenConfig.poolExtension.address,
+            extensionData: tokenConfig.poolExtension.initData,
+            feeData,
+          },
+        ]),
+      };
+    }
+
+    return {
+      hook: clankerConfig.related.feeDynamicHook,
+      poolData: feeData,
+    };
+  }
+
+  throw new Error('Invalid config type');
 }
