@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createPublicClient, http, isAddress, type PublicClient, parseEther, stringify } from 'viem';
+import { createPublicClient, http, isAddress, type PublicClient, parseEther } from 'viem';
 import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
