@@ -68,15 +68,17 @@ const clankerTokenV4 = z.strictObject({
   context: ClankerContextSchema.default({
     interface: 'SDK',
   }),
-  /** Extension - only v4.1 */
+  /** [v4.1+ only] Custom developer extension */
   poolExtension: z
     .object({
+      /** Address of the developer extension */
       address: addressSchema,
-      initData: z.string(),
+      /** Initialization data for the extension */
+      initData: hexSchema,
     })
     .prefault({
       address: zeroAddress,
-      initData: '',
+      initData: '0x',
     }),
   /** Pool information */
   pool: z
@@ -215,11 +217,14 @@ const clankerTokenV4 = z.strictObject({
       clankerFee: 100,
       pairedFee: 100,
     }),
-  /** Sniper Fees (v4.1) */
+  /** [v4.1+ only] Sniper fees */
   sniperFees: z
     .object({
-      startingFee: z.number().min(30_000).max(800_000), // unibps
-      endingFee: z.number().min(30_000).max(800_000), // unibps
+      /** Starting sniper fee (units: Unibps) */
+      startingFee: z.number().min(30_000).max(800_000),
+      /** Ending sniper fee (units: Unibps) */
+      endingFee: z.number().min(30_000).max(800_000),
+      /** Sniper fee duration */
       secondsToDecay: z.number().min(1).max(120),
     })
     .prefault({
