@@ -122,13 +122,13 @@ export const CLANKERS = {
       vault: '0x8E845EAd15737bF71904A30BdDD3aEE76d6ADF6C',
       airdrop: '0xf652B3610D75D81871bf96DB50825d9af28391E0',
       devbuy: '0x1331f0788F9c08C8F38D52c7a1152250A9dE00be',
-      mevModule: '0xFdc013ce003980889cFfd66b0c8329545ae1d1E8', // (sniper auction v2) update address + initialization (descending + sniper are combined)
-      mevModuleV2: '0x1AE3D2FF6C5B6cE6eaDc66fAAaB006d9197E2027',
+      mevModule: '0xFdc013ce003980889cFfd66b0c8329545ae1d1E8',
+      mevModuleV2: '0xebB25BB797D82CB78E1bc70406b13233c0854413',
       feeLocker: '0xF3622742b1E446D92e45E22923Ef11C2fcD55D68',
-      feeStaticHook: '0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC', // update address + initialization
-      feeStaticHookV2: '0x6D55234dE14B6561BF6B915434A0DA8E227368Cc',
-      feeDynamicHook: '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC', // update address + initialization
-      feeDynamicHookV2: '0x0c34ccF0C1BF449903BEb15A6AA7F2307aA1a8Cc', // update address + initialization
+      feeStaticHook: '0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC',
+      feeStaticHookV2: '0x9a0194F92284421E6953E332c6217fA6CFa568cC',
+      feeDynamicHook: '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC',
+      feeDynamicHookV2: '0x3765e0791a745F086ACAA63A46837298D32FA8CC',
     } satisfies RelatedV4,
   },
   clanker_v4_sepolia: {

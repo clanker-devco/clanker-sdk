@@ -499,7 +499,7 @@ export function encodeFeeConfig(
 
     if (clankerConfig.related.feeDynamicHookV2) {
       return {
-        hook: clankerConfig.related.feeStaticHook,
+        hook: clankerConfig.related.feeDynamicHookV2,
         poolData: encodeAbiParameters(Clanker_PoolInitializationData_v4_1_abi, [
           {
             extension: tokenConfig.poolExtension.address,
