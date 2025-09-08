@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { encodeAbiParameters, stringify, zeroAddress } from 'viem';
 import { base } from 'viem/chains';
 import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker.js';
-import { ClankerAirdrop_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerAirdrop.js';
+import { ClankerAirdropV2_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerAirdropV2.js';
 import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee.js';
 import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerUniV4EthDevBuy.js';
 import { ClankerVault_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerVault.js';
@@ -199,7 +199,8 @@ test('vanity', async () => {
         {
           extension: CLANKERS.clanker_v4.related.airdrop,
           extensionBps: 25,
-          extensionData: encodeAbiParameters(ClankerAirdrop_Instantiation_v4_abi, [
+          extensionData: encodeAbiParameters(ClankerAirdropV2_Instantiation_v4_abi, [
+            admin,
             '0x0000000000000000000000000000000000000000000000000000000000000001',
             BigInt(9 * 24 * 60 * 60),
             BigInt(2 * 24 * 60 * 60),

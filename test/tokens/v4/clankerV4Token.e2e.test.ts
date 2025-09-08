@@ -13,7 +13,7 @@ import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker.js';
-import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop.js';
+import { ClankerAirdropv2_v4_abi } from '../../../src/abi/v4/ClankerAirdropV2.js';
 import { ClankerHook_DynamicFee_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee.js';
 import { ClankerHook_StaticFee_v4_abi } from '../../../src/abi/v4/ClankerHookStaticFee.js';
 import { ClankerLocker_v4_abi } from '../../../src/abi/v4/ClankerLocker.js';
@@ -153,7 +153,7 @@ describe('v4 end to end', () => {
         {
           to: CLANKERS.clanker_v4.related.airdrop,
           data: encodeFunctionData({
-            abi: ClankerAirdrop_v4_abi,
+            abi: ClankerAirdropv2_v4_abi,
             functionName: 'airdrops',
             args: [tx.expectedAddress],
           }),
@@ -260,13 +260,14 @@ describe('v4 end to end', () => {
     });
 
     const [
+      ,
       airdropMerkleRoot,
       airdropTotalSupply,
       airdropTotalClaimed,
       airdropLockupEndTime,
       airdropVestingEndTime,
     ] = decodeFunctionResult({
-      abi: ClankerAirdrop_v4_abi,
+      abi: ClankerAirdropv2_v4_abi,
       functionName: 'airdrops',
       data: airdropResult.data,
     });
@@ -471,7 +472,7 @@ describe('v4 end to end', () => {
         {
           to: CLANKERS.clanker_v4.related.airdrop,
           data: encodeFunctionData({
-            abi: ClankerAirdrop_v4_abi,
+            abi: ClankerAirdropv2_v4_abi,
             functionName: 'airdrops',
             args: [tx.expectedAddress],
           }),
@@ -551,13 +552,14 @@ describe('v4 end to end', () => {
     });
 
     const [
+      ,
       airdropMerkleRoot,
       airdropTotalSupply,
       airdropTotalClaimed,
       airdropLockupEndTime,
       airdropVestingEndTime,
     ] = decodeFunctionResult({
-      abi: ClankerAirdrop_v4_abi,
+      abi: ClankerAirdropv2_v4_abi,
       functionName: 'airdrops',
       data: airdropResult.data,
     });
