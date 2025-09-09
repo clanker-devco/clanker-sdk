@@ -13,7 +13,7 @@ import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { Clanker_v4_abi } from '../../../src/abi/v4/Clanker.js';
-import { ClankerAirdrop_v4_abi } from '../../../src/abi/v4/ClankerAirdrop.js';
+import { ClankerAirdropv2_v4_abi } from '../../../src/abi/v4/ClankerAirdropV2.js';
 import { ClankerHook_DynamicFee_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee.js';
 import { ClankerHook_StaticFee_v4_abi } from '../../../src/abi/v4/ClankerHookStaticFee.js';
 import { ClankerLocker_v4_abi } from '../../../src/abi/v4/ClankerLocker.js';
@@ -153,7 +153,7 @@ describe('v4 end to end', () => {
         {
           to: CLANKERS.clanker_v4.related.airdrop,
           data: encodeFunctionData({
-            abi: ClankerAirdrop_v4_abi,
+            abi: ClankerAirdropv2_v4_abi,
             functionName: 'airdrops',
             args: [tx.expectedAddress],
           }),
@@ -260,13 +260,14 @@ describe('v4 end to end', () => {
     });
 
     const [
+      airdropAdmin,
       airdropMerkleRoot,
       airdropTotalSupply,
       airdropTotalClaimed,
       airdropLockupEndTime,
       airdropVestingEndTime,
     ] = decodeFunctionResult({
-      abi: ClankerAirdrop_v4_abi,
+      abi: ClankerAirdropv2_v4_abi,
       functionName: 'airdrops',
       data: airdropResult.data,
     });
@@ -320,6 +321,7 @@ describe('v4 end to end', () => {
     expect(vaultAdmin).toEqual(admin.address);
 
     // Airdrop
+    expect(airdropAdmin).toEqual(admin.address);
     expect(airdropMerkleRoot).toEqual(
       '0x0000000000000000000220000000000000100000000000000000000000000001'
     );
@@ -390,6 +392,7 @@ describe('v4 end to end', () => {
         vestingDuration: 1 * 24 * 60 * 60,
       },
       airdrop: {
+        admin: '0x0000000000000000000000000000000000000002',
         merkleRoot: '0x0000000000000000000220000000000000100000000000000000000000000001',
         lockupDuration: 9 * 24 * 60 * 60,
         vestingDuration: 2 * 24 * 60 * 60,
@@ -471,7 +474,7 @@ describe('v4 end to end', () => {
         {
           to: CLANKERS.clanker_v4.related.airdrop,
           data: encodeFunctionData({
-            abi: ClankerAirdrop_v4_abi,
+            abi: ClankerAirdropv2_v4_abi,
             functionName: 'airdrops',
             args: [tx.expectedAddress],
           }),
@@ -551,13 +554,14 @@ describe('v4 end to end', () => {
     });
 
     const [
+      airdropAdmin,
       airdropMerkleRoot,
       airdropTotalSupply,
       airdropTotalClaimed,
       airdropLockupEndTime,
       airdropVestingEndTime,
     ] = decodeFunctionResult({
-      abi: ClankerAirdrop_v4_abi,
+      abi: ClankerAirdropv2_v4_abi,
       functionName: 'airdrops',
       data: airdropResult.data,
     });
@@ -593,6 +597,7 @@ describe('v4 end to end', () => {
     expect(vaultAdmin).toEqual(admin.address);
 
     // Airdrop
+    expect(airdropAdmin).toEqual('0x0000000000000000000000000000000000000002');
     expect(airdropMerkleRoot).toEqual(
       '0x0000000000000000000220000000000000100000000000000000000000000001'
     );

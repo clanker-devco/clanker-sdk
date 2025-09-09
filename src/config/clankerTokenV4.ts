@@ -8,7 +8,7 @@ import {
 } from 'viem';
 import * as z from 'zod/v4';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
-import { ClankerAirdrop_Instantiation_v4_abi } from '../abi/v4/ClankerAirdrop.js';
+import { ClankerAirdropV2_Instantiation_v4_abi } from '../abi/v4/ClankerAirdropV2.js';
 import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../abi/v4/ClankerHookDynamicFee.js';
 import { ClankerHook_StaticFee_Instantiation_v4_abi } from '../abi/v4/ClankerHookStaticFee.js';
 import { ClankerLpLocker_Instantiation_v4_abi } from '../abi/v4/ClankerLocker.js';
@@ -134,6 +134,8 @@ const clankerTokenV4 = z.strictObject({
   /** Token airdrop. Tokens are locked for some duration with possible vesting. */
   airdrop: z
     .object({
+      /** Admin for the airdrop. Defaults to TokenAdmin if not set. */
+      admin: addressSchema.optional(),
       /** Root of the airdrop merkle tree. */
       merkleRoot: hexSchema,
       /** How long to lock the tokens for. In seconds. Minimum 1 day. */
@@ -370,7 +372,8 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
                   extension: clankerConfig.related.airdrop,
                   msgValue: 0n,
                   extensionBps: Number(bpsAirdropped),
-                  extensionData: encodeAbiParameters(ClankerAirdrop_Instantiation_v4_abi, [
+                  extensionData: encodeAbiParameters(ClankerAirdropV2_Instantiation_v4_abi, [
+                    cfg.airdrop.admin || cfg.tokenAdmin,
                     cfg.airdrop.merkleRoot,
                     BigInt(cfg.airdrop.lockupDuration),
                     BigInt(cfg.airdrop.vestingDuration),

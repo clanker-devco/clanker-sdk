@@ -2,6 +2,7 @@ import type { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import type { ClankerToken_v3_1_abi } from '../abi/v3.1/ClankerToken.js';
 import type { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import type { ClankerAirdrop_v4_abi } from '../abi/v4/ClankerAirdrop.js';
+import type { ClankerAirdropv2_v4_abi } from '../abi/v4/ClankerAirdropV2.js';
 import type { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import type { ClankerHook_DynamicFee_v4_abi } from '../abi/v4/ClankerHookDynamicFee.js';
 import type { ClankerHook_StaticFee_v4_abi } from '../abi/v4/ClankerHookStaticFee.js';
@@ -20,4 +21,5 @@ export type ClankerContract =
   | ClankerFactory
   | ClankerToken
   | ClankerHooks
-  | typeof ClankerAirdrop_v4_abi;
+  | typeof ClankerAirdrop_v4_abi
+  | typeof ClankerAirdropv2_v4_abi;
