@@ -260,7 +260,7 @@ describe('v4 end to end', () => {
     });
 
     const [
-      ,
+      airdropAdmin,
       airdropMerkleRoot,
       airdropTotalSupply,
       airdropTotalClaimed,
@@ -321,6 +321,7 @@ describe('v4 end to end', () => {
     expect(vaultAdmin).toEqual(admin.address);
 
     // Airdrop
+    expect(airdropAdmin).toEqual(admin.address);
     expect(airdropMerkleRoot).toEqual(
       '0x0000000000000000000220000000000000100000000000000000000000000001'
     );
@@ -391,6 +392,7 @@ describe('v4 end to end', () => {
         vestingDuration: 1 * 24 * 60 * 60,
       },
       airdrop: {
+        admin: '0x0000000000000000000000000000000000000002',
         merkleRoot: '0x0000000000000000000220000000000000100000000000000000000000000001',
         lockupDuration: 9 * 24 * 60 * 60,
         vestingDuration: 2 * 24 * 60 * 60,
@@ -552,7 +554,7 @@ describe('v4 end to end', () => {
     });
 
     const [
-      ,
+      airdropAdmin,
       airdropMerkleRoot,
       airdropTotalSupply,
       airdropTotalClaimed,
@@ -595,6 +597,7 @@ describe('v4 end to end', () => {
     expect(vaultAdmin).toEqual(admin.address);
 
     // Airdrop
+    expect(airdropAdmin).toEqual('0x0000000000000000000000000000000000000002');
     expect(airdropMerkleRoot).toEqual(
       '0x0000000000000000000220000000000000100000000000000000000000000001'
     );
