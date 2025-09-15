@@ -126,9 +126,9 @@ export const CLANKERS = {
       mevModuleV2: '0xebB25BB797D82CB78E1bc70406b13233c0854413',
       feeLocker: '0xF3622742b1E446D92e45E22923Ef11C2fcD55D68',
       feeStaticHook: '0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC',
-      feeStaticHookV2: '0xBF5ACAB339D2970938Ff4A2753d6cbbb8AaaE8cC',
+      feeStaticHookV2: '0xb429d62f8f3bFFb98CdB9569533eA23bF0Ba28CC',
       feeDynamicHook: '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC',
-      feeDynamicHookV2: '0x9A82BfCf5fd939CB7256f2d41479Bc0DC67968cC',
+      feeDynamicHookV2: '0xd60D6B218116cFd801E28F78d011a203D2b068Cc',
     } satisfies RelatedV4,
   },
   clanker_v4_sepolia: {
@@ -144,9 +144,9 @@ export const CLANKERS = {
       mevModule: '0x261fE99C4D0D41EE8d0e594D11aec740E8354ab0',
       feeLocker: '0x42A95190B4088C88Dd904d930c79deC1158bF09D',
       feeStaticHook: '0xDFcCcfBeef7F3Fc8b16027Ce6feACb48024068cC',
-      feeStaticHookV2: '0x2c1EddAb2dF9bB0dd9463C57923c3021eec6E8cc',
+      feeStaticHookV2: '0x11b51DBC2f7F683b81CeDa83DC0078D57bA328cc',
       feeDynamicHook: '0xE63b0A59100698f379F9B577441A561bAF9828cc',
-      feeDynamicHookV2: '0x412601099fACB2512ea56BCaCaF7022C6284a8cC',
+      feeDynamicHookV2: '0xBF4983dC0f2F8FE78C5cf8Fc621f294A993728Cc',
     } satisfies RelatedV4,
   },
   clanker_v4_arbitrum: {
