@@ -33,6 +33,10 @@ export type RelatedV4 = {
   feeLocker: `0x${string}`;
   feeStaticHook: `0x${string}`;
   feeDynamicHook: `0x${string}`;
+
+  mevModuleV2?: `0x${string}`;
+  feeStaticHookV2?: `0x${string}`;
+  feeDynamicHookV2?: `0x${string}`;
 };
 
 type RelatedAddresses = RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV4;
@@ -119,9 +123,12 @@ export const CLANKERS = {
       airdrop: '0xf652B3610D75D81871bf96DB50825d9af28391E0',
       devbuy: '0x1331f0788F9c08C8F38D52c7a1152250A9dE00be',
       mevModule: '0xFdc013ce003980889cFfd66b0c8329545ae1d1E8',
+      mevModuleV2: '0xebB25BB797D82CB78E1bc70406b13233c0854413',
       feeLocker: '0xF3622742b1E446D92e45E22923Ef11C2fcD55D68',
       feeStaticHook: '0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC',
+      feeStaticHookV2: '0xb429d62f8f3bFFb98CdB9569533eA23bF0Ba28CC',
       feeDynamicHook: '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC',
+      feeDynamicHookV2: '0xd60D6B218116cFd801E28F78d011a203D2b068Cc',
     } satisfies RelatedV4,
   },
   clanker_v4_sepolia: {
@@ -137,7 +144,9 @@ export const CLANKERS = {
       mevModule: '0x261fE99C4D0D41EE8d0e594D11aec740E8354ab0',
       feeLocker: '0x42A95190B4088C88Dd904d930c79deC1158bF09D',
       feeStaticHook: '0xDFcCcfBeef7F3Fc8b16027Ce6feACb48024068cC',
+      feeStaticHookV2: '0x11b51DBC2f7F683b81CeDa83DC0078D57bA328cc',
       feeDynamicHook: '0xE63b0A59100698f379F9B577441A561bAF9828cc',
+      feeDynamicHookV2: '0xBF4983dC0f2F8FE78C5cf8Fc621f294A993728Cc',
     } satisfies RelatedV4,
   },
   clanker_v4_arbitrum: {
