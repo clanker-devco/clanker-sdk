@@ -1,5 +1,6 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
+import { LpLockerv2_abi } from '../abi/v3.1/LpLockerv2.js';
 import { type ClankerTokenV3, clankerTokenV3Converter } from '../config/clankerTokenV3.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
 import { CLANKERS } from '../utils/clankers.js';
@@ -77,6 +78,66 @@ export class Clanker {
     if (!this.publicClient) throw new Error('Public client required');
 
     const input = await this.getClaimRewardsTransaction(token);
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
+  }
+
+  /**
+   * Get an abi-typed transaction for updating the creator reward recipient.
+   *
+   * @param tokenId The token ID to update the creator reward recipient for
+   * @param newRecipient The new recipient address
+   * @returns Abi transaction
+   */
+  async getUpdateCreatorRewardRecipientTransaction(tokenId: bigint, newRecipient: `0x${string}`) {
+    return {
+      address: CLANKERS.clanker_v3_1.related.locker,
+      abi: LpLockerv2_abi,
+      functionName: 'updateCreatorRewardRecipient' as const,
+      args: [tokenId, newRecipient] as const,
+    };
+  }
+
+  /**
+   * Simulate updating the creator reward recipient. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param tokenId The token ID to update the creator reward recipient for
+   * @param newRecipient The new recipient address
+   * @param account Optional account to simulate calling for
+   * @returns The simulated output
+   */
+  async updateCreatorRewardRecipientSimulate(
+    tokenId: bigint,
+    newRecipient: `0x${string}`,
+    account?: Account
+  ) {
+    const acc = account || this.wallet?.account;
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateCreatorRewardRecipientTransaction(tokenId, newRecipient);
+
+    return simulateClankerContract(this.publicClient, acc, input);
+  }
+
+  /**
+   * Update the creator reward recipient for a token.
+   *
+   * @param tokenId The token ID to update the creator reward recipient for
+   * @param newRecipient The new recipient address
+   * @returns Transaction hash of the update or error
+   */
+  async updateCreatorRewardRecipient(
+    tokenId: bigint,
+    newRecipient: `0x${string}`
+  ): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateCreatorRewardRecipientTransaction(tokenId, newRecipient);
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }

@@ -1,5 +1,6 @@
 import type { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import type { ClankerToken_v3_1_abi } from '../abi/v3.1/ClankerToken.js';
+import type { LpLockerv2_abi } from '../abi/v3.1/LpLockerv2.js';
 import type { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import type { ClankerAirdrop_v4_abi } from '../abi/v4/ClankerAirdrop.js';
 import type { ClankerAirdropv2_v4_abi } from '../abi/v4/ClankerAirdropV2.js';
@@ -22,4 +23,5 @@ export type ClankerContract =
   | ClankerToken
   | ClankerHooks
   | typeof ClankerAirdrop_v4_abi
-  | typeof ClankerAirdropv2_v4_abi;
+  | typeof ClankerAirdropv2_v4_abi
+  | typeof LpLockerv2_abi;
