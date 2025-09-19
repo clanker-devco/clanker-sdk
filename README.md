@@ -188,6 +188,9 @@ bun examples/v4/availableRewards.ts
 # Run Tests
 bun test
 
+# Check coverage
+bun test --coverage
+
 # Lint
 bun lint
 ```
