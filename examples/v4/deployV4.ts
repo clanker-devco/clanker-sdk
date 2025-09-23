@@ -78,6 +78,11 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   },
   fees: FEE_CONFIGS.DynamicBasic, // or FEE_CONFIGS.StaticBasic
   vanity: true,
+  sniperFees: {
+    startingFee: 666_777, // 66.6777%
+    endingFee: 41_673, // 4.1673%
+    secondsToDecay: 20, // 20 seconds
+  },
 });
 if (error) throw error;
 
