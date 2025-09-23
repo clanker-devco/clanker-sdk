@@ -67,7 +67,7 @@ test('basic', async () => {
           {
             startingFee: 666_777,
             endingFee: 41_673,
-            secondsToDecay: 30n,
+            secondsToDecay: 20n,
           },
         ]),
       },
@@ -210,7 +210,7 @@ test('vanity', async () => {
           {
             startingFee: 666_777,
             endingFee: 41_673,
-            secondsToDecay: 30n,
+            secondsToDecay: 20n,
           },
         ]),
       },
