@@ -6,6 +6,8 @@ import { ClankerAirdropV2_Instantiation_v4_abi } from '../../../src/abi/v4/Clank
 import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerHookDynamicFee.js';
 import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerUniV4EthDevBuy.js';
 import { ClankerVault_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerVault.js';
+import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../../../src/abi/v4.1/ClankerMevSniperAuction.js';
+import { Clanker_PoolInitializationData_v4_1_abi } from '../../../src/abi/v4.1/ClankerPool.js';
 import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
 import { CLANKERS, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
 
@@ -47,12 +49,27 @@ test('basic', async () => {
         pairedToken: WETH_ADDRESSES[base.id],
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
-        hook: CLANKERS.clanker_v4.related.feeStaticHook,
-        poolData: encodeAbiParameters([{ type: 'uint24' }, { type: 'uint24' }], [10_000, 10_000]),
+        hook: CLANKERS.clanker_v4.related.feeStaticHookV2,
+        poolData: encodeAbiParameters(Clanker_PoolInitializationData_v4_1_abi, [
+          {
+            extension: zeroAddress,
+            extensionData: '0x',
+            feeData: encodeAbiParameters(
+              [{ type: 'uint24' }, { type: 'uint24' }],
+              [10_000, 10_000]
+            ),
+          },
+        ]),
       },
       mevModuleConfig: {
-        mevModule: CLANKERS.clanker_v4.related.mevModule,
-        mevModuleData: '0x',
+        mevModule: CLANKERS.clanker_v4.related.mevModuleV2,
+        mevModuleData: encodeAbiParameters(Clanker_MevSniperAuction_InitData_v4_1_abi, [
+          {
+            startingFee: 666_777,
+            endingFee: 41_673,
+            secondsToDecay: 15n,
+          },
+        ]),
       },
       extensionConfigs: [],
     },
@@ -170,20 +187,32 @@ test('vanity', async () => {
         pairedToken: WETH_ADDRESSES[base.id],
         tickIfToken0IsClanker: -230400,
         tickSpacing: 200,
-        hook: CLANKERS.clanker_v4.related.feeDynamicHook,
-        poolData: encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
-          10_000,
-          50_000,
-          30n,
-          120n,
-          200,
-          500000000n,
-          7500,
+        hook: CLANKERS.clanker_v4.related.feeDynamicHookV2,
+        poolData: encodeAbiParameters(Clanker_PoolInitializationData_v4_1_abi, [
+          {
+            extension: zeroAddress,
+            extensionData: '0x',
+            feeData: encodeAbiParameters(ClankerHook_DynamicFee_Instantiation_v4_abi, [
+              10_000,
+              50_000,
+              30n,
+              120n,
+              200,
+              500000000n,
+              7500,
+            ]),
+          },
         ]),
       },
       mevModuleConfig: {
-        mevModule: CLANKERS.clanker_v4.related.mevModule,
-        mevModuleData: '0x',
+        mevModule: CLANKERS.clanker_v4.related.mevModuleV2,
+        mevModuleData: encodeAbiParameters(Clanker_MevSniperAuction_InitData_v4_1_abi, [
+          {
+            startingFee: 666_777,
+            endingFee: 41_673,
+            secondsToDecay: 15n,
+          },
+        ]),
       },
       extensionConfigs: [
         {
