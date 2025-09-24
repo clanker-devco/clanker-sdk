@@ -230,7 +230,7 @@ const clankerTokenV4 = z.strictObject({
     .prefault({
       startingFee: 666_777, // 66.6777%
       endingFee: 41_673, // 4.1673%
-      secondsToDecay: 20, // 20 seconds
+      secondsToDecay: 15, // 15 seconds
     })
     .refine((v) => v.endingFee < v.startingFee, {
       error: 'Ending sniper fees must be less than the starting fees',

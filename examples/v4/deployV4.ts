@@ -81,7 +81,7 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   sniperFees: {
     startingFee: 666_777, // 66.6777%
     endingFee: 41_673, // 4.1673%
-    secondsToDecay: 20, // 20 seconds
+    secondsToDecay: 15, // 15 seconds
   },
 });
 if (error) throw error;
