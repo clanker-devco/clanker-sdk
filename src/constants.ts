@@ -73,6 +73,7 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
 export enum FeeConfigs {
   DynamicBasic = 'DynamicBasic',
   StaticBasic = 'StaticBasic',
+  Dynamic3 = 'Dynamic3',
 }
 
 export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> = {
@@ -89,6 +90,16 @@ export const FEE_CONFIGS: Record<FeeConfigs, Required<ClankerTokenV4['fees']>> =
     resetPeriod: 120, // 2 minutes
     resetTickFilter: 200, // 2% price movement
     feeControlNumerator: 500000000, // Constant for scaling variable fee component
+    decayFilterBps: 7500, // 75% decay after filter period
+  },
+  Dynamic3: {
+    type: 'dynamic',
+    baseFee: 100, // 1% minimum fee
+    maxFee: 300, // 3% maximum fee
+    referenceTickFilterPeriod: 30, // 30 seconds
+    resetPeriod: 120, // 2 minutes
+    resetTickFilter: 200, // 2% price movement
+    feeControlNumerator: 250000000, // Constant for scaling variable fee component, scaled down by 2
     decayFilterBps: 7500, // 75% decay after filter period
   },
 };

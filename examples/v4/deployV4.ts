@@ -76,7 +76,7 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
     pairedToken: '0x4200000000000000000000000000000000000006',
     positions: POOL_POSITIONS.Standard, // POOL_POSITIONS.Project
   },
-  fees: FEE_CONFIGS.DynamicBasic, // or FEE_CONFIGS.StaticBasic
+  fees: FEE_CONFIGS.DynamicBasic, // or FEE_CONFIGS.StaticBasic or FEE_CONFIGS.Dynamic3
   vanity: true,
   sniperFees: {
     startingFee: 666_777, // 66.6777%
