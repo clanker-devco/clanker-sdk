@@ -1,6 +1,7 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { base } from 'viem/chains';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
+import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
@@ -195,6 +196,242 @@ export class Clanker {
     const input = await this.getDeployTransaction(token);
 
     return deployToken(input, this.wallet, this.publicClient);
+  }
+
+  /**
+   * Get an abi-typed transaction for updating the reward recipient.
+   *
+   * @param token The token to update the reward recipient for
+   * @param rewardIndex The index of the reward to update
+   * @param newRecipient The new recipient address
+   * @param options Optional chain configuration
+   * @returns Abi transaction
+   */
+  async getUpdateRewardRecipientTransaction(
+    {
+      token,
+      rewardIndex,
+      newRecipient,
+    }: {
+      token: `0x${string}`;
+      rewardIndex: bigint;
+      newRecipient: `0x${string}`;
+    },
+    options?: { chain?: Chain }
+  ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    return {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardRecipient',
+      args: [token, rewardIndex, newRecipient],
+    };
+  }
+
+  /**
+   * Get an abi-typed transaction for updating the reward admin.
+   *
+   * @param token The token to update the reward admin for
+   * @param rewardIndex The index of the reward to update
+   * @param newAdmin The new admin address
+   * @param options Optional chain configuration
+   * @returns Abi transaction
+   */
+  async getUpdateRewardAdminTransaction(
+    {
+      token,
+      rewardIndex,
+      newAdmin,
+    }: {
+      token: `0x${string}`;
+      rewardIndex: bigint;
+      newAdmin: `0x${string}`;
+    },
+    options?: { chain?: Chain }
+  ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    return {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardAdmin',
+      args: [token, rewardIndex, newAdmin],
+    };
+  }
+
+  /**
+   * Simulate updating the reward recipient. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param token The token to update the reward recipient for
+   * @param rewardIndex The index of the reward to update
+   * @param newRecipient The new recipient address
+   * @param account Optional account to simulate calling for
+   * @returns The simulated output
+   */
+  async updateRewardRecipientSimulate(
+    {
+      token,
+      rewardIndex,
+      newRecipient,
+    }: {
+      token: `0x${string}`;
+      rewardIndex: bigint;
+      newRecipient: `0x${string}`;
+    },
+    account?: Account
+  ) {
+    const acc = account || this.wallet?.account;
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardRecipient' as const,
+      args: [token, rewardIndex, newRecipient] as const,
+    };
+
+    return simulateClankerContract(this.publicClient, acc, input);
+  }
+
+  /**
+   * Simulate updating the reward admin. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param token The token to update the reward admin for
+   * @param rewardIndex The index of the reward to update
+   * @param newAdmin The new admin address
+   * @param account Optional account to simulate calling for
+   * @returns The simulated output
+   */
+  async updateRewardAdminSimulate(
+    {
+      token,
+      rewardIndex,
+      newAdmin,
+    }: {
+      token: `0x${string}`;
+      rewardIndex: bigint;
+      newAdmin: `0x${string}`;
+    },
+    account?: Account
+  ) {
+    const acc = account || this.wallet?.account;
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardAdmin' as const,
+      args: [token, rewardIndex, newAdmin] as const,
+    };
+
+    return simulateClankerContract(this.publicClient, acc, input);
+  }
+
+  /**
+   * Update the reward recipient for a token.
+   *
+   * @param token The token to update the reward recipient for
+   * @param rewardIndex The index of the reward to update
+   * @param newRecipient The new recipient address
+   * @returns Transaction hash of the update or error
+   */
+  async updateRewardRecipient({
+    token,
+    rewardIndex,
+    newRecipient,
+  }: {
+    token: `0x${string}`;
+    rewardIndex: bigint;
+    newRecipient: `0x${string}`;
+  }): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardRecipient' as const,
+      args: [token, rewardIndex, newRecipient] as const,
+    };
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
+  }
+
+  /**
+   * Update the reward admin for a token.
+   *
+   * @param token The token to update the reward admin for
+   * @param rewardIndex The index of the reward to update
+   * @param newAdmin The new admin address
+   * @returns Transaction hash of the update or error
+   */
+  async updateRewardAdmin({
+    token,
+    rewardIndex,
+    newAdmin,
+  }: {
+    token: `0x${string}`;
+    rewardIndex: bigint;
+    newAdmin: `0x${string}`;
+  }): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardAdmin' as const,
+      args: [token, rewardIndex, newAdmin] as const,
+    };
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
   }
 
   /**
