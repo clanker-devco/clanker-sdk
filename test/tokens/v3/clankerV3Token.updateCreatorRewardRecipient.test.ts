@@ -117,13 +117,12 @@ describe('v3 updateCreatorRewardRecipient', () => {
     ).rejects.toThrow('Account or wallet client required for simulation');
   });
 
-  test('chainId support - explicit Base chainId', async () => {
+  test('chainId support - explicit Base chainId (now automatically detected)', async () => {
     const tokenId = 123n;
     const newRecipient = '0x0000000000000000000000000000000000000005' as `0x${string}`;
 
     const clankerWithExplicitChainId = new Clanker({
       publicClient,
-      chainId: base.id,
     });
 
     const tx = await clankerWithExplicitChainId.getUpdateCreatorRewardRecipientTransaction(
@@ -136,7 +135,7 @@ describe('v3 updateCreatorRewardRecipient', () => {
     expect(tx.args).toEqual([tokenId, newRecipient]);
   });
 
-  test('chainId support - explicit Abstract chainId', async () => {
+  test('chainId support - explicit Abstract chainId (now automatically detected)', async () => {
     const abstractPublicClient = createPublicClient({
       chain: abstract,
       transport: http(process.env.TESTS_RPC_URL_ABSTRACT || 'https://api.abstract.xyz'),
@@ -147,7 +146,6 @@ describe('v3 updateCreatorRewardRecipient', () => {
 
     const clankerWithAbstractChainId = new Clanker({
       publicClient: abstractPublicClient,
-      chainId: abstract.id,
     });
 
     const tx = await clankerWithAbstractChainId.getUpdateCreatorRewardRecipientTransaction(
@@ -160,7 +158,7 @@ describe('v3 updateCreatorRewardRecipient', () => {
     expect(tx.args).toEqual([tokenId, newRecipient]);
   });
 
-  test('chainId support - explicit Monad Testnet chainId', async () => {
+  test('chainId support - explicit Monad Testnet chainId (now automatically detected)', async () => {
     const monadPublicClient = createPublicClient({
       chain: monadTestnet,
       transport: http(process.env.TESTS_RPC_URL_MONAD_TESTNET || 'https://testnet-rpc.monad.xyz'),
@@ -171,10 +169,35 @@ describe('v3 updateCreatorRewardRecipient', () => {
 
     const clankerWithMonadChainId = new Clanker({
       publicClient: monadPublicClient,
-      chainId: monadTestnet.id,
     });
 
     const tx = await clankerWithMonadChainId.getUpdateCreatorRewardRecipientTransaction(
+      tokenId,
+      newRecipient
+    );
+
+    expect(tx.address).toBeDefined();
+    expect(tx.functionName).toBe('updateCreatorRewardRecipient');
+    expect(tx.args).toEqual([tokenId, newRecipient]);
+  });
+
+  test('chainId support - automatic detection from wallet client', async () => {
+    const tokenId = 123n;
+    const newRecipient = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    // Create a wallet client with chain info
+    const mockWalletWithChain = {
+      account: admin,
+      chain: base,
+    } as unknown as WalletClient<Transport, Chain, Account>;
+
+    // This should automatically detect Base chain from wallet
+    const clankerAutoDetect = new Clanker({
+      wallet: mockWalletWithChain,
+      publicClient,
+    });
+
+    const tx = await clankerAutoDetect.getUpdateCreatorRewardRecipientTransaction(
       tokenId,
       newRecipient
     );
@@ -207,7 +230,6 @@ describe('v3 updateCreatorRewardRecipient', () => {
 
     const baseClanker = new Clanker({
       publicClient,
-      chainId: base.id,
     });
 
     const abstractPublicClient = createPublicClient({
@@ -217,7 +239,6 @@ describe('v3 updateCreatorRewardRecipient', () => {
 
     const abstractClanker = new Clanker({
       publicClient: abstractPublicClient,
-      chainId: abstract.id,
     });
 
     const baseTx = await baseClanker.getUpdateCreatorRewardRecipientTransaction(
@@ -244,7 +265,6 @@ describe('v3 updateCreatorRewardRecipient', () => {
 
     const clankerWithUnsupportedChain = new Clanker({
       publicClient: arbitrumPublicClient,
-      chainId: arbitrum.id,
     });
 
     // This should throw an error since Arbitrum is not supported for v3.1
@@ -262,6 +282,8 @@ describe('v3 updateCreatorRewardRecipient', () => {
     // This should throw an error since no chainId or publicClient is provided
     await expect(
       clankerWithoutChain.getUpdateCreatorRewardRecipientTransaction(tokenId, newRecipient)
-    ).rejects.toThrow('Chain ID required - provide via config or publicClient');
+    ).rejects.toThrow(
+      'Chain ID could not be determined. Please provide either a wallet client or public client with chain info'
+    );
   });
 });

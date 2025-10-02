@@ -19,7 +19,7 @@ import {
 type ClankerConfig = {
   wallet?: WalletClient<Transport, Chain, Account>;
   publicClient?: PublicClient;
-  chainId?: ClankerChain;
+  chainId?: ClankerChain; // Optional - will auto-detect from wallet or publicClient if not provided
 };
 
 /**
@@ -28,22 +28,29 @@ type ClankerConfig = {
 export class Clanker {
   private readonly wallet?: WalletClient<Transport, Chain, Account>;
   private readonly publicClient?: PublicClient;
-  private readonly chainId?: ClankerChain;
 
   constructor(config?: ClankerConfig) {
     this.wallet = config?.wallet;
     this.publicClient = config?.publicClient;
-    this.chainId = config?.chainId;
   }
 
   private getClankerConfig(): ClankerDeployment<RelatedV3_1> {
-    const chainId = this.chainId || (this.publicClient?.chain?.id as ClankerChain);
-    if (!chainId) throw new Error('Chain ID required - provide via config or publicClient');
+    // Try to get chain ID from wallet first, then public client
+    const chainId = (this.wallet?.chain?.id || this.publicClient?.chain?.id) as ClankerChain;
 
-    const config = clankerConfigFor<ClankerDeployment<RelatedV3_1>>(chainId, 'clanker_v3_1');
-    if (!config) throw new Error(`Clanker v3.1 is not deployed on chain ${chainId}`);
+    if (!chainId) {
+      throw new Error(
+        'Chain ID could not be determined. Please provide either a wallet client or public client with chain info'
+      );
+    }
 
-    return config;
+    const deploymentConfig = clankerConfigFor<ClankerDeployment<RelatedV3_1>>(
+      chainId,
+      'clanker_v3_1'
+    );
+    if (!deploymentConfig) throw new Error(`Clanker v3.1 is not deployed on chain ${chainId}`);
+
+    return deploymentConfig;
   }
 
   /**
