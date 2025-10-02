@@ -19,7 +19,6 @@ import {
 type ClankerConfig = {
   wallet?: WalletClient<Transport, Chain, Account>;
   publicClient?: PublicClient;
-  chainId?: ClankerChain; // Optional - will auto-detect from wallet or publicClient if not provided
 };
 
 /**
