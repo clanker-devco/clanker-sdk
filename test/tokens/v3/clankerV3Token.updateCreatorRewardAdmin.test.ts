@@ -8,7 +8,7 @@ import {
   type Transport,
   type WalletClient,
 } from 'viem';
-import { base } from 'viem/chains';
+import { abstract, arbitrum, base, monadTestnet } from 'viem/chains';
 import { parseAccount } from 'viem/utils';
 import { Clanker } from '../../../src/v3/index.js';
 
@@ -112,5 +112,147 @@ describe('v3 updateCreatorRewardAdmin', () => {
     await expect(
       clankerWithoutAccount.updateCreatorRewardAdminSimulate(tokenId, newAdmin)
     ).rejects.toThrow('Account or wallet client required for simulation');
+  });
+
+  test('chainId support - explicit Base chainId', async () => {
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    const clankerWithExplicitChainId = new Clanker({
+      publicClient,
+      chainId: base.id,
+    });
+
+    const tx = await clankerWithExplicitChainId.getUpdateCreatorRewardAdminTransaction(
+      tokenId,
+      newAdmin
+    );
+
+    expect(tx.address).toBeDefined();
+    expect(tx.functionName).toBe('updateCreatorRewardAdmin');
+    expect(tx.args).toEqual([tokenId, newAdmin]);
+  });
+
+  test('chainId support - explicit Abstract chainId', async () => {
+    const abstractPublicClient = createPublicClient({
+      chain: abstract,
+      transport: http(process.env.TESTS_RPC_URL_ABSTRACT || 'https://api.abstract.xyz'),
+    }) as PublicClient;
+
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    const clankerWithAbstractChainId = new Clanker({
+      publicClient: abstractPublicClient,
+      chainId: abstract.id,
+    });
+
+    const tx = await clankerWithAbstractChainId.getUpdateCreatorRewardAdminTransaction(
+      tokenId,
+      newAdmin
+    );
+
+    expect(tx.address).toBeDefined();
+    expect(tx.functionName).toBe('updateCreatorRewardAdmin');
+    expect(tx.args).toEqual([tokenId, newAdmin]);
+  });
+
+  test('chainId support - explicit Monad Testnet chainId', async () => {
+    const monadPublicClient = createPublicClient({
+      chain: monadTestnet,
+      transport: http(process.env.TESTS_RPC_URL_MONAD_TESTNET || 'https://testnet-rpc.monad.xyz'),
+    }) as PublicClient;
+
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    const clankerWithMonadChainId = new Clanker({
+      publicClient: monadPublicClient,
+      chainId: monadTestnet.id,
+    });
+
+    const tx = await clankerWithMonadChainId.getUpdateCreatorRewardAdminTransaction(
+      tokenId,
+      newAdmin
+    );
+
+    expect(tx.address).toBeDefined();
+    expect(tx.functionName).toBe('updateCreatorRewardAdmin');
+    expect(tx.args).toEqual([tokenId, newAdmin]);
+  });
+
+  test('chainId support - automatic detection from publicClient', async () => {
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    // This should automatically detect Base chain from publicClient
+    const clankerAutoDetect = new Clanker({ publicClient });
+
+    const tx = await clankerAutoDetect.getUpdateCreatorRewardAdminTransaction(tokenId, newAdmin);
+
+    expect(tx.address).toBeDefined();
+    expect(tx.functionName).toBe('updateCreatorRewardAdmin');
+    expect(tx.args).toEqual([tokenId, newAdmin]);
+  });
+
+  test('chainId support - different chains use different locker addresses', async () => {
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    const baseClanker = new Clanker({
+      publicClient,
+      chainId: base.id,
+    });
+
+    const abstractPublicClient = createPublicClient({
+      chain: abstract,
+      transport: http(process.env.TESTS_RPC_URL_ABSTRACT || 'https://api.abstract.xyz'),
+    }) as PublicClient;
+
+    const abstractClanker = new Clanker({
+      publicClient: abstractPublicClient,
+      chainId: abstract.id,
+    });
+
+    const baseTx = await baseClanker.getUpdateCreatorRewardAdminTransaction(tokenId, newAdmin);
+    const abstractTx = await abstractClanker.getUpdateCreatorRewardAdminTransaction(
+      tokenId,
+      newAdmin
+    );
+
+    // Base and Abstract should use different locker addresses
+    expect(baseTx.address).not.toBe(abstractTx.address);
+  });
+
+  test('error handling - unsupported chain', async () => {
+    const arbitrumPublicClient = createPublicClient({
+      chain: arbitrum,
+      transport: http('https://arb1.arbitrum.io/rpc'),
+    }) as PublicClient;
+
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    const clankerWithUnsupportedChain = new Clanker({
+      publicClient: arbitrumPublicClient,
+      chainId: arbitrum.id,
+    });
+
+    // This should throw an error since Arbitrum is not supported for v3.1
+    await expect(
+      clankerWithUnsupportedChain.getUpdateCreatorRewardAdminTransaction(tokenId, newAdmin)
+    ).rejects.toThrow('Clanker v3.1 is not deployed on chain 42161');
+  });
+
+  test('error handling - missing chainId and publicClient', async () => {
+    const tokenId = 123n;
+    const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
+
+    const clankerWithoutChain = new Clanker({});
+
+    // This should throw an error since no chainId or publicClient is provided
+    await expect(
+      clankerWithoutChain.getUpdateCreatorRewardAdminTransaction(tokenId, newAdmin)
+    ).rejects.toThrow('Chain ID required - provide via config or publicClient');
   });
 });
