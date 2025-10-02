@@ -143,6 +143,66 @@ export class Clanker {
   }
 
   /**
+   * Get an abi-typed transaction for updating the creator reward admin.
+   *
+   * @param tokenId The token ID to update the creator reward admin for
+   * @param newAdmin The new admin address
+   * @returns Abi transaction
+   */
+  async getUpdateCreatorRewardAdminTransaction(tokenId: bigint, newAdmin: `0x${string}`) {
+    return {
+      address: CLANKERS.clanker_v3_1.related.locker,
+      abi: LpLockerv2_abi,
+      functionName: 'updateCreatorRewardAdmin' as const,
+      args: [tokenId, newAdmin] as const,
+    };
+  }
+
+  /**
+   * Simulate updating the creator reward admin. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param tokenId The token ID to update the creator reward admin for
+   * @param newAdmin The new admin address
+   * @param account Optional account to simulate calling for
+   * @returns The simulated output
+   */
+  async updateCreatorRewardAdminSimulate(
+    tokenId: bigint,
+    newAdmin: `0x${string}`,
+    account?: Account
+  ) {
+    const acc = account || this.wallet?.account;
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateCreatorRewardAdminTransaction(tokenId, newAdmin);
+
+    return simulateClankerContract(this.publicClient, acc, input);
+  }
+
+  /**
+   * Update the creator reward admin for a token.
+   *
+   * @param tokenId The token ID to update the creator reward admin for
+   * @param newAdmin The new admin address
+   * @returns Transaction hash of the update or error
+   */
+  async updateCreatorRewardAdmin(
+    tokenId: bigint,
+    newAdmin: `0x${string}`
+  ): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateCreatorRewardAdminTransaction(tokenId, newAdmin);
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
+  }
+
+  /**
    * Get an abi-typed transaction for deploying a clanker.
    *
    * @param token The token to deploy
