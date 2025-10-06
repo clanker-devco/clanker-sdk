@@ -2,6 +2,7 @@ import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem
 import { base } from 'viem/chains';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
+import { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
 import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
@@ -538,6 +539,152 @@ export class Clanker {
       args: [token],
       chainId,
     };
+  }
+
+  /**
+   * Get an abi-typed transaction for updating the token image.
+   *
+   * @param token The token to update the image for
+   * @param newImage The new image URL
+   * @param options Optional chain configuration
+   * @returns Abi transaction
+   */
+  async getUpdateImageTransaction(
+    { token, newImage }: { token: `0x${string}`; newImage: string },
+    options?: { chain?: Chain }
+  ): Promise<ClankerTransactionConfig<typeof ClankerToken_v4_abi>> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    return {
+      address: token,
+      abi: ClankerToken_v4_abi,
+      functionName: 'updateImage',
+      args: [newImage],
+    };
+  }
+
+  /**
+   * Get an abi-typed transaction for updating the token metadata.
+   *
+   * @param token The token to update the metadata for
+   * @param metadata The new metadata object
+   * @param options Optional chain configuration
+   * @returns Abi transaction
+   */
+  async getUpdateMetadataTransaction(
+    { token, metadata }: { token: `0x${string}`; metadata: string },
+    options?: { chain?: Chain }
+  ): Promise<ClankerTransactionConfig<typeof ClankerToken_v4_abi>> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    return {
+      address: token,
+      abi: ClankerToken_v4_abi,
+      functionName: 'updateMetadata',
+      args: [metadata],
+    };
+  }
+
+  /**
+   * Simulate updating the token image. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param token The token to update the image for
+   * @param newImage The new image URL
+   * @param account Optional account to simulate calling for
+   * @returns The simulated output
+   */
+  async updateImageSimulate(
+    { token, newImage }: { token: `0x${string}`; newImage: string },
+    account?: Account
+  ) {
+    const acc = account || this.wallet?.account;
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateImageTransaction({ token, newImage });
+
+    return simulateClankerContract(this.publicClient, acc, input);
+  }
+
+  /**
+   * Simulate updating the token metadata. Will use the wallet account on the Clanker class or
+   * the passed-in account.
+   *
+   * @param token The token to update the metadata for
+   * @param metadata The new metadata object
+   * @param account Optional account to simulate calling for
+   * @returns The simulated output
+   */
+  async updateMetadataSimulate(
+    { token, metadata }: { token: `0x${string}`; metadata: string },
+    account?: Account
+  ) {
+    const acc = account || this.wallet?.account;
+    if (!acc) throw new Error('Account or wallet client required for simulation');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateMetadataTransaction({ token, metadata });
+
+    return simulateClankerContract(this.publicClient, acc, input);
+  }
+
+  /**
+   * Update the token image.
+   *
+   * @param token The token to update the image for
+   * @param newImage The new image URL
+   * @returns Transaction hash of the update or error
+   */
+  async updateImage({
+    token,
+    newImage,
+  }: {
+    token: `0x${string}`;
+    newImage: string;
+  }): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateImageTransaction({ token, newImage });
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
+  }
+
+  /**
+   * Update the token metadata.
+   *
+   * @param token The token to update the metadata for
+   * @param metadata The new metadata object
+   * @returns Transaction hash of the update or error
+   */
+  async updateMetadata({
+    token,
+    metadata,
+  }: {
+    token: `0x${string}`;
+    metadata: string;
+  }): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getUpdateMetadataTransaction({ token, metadata });
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
   }
 }
 
