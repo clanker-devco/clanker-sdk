@@ -33,6 +33,7 @@ export type RelatedV4 = {
   feeLocker: `0x${string}`;
   feeStaticHook: `0x${string}`;
   feeDynamicHook: `0x${string}`;
+  presaleEthToCreator?: `0x${string}`;
 
   mevModuleV2?: `0x${string}`;
   feeStaticHookV2?: `0x${string}`;
