@@ -1,5 +1,13 @@
 import type { Abi } from 'viem';
-import { abstract, arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
+import {
+  abstract,
+  arbitrum,
+  base,
+  baseSepolia,
+  mainnet,
+  monadTestnet,
+  unichain,
+} from 'viem/chains';
 import { Clanker_v0_abi } from '../abi/v0/Clanker.js';
 import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';
@@ -163,6 +171,25 @@ export const CLANKERS = {
       feeLocker: '0x92C0DCbAba17b0F5f3a7537dA82c0F80520e4dF6',
       feeStaticHook: '0xf7aC669593d2D9D01026Fa5B756DD5B4f7aAa8Cc',
       feeDynamicHook: '0xFd213BE7883db36e1049dC42f5BD6A0ec66B68cC',
+    } satisfies RelatedV4,
+  },
+  clanker_v4_mainnet: {
+    abi: Clanker_v4_abi,
+    chainId: mainnet.id,
+    type: 'clanker_v4',
+    address: '0x6C8599779B03B00AAaE63C6378830919Abb75473',
+    related: {
+      locker: '0x00C4b21889145CF0D99f2e05919103e0c3991974',
+      vault: '0xa1da0600Eb4A9F3D4a892feAa2c2caf80A4A2f14',
+      airdrop: '0x303470b6b6a35B06A5A05763A7caD776fbf27B71',
+      devbuy: '0x70aDdc06fE89a5cF9E533aea8D025dB06795e492',
+      mevModule: '0x33e2Eda238edcF470309b8c6D228986A1204c8f9',
+      mevModuleV2: '0x33e2Eda238edcF470309b8c6D228986A1204c8f9',
+      feeLocker: '0xA9C0a423f0092176fC48d7B50a1fCae8cf5BB441',
+      feeStaticHook: '0x6C24D0bCC264EF6A740754A11cA579b9d225e8Cc',
+      feeStaticHookV2: '0x6C24D0bCC264EF6A740754A11cA579b9d225e8Cc',
+      feeDynamicHook: '0x0000000000000000000000000000000000000000',
+      feeDynamicHookV2: '0x0000000000000000000000000000000000000000',
     } satisfies RelatedV4,
   },
   clanker_v4_unichain: {
