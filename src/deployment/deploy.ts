@@ -17,6 +17,7 @@ import {
   simulateClankerContract,
   writeClankerContract,
 } from '../utils/write-clanker-contracts.js';
+
 export type ClankerDeployConfig<
   abi extends ClankerFactory,
   functionName extends ContractFunctionName<abi, 'nonpayable' | 'payable'>,
@@ -27,6 +28,7 @@ export type ClankerDeployConfig<
   > = ContractFunctionArgs<abi, 'nonpayable' | 'payable', functionName>,
   _chain extends Chain | undefined = Chain,
 > = ClankerTransactionConfig<abi, functionName, args> & { expectedAddress?: `0x${string}` };
+
 export async function simulateDeployToken(
   tx: ClankerDeployConfig<ClankerFactory, 'deployToken'>,
   account: Account,
@@ -37,8 +39,10 @@ export async function simulateDeployToken(
       `Token chainId doesn't match public client chainId: ${tx.chainId} != ${publicClient.chain?.id}`
     );
   }
+
   return simulateClankerContract(publicClient, account, tx);
 }
+
 export async function deployToken(
   tx: ClankerDeployConfig<ClankerFactory, 'deployToken'>,
   wallet: WalletClient<Transport, Chain, Account>,
