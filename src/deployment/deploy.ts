@@ -55,11 +55,13 @@ export async function deployToken(
   if (!account) {
     throw new Error('Wallet account required for deployToken');
   }
+
   if (tx.chainId !== publicClient.chain?.id) {
     throw new Error(
       `Token chainId doesn't match public client chainId: ${tx.chainId} != ${publicClient.chain?.id}`
     );
   }
+
   if (tx.chainId !== wallet.chain?.id) {
     throw new Error(
       `Token chainId doesn't match wallet chainId: ${tx.chainId} != ${wallet.chain?.id}`
@@ -89,16 +91,19 @@ export async function deployToken(
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: txHash,
       });
+
       const logs = parseEventLogs({
         abi: Clanker_v4_abi,
         eventName: 'TokenCreated',
         logs: receipt.logs,
       });
+
       // const [log] = parseEventLogs({
       //   abi: Clanker_v3_1_abi,
       //   eventName: 'TokenCreated',
       //   logs: receipt.logs,
       // });
+
       return { address: logs[0].args.tokenAddress };
     },
   };
