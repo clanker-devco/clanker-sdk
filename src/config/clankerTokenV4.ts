@@ -7,7 +7,6 @@ import {
   zeroHash,
 } from 'viem';
 import * as z from 'zod/v4';
-import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerAirdropV2_Instantiation_v4_abi } from '../abi/v4/ClankerAirdropV2.js';
 import { ClankerHook_DynamicFee_Instantiation_v4_abi } from '../abi/v4/ClankerHookDynamicFee.js';
 import { ClankerHook_StaticFee_Instantiation_v4_abi } from '../abi/v4/ClankerHookStaticFee.js';
@@ -18,6 +17,7 @@ import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../abi/v4.1/ClankerM
 import { Clanker_PoolInitializationData_v4_1_abi } from '../abi/v4.1/ClankerPool.js';
 import { DEFAULT_SUPPLY, POOL_POSITIONS, WETH_ADDRESSES } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
+import { getClankerAbi } from '../utils/abi-selector.js';
 import {
   Chains,
   type ClankerDeployment,
@@ -119,7 +119,9 @@ const clankerTokenV4 = z.strictObject({
         v.positions.every(
           (p) => p.tickLower % v.tickSpacing === 0 && p.tickUpper % v.tickSpacing === 0
         ),
-      { error: 'All positions must have ticks that are multiples of the tick spacing.' }
+      {
+        error: 'All positions must have ticks that are multiples of the tick spacing.',
+      }
     ),
   /** Token locker */
   locker: z
@@ -265,7 +267,7 @@ export type ClankerTokenV4 = z.input<typeof clankerTokenV4>;
 
 export const clankerTokenV4Converter: ClankerTokenConverter<
   ClankerTokenV4,
-  typeof Clanker_v4_abi,
+  ReturnType<typeof getClankerAbi>,
   'deployToken'
 > = async (config: ClankerTokenV4) => {
   const cfg = clankerTokenV4.parse(config);
@@ -324,7 +326,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   if (roundedAirdropTooLow) {
     // Error if the requested airdrop amount is more than the rounded amount.
     throw new Error(
-      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${bpsAirdropped / 10_000n}%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
+      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${
+        bpsAirdropped / 10_000n
+      }%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
     );
   }
 
@@ -333,7 +337,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   if (roundedAirdropTooHigh) {
     // Error if the `roundingVerificationAirdrop` has a value more than 1bps away from the requested airdrop amount
     throw new Error(
-      `Precision error for airdrop. Difference ${roundingVerificationAirdrop - airdropAmount} is too large.`
+      `Precision error for airdrop. Difference ${
+        roundingVerificationAirdrop - airdropAmount
+      } is too large.`
     );
   }
 
@@ -341,7 +347,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
 
   return {
     address: clankerConfig.address,
-    abi: Clanker_v4_abi,
+    abi: getClankerAbi(cfg.chainId),
     functionName: 'deployToken',
     args: [
       {

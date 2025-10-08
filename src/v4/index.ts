@@ -1,11 +1,13 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
 import { base } from 'viem/chains';
-import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
-import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
-import { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
-import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
+import {
+  getClankerFeeLockerAbi,
+  getClankerLockerAbi,
+  getClankerTokenAbi,
+  getClankerVaultAbi,
+} from '../utils/abi-selector.js';
 import {
   type Chain as ClankerChain,
   type ClankerDeployment,
@@ -46,7 +48,7 @@ export class Clanker {
   async getClaimRewardsTransaction(
     { token, rewardRecipient }: { token: `0x${string}`; rewardRecipient: `0x${string}` },
     options?: { chain?: Chain }
-  ): Promise<ClankerTransactionConfig<typeof ClankerFeeLocker_abi>> {
+  ): Promise<ClankerTransactionConfig<ReturnType<typeof getClankerFeeLockerAbi>>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
       chain.id as ClankerChain,
@@ -56,7 +58,7 @@ export class Clanker {
 
     return {
       address: config?.related.feeLocker,
-      abi: ClankerFeeLocker_abi,
+      abi: getClankerFeeLockerAbi(chain.id),
       functionName: 'claim',
       args: [rewardRecipient, token],
     };
@@ -79,7 +81,10 @@ export class Clanker {
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getClaimRewardsTransaction({ token, rewardRecipient });
+    const input = await this.getClaimRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return simulateClankerContract(this.publicClient, acc, input);
   }
@@ -103,7 +108,10 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getClaimRewardsTransaction({ token, rewardRecipient });
+    const input = await this.getClaimRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
@@ -129,7 +137,7 @@ export class Clanker {
 
     return {
       address: config.related.feeLocker,
-      abi: ClankerFeeLocker_abi,
+      abi: getClankerFeeLockerAbi(chain.id),
       functionName: 'availableFees',
       args: [rewardRecipient, token],
     } as const;
@@ -152,7 +160,10 @@ export class Clanker {
     if (!rewardRecipient) throw new Error('Account required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
-    const tx = await this.getAvailableRewardsTransaction({ token, rewardRecipient });
+    const tx = await this.getAvailableRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return this.publicClient.readContract(tx);
   }
@@ -219,7 +230,7 @@ export class Clanker {
       newRecipient: `0x${string}`;
     },
     options?: { chain?: Chain }
-  ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
+  ): Promise<ClankerTransactionConfig<ReturnType<typeof getClankerLockerAbi>>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
       chain.id as ClankerChain,
@@ -229,7 +240,7 @@ export class Clanker {
 
     return {
       address: config.related.locker,
-      abi: ClankerLocker_v4_abi,
+      abi: getClankerLockerAbi(chain.id),
       functionName: 'updateRewardRecipient',
       args: [token, rewardIndex, newRecipient],
     };
@@ -255,7 +266,7 @@ export class Clanker {
       newAdmin: `0x${string}`;
     },
     options?: { chain?: Chain }
-  ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
+  ): Promise<ClankerTransactionConfig<ReturnType<typeof getClankerLockerAbi>>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
       chain.id as ClankerChain,
@@ -265,7 +276,7 @@ export class Clanker {
 
     return {
       address: config.related.locker,
-      abi: ClankerLocker_v4_abi,
+      abi: getClankerLockerAbi(chain.id),
       functionName: 'updateRewardAdmin',
       args: [token, rewardIndex, newAdmin],
     };
@@ -306,7 +317,7 @@ export class Clanker {
 
     const input = {
       address: config.related.locker,
-      abi: ClankerLocker_v4_abi,
+      abi: getClankerLockerAbi(chain.id),
       functionName: 'updateRewardRecipient' as const,
       args: [token, rewardIndex, newRecipient] as const,
     };
@@ -349,7 +360,7 @@ export class Clanker {
 
     const input = {
       address: config.related.locker,
-      abi: ClankerLocker_v4_abi,
+      abi: getClankerLockerAbi(chain.id),
       functionName: 'updateRewardAdmin' as const,
       args: [token, rewardIndex, newAdmin] as const,
     };
@@ -388,7 +399,7 @@ export class Clanker {
 
     const input = {
       address: config.related.locker,
-      abi: ClankerLocker_v4_abi,
+      abi: getClankerLockerAbi(chain.id),
       functionName: 'updateRewardRecipient' as const,
       args: [token, rewardIndex, newRecipient] as const,
     };
@@ -427,7 +438,7 @@ export class Clanker {
 
     const input = {
       address: config.related.locker,
-      abi: ClankerLocker_v4_abi,
+      abi: getClankerLockerAbi(chain.id),
       functionName: 'updateRewardAdmin' as const,
       args: [token, rewardIndex, newAdmin] as const,
     };
@@ -455,7 +466,7 @@ export class Clanker {
     if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
     return {
       address: config.related.vault,
-      abi: ClankerVault_v4_abi,
+      abi: getClankerVaultAbi(chain.id),
       functionName: 'claim',
       args: [token],
     };
@@ -491,7 +502,7 @@ export class Clanker {
     try {
       return await this.publicClient.readContract({
         address: config.related.vault,
-        abi: ClankerVault_v4_abi,
+        abi: getClankerVaultAbi(chain.id),
         functionName: 'amountAvailableToClaim',
         args: [token],
       });
@@ -534,7 +545,7 @@ export class Clanker {
       throw new Error('vaultAddress is required when using static getVaultClaimTransactionObject');
     return {
       address: vaultAddress,
-      abi: ClankerVault_v4_abi,
+      abi: getClankerVaultAbi(chainId || 1), // Default to mainnet if no chainId provided
       functionName: 'claim',
       args: [token],
       chainId,
@@ -552,7 +563,7 @@ export class Clanker {
   async getUpdateImageTransaction(
     { token, newImage }: { token: `0x${string}`; newImage: string },
     options?: { chain?: Chain }
-  ): Promise<ClankerTransactionConfig<typeof ClankerToken_v4_abi>> {
+  ): Promise<ClankerTransactionConfig<ReturnType<typeof getClankerTokenAbi>>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
       chain.id as ClankerChain,
@@ -562,7 +573,7 @@ export class Clanker {
 
     return {
       address: token,
-      abi: ClankerToken_v4_abi,
+      abi: getClankerTokenAbi(chain.id),
       functionName: 'updateImage',
       args: [newImage],
     };
@@ -579,7 +590,7 @@ export class Clanker {
   async getUpdateMetadataTransaction(
     { token, metadata }: { token: `0x${string}`; metadata: string },
     options?: { chain?: Chain }
-  ): Promise<ClankerTransactionConfig<typeof ClankerToken_v4_abi>> {
+  ): Promise<ClankerTransactionConfig<ReturnType<typeof getClankerTokenAbi>>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
       chain.id as ClankerChain,
@@ -589,7 +600,7 @@ export class Clanker {
 
     return {
       address: token,
-      abi: ClankerToken_v4_abi,
+      abi: getClankerTokenAbi(chain.id),
       functionName: 'updateMetadata',
       args: [metadata],
     };

@@ -8,7 +8,8 @@ import {
   type Transport,
   type WalletClient,
 } from 'viem';
-import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
+import { base } from 'viem/chains';
+import { getClankerAbi } from '../utils/abi-selector.js';
 import type { ClankerFactory } from '../utils/clanker-contracts.js';
 import {
   type ClankerResult,
@@ -27,7 +28,9 @@ export type ClankerDeployConfig<
     functionName
   > = ContractFunctionArgs<abi, 'nonpayable' | 'payable', functionName>,
   _chain extends Chain | undefined = Chain,
-> = ClankerTransactionConfig<abi, functionName, args> & { expectedAddress?: `0x${string}` };
+> = ClankerTransactionConfig<abi, functionName, args> & {
+  expectedAddress?: `0x${string}`;
+};
 
 export async function simulateDeployToken(
   tx: ClankerDeployConfig<ClankerFactory, 'deployToken'>,
@@ -93,7 +96,7 @@ export async function deployToken(
       });
 
       const logs = parseEventLogs({
-        abi: Clanker_v4_abi,
+        abi: getClankerAbi(tx.chainId ?? base.id),
         eventName: 'TokenCreated',
         logs: receipt.logs,
       });
