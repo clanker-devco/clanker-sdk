@@ -1,4 +1,12 @@
-import { abstract, arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
+import {
+  abstract,
+  arbitrum,
+  base,
+  baseSepolia,
+  mainnet,
+  monadTestnet,
+  unichain,
+} from 'viem/chains';
 import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 import type { Chain } from './utils/clankers.js';
 
@@ -17,6 +25,7 @@ export const WETH_ADDRESSES: Record<Chain, `0x${string}`> = {
   [unichain.id]: '0x4200000000000000000000000000000000000006',
   [abstract.id]: '0x3439153EB7AF838Ad19d56E1571FBD09333C2809',
   [monadTestnet.id]: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701', // WMON
+  [mainnet.id]: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
 };
 
 export const DEFAULT_SUPPLY = 100_000_000_000_000_000_000_000_000_000n;

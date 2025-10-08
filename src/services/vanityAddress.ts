@@ -8,7 +8,8 @@ import {
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
 } from '../abi/v3.1/ClankerToken.js';
-import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
+import { getClankerTokenAbi } from '../utils/abi-selector.js';
+import { getClankerTokenBytecode } from '../utils/bytecode-selector.js';
 import { CLANKERS, type ClankerDeployment } from '../utils/clankers.js';
 
 export const findVanityAddress = async (
@@ -43,7 +44,9 @@ export const findVanityAddress = async (
         : CLANKERS.clanker_v3_1.address;
 
   const response = await fetch(
-    `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(data)}&suffix=${suffix}`
+    `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(
+      data
+    )}&suffix=${suffix}`
   );
 
   const { address, salt } = (await response.json()) as {
@@ -55,21 +58,23 @@ export const findVanityAddress = async (
 };
 
 export const findVanityAddressV4 = async (
-  args: ContractConstructorArgs<typeof ClankerToken_v4_abi>,
+  args: ContractConstructorArgs<ReturnType<typeof getClankerTokenAbi>>,
   admin: `0x${string}`,
   suffix: `0x${string}` = '0x4b07',
   config: ClankerDeployment
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {
   const data = encodeDeployData({
-    abi: ClankerToken_v4_abi,
-    bytecode: ClankerToken_v4_bytecode,
+    abi: getClankerTokenAbi(config.chainId),
+    bytecode: getClankerTokenBytecode(config.chainId),
     args,
   });
 
   const deployer = config.address;
 
   const response = await fetch(
-    `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(data)}&suffix=${suffix}`
+    `https://vanity-v79d.onrender.com/find?admin=${admin}&deployer=${deployer}&init_code_hash=${keccak256(
+      data
+    )}&suffix=${suffix}`
   );
 
   const { address, salt } = (await response.json()) as {

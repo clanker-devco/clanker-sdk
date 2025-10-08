@@ -2,7 +2,7 @@ import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import type { MerkleTree } from '@openzeppelin/merkle-tree/dist/merkletree.js';
 import { isAddressEqual, stringify } from 'viem';
 import * as z from 'zod/v4';
-import { ClankerAirdrop_v4_abi } from '../../abi/v4/ClankerAirdrop.js';
+import { getClankerAirdropAbi } from '../../utils/abi-selector.js';
 import {
   type Chain as ClankerChain,
   type ClankerDeployment,
@@ -36,7 +36,10 @@ type MerkleEntry = [account: `0x${string}`, amount: string];
 export function createAirdrop(
   recipients: AirdropRecipient[],
   options: { tokenDecimals: bigint } = { tokenDecimals: 18n }
-): { tree: MerkleTree<MerkleEntry>; airdrop: { merkleRoot: `0x${string}`; amount: number } } {
+): {
+  tree: MerkleTree<MerkleEntry>;
+  airdrop: { merkleRoot: `0x${string}`; amount: number };
+} {
   const parsedEntries = AirdropEntrySchema.parse(recipients);
 
   const values: MerkleEntry[] = parsedEntries.map(({ account, amount }) => [
@@ -92,7 +95,12 @@ export async function registerAirdrop(token: `0x${string}`, tree: MerkleTree<Mer
 export function getAirdropProofs(
   tree: MerkleTree<MerkleEntry>,
   account: `0x${string}`
-): { proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[] } {
+): {
+  proofs: {
+    proof: `0x${string}`[];
+    entry: { account: `0x${string}`; amount: bigint };
+  }[];
+} {
   const indices = [];
   for (const [i, entry] of tree.entries()) {
     if (!isAddressEqual(entry[0], account)) continue;
@@ -123,14 +131,20 @@ export async function fetchAirdropProofs(
   token: `0x${string}`,
   account: `0x${string}`
 ): Promise<{
-  proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[];
+  proofs: {
+    proof: `0x${string}`[];
+    entry: { account: `0x${string}`; amount: bigint };
+  }[];
 }> {
   const { proofs } = await fetch(
     `https://www.clanker.world/api/airdrops/claim?tokenAddress=${token}&claimerAddress=${account}`
   ).then(
     (r) =>
       r.json() as Promise<{
-        proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: string } }[];
+        proofs: {
+          proof: `0x${string}`[];
+          entry: { account: `0x${string}`; amount: string };
+        }[];
       }>
   );
 
@@ -166,14 +180,14 @@ export function getClaimAirdropTransaction({
   recipient: `0x${string}`;
   amount: bigint;
   proof: `0x${string}`[];
-}): ClankerTransactionConfig<typeof ClankerAirdrop_v4_abi, 'claim'> {
+}): ClankerTransactionConfig<ReturnType<typeof getClankerAirdropAbi>, 'claim'> {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
   if (!config) throw new Error(`Clanker is not ready on ${chainId}`);
 
   return {
     chainId,
     address: config.related.airdrop,
-    abi: ClankerAirdrop_v4_abi,
+    abi: getClankerAirdropAbi(chainId),
     functionName: 'claim',
     args: [token, recipient, amount, proof],
   };

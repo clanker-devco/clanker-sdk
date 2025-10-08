@@ -9,8 +9,12 @@ import type { ClankerHook_DynamicFee_v4_abi } from '../abi/v4/ClankerHookDynamic
 import type { ClankerHook_StaticFee_v4_abi } from '../abi/v4/ClankerHookStaticFee.js';
 import type { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import type { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
+import type { ClankerToken_v4_1_mainnet_abi } from '../abi/v4.1.mainnet/ClankerToken.js';
 
-export type ClankerToken = typeof ClankerToken_v3_1_abi | typeof ClankerToken_v4_abi;
+export type ClankerToken =
+  | typeof ClankerToken_v3_1_abi
+  | typeof ClankerToken_v4_abi
+  | typeof ClankerToken_v4_1_mainnet_abi;
 
 export type ClankerFactory = typeof Clanker_v3_1_abi | typeof Clanker_v4_abi;
 
