@@ -13,7 +13,6 @@ import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';
 import { Clanker_v3_abi } from '../abi/v3/Clanker.js';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
-import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import {
   ClankerToken_v3_1_abi,
   ClankerToken_v3_1_abstract_abi,
@@ -22,6 +21,7 @@ import {
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
 } from '../abi/v3.1/ClankerToken.js';
+import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
 import {
   ClankerToken_v4_mainnet_abi,
