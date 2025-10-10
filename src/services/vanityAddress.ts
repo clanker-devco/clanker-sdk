@@ -8,7 +8,7 @@ import {
   ClankerToken_v3_1_monad_abi,
   ClankerToken_v3_1_monad_bytecode,
 } from '../abi/v3.1/ClankerToken.js';
-import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
+import type { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
 import { CLANKERS, type ClankerDeployment } from '../utils/clankers.js';
 
 export const findVanityAddress = async (
@@ -61,8 +61,8 @@ export const findVanityAddressV4 = async (
   config: ClankerDeployment
 ): Promise<{ salt: `0x${string}`; token: `0x${string}` }> => {
   const data = encodeDeployData({
-    abi: ClankerToken_v4_abi,
-    bytecode: ClankerToken_v4_bytecode,
+    abi: config.token.abi,
+    bytecode: config.token.bytecode,
     args,
   });
 

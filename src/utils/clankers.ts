@@ -1,11 +1,32 @@
-import type { Abi } from 'viem';
-import { abstract, arbitrum, base, baseSepolia, monadTestnet, unichain } from 'viem/chains';
+import type { Abi, Hex } from 'viem';
+import {
+  abstract,
+  arbitrum,
+  base,
+  baseSepolia,
+  mainnet,
+  monadTestnet,
+  unichain,
+} from 'viem/chains';
 import { Clanker_v0_abi } from '../abi/v0/Clanker.js';
 import { Clanker_v1_abi } from '../abi/v1/Clanker.js';
 import { Clanker_v2_abi } from '../abi/v2/Clanker.js';
 import { Clanker_v3_abi } from '../abi/v3/Clanker.js';
 import { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
+import {
+  ClankerToken_v3_1_abi,
+  ClankerToken_v3_1_abstract_abi,
+  ClankerToken_v3_1_abstract_bytecode,
+  ClankerToken_v3_1_bytecode,
+  ClankerToken_v3_1_monad_abi,
+  ClankerToken_v3_1_monad_bytecode,
+} from '../abi/v3.1/ClankerToken.js';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
+import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
+import {
+  ClankerToken_v4_mainnet_abi,
+  ClankerToken_v4_mainnet_bytecode,
+} from '../abi/v4.1.mainnet/ClankerToken.js';
 
 type RelatedV0 = undefined;
 
@@ -43,6 +64,10 @@ type RelatedAddresses = RelatedV0 | RelatedV1 | RelatedV2 | RelatedV3 | RelatedV
 
 export type ClankerDeployment<T extends RelatedAddresses = RelatedAddresses> = {
   abi: Abi;
+  token: {
+    abi: Abi;
+    bytecode: Hex;
+  };
   chainId: number;
   type: string;
   address: `0x${string}`;
@@ -52,6 +77,10 @@ export type ClankerDeployment<T extends RelatedAddresses = RelatedAddresses> = {
 export const CLANKERS = {
   clanker_v0: {
     abi: Clanker_v0_abi,
+    token: {
+      abi: [],
+      bytecode: '0x',
+    },
     chainId: base.id,
     type: 'proxy',
     address: '0x250c9FB2b411B48273f69879007803790A6AeA47',
@@ -59,6 +88,10 @@ export const CLANKERS = {
   },
   clanker_v1: {
     abi: Clanker_v1_abi,
+    token: {
+      abi: [],
+      bytecode: '0x',
+    },
     chainId: base.id,
     type: 'clanker',
     address: '0x9B84fcE5Dcd9a38d2D01d5D72373F6b6b067c3e1',
@@ -66,6 +99,10 @@ export const CLANKERS = {
   },
   clanker_v2: {
     abi: Clanker_v2_abi,
+    token: {
+      abi: [],
+      bytecode: '0x',
+    },
     chainId: base.id,
     type: 'clanker_v2',
     address: '0x732560fa1d1A76350b1A500155BA978031B53833',
@@ -75,6 +112,10 @@ export const CLANKERS = {
   },
   clanker_v3: {
     abi: Clanker_v3_abi,
+    token: {
+      abi: [],
+      bytecode: '0x',
+    },
     chainId: base.id,
     type: 'clanker_v3',
     address: '0x375C15db32D28cEcdcAB5C03Ab889bf15cbD2c5E',
@@ -84,6 +125,10 @@ export const CLANKERS = {
   },
   clanker_v3_1: {
     abi: Clanker_v3_1_abi,
+    token: {
+      abi: ClankerToken_v3_1_abi,
+      bytecode: ClankerToken_v3_1_bytecode,
+    },
     chainId: base.id,
     type: 'clanker_v3_1',
     address: '0x2A787b2362021cC3eEa3C24C4748a6cD5B687382',
@@ -94,6 +139,10 @@ export const CLANKERS = {
   },
   clanker_v3_1_monadTestnet: {
     abi: Clanker_v3_1_abi,
+    token: {
+      abi: ClankerToken_v3_1_monad_abi,
+      bytecode: ClankerToken_v3_1_monad_bytecode,
+    },
     chainId: monadTestnet.id,
     type: 'clanker_v3_1',
     address: '0xA0C65813DD1Cde7092922a57548Ec1eD25994318',
@@ -104,6 +153,10 @@ export const CLANKERS = {
   },
   clanker_v3_1_abstract: {
     abi: Clanker_v3_1_abi,
+    token: {
+      abi: ClankerToken_v3_1_abstract_abi,
+      bytecode: ClankerToken_v3_1_abstract_bytecode,
+    },
     chainId: abstract.id,
     type: 'clanker_v3_1',
     address: '0x043ac6264F5A45c7518DC480b348Da41bdabbac2',
@@ -114,6 +167,10 @@ export const CLANKERS = {
   },
   clanker_v4: {
     abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_bytecode,
+    },
     chainId: base.id,
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
@@ -133,6 +190,10 @@ export const CLANKERS = {
   },
   clanker_v4_sepolia: {
     abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_bytecode,
+    },
     chainId: baseSepolia.id,
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
@@ -151,6 +212,10 @@ export const CLANKERS = {
   },
   clanker_v4_arbitrum: {
     abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_bytecode,
+    },
     chainId: arbitrum.id,
     type: 'clanker_v4',
     address: '0xEb9D2A726Edffc887a574dC7f46b3a3638E8E44f',
@@ -165,8 +230,35 @@ export const CLANKERS = {
       feeDynamicHook: '0xFd213BE7883db36e1049dC42f5BD6A0ec66B68cC',
     } satisfies RelatedV4,
   },
+  clanker_v4_mainnet: {
+    abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_mainnet_abi,
+      bytecode: ClankerToken_v4_mainnet_bytecode,
+    },
+    chainId: mainnet.id,
+    type: 'clanker_v4',
+    address: '0x6C8599779B03B00AAaE63C6378830919Abb75473',
+    related: {
+      locker: '0x00C4b21889145CF0D99f2e05919103e0c3991974',
+      vault: '0xa1da0600Eb4A9F3D4a892feAa2c2caf80A4A2f14',
+      airdrop: '0x303470b6b6a35B06A5A05763A7caD776fbf27B71',
+      devbuy: '0x70aDdc06fE89a5cF9E533aea8D025dB06795e492',
+      mevModule: '0x33e2Eda238edcF470309b8c6D228986A1204c8f9',
+      mevModuleV2: '0x33e2Eda238edcF470309b8c6D228986A1204c8f9',
+      feeLocker: '0xA9C0a423f0092176fC48d7B50a1fCae8cf5BB441',
+      feeStaticHook: '0x6C24D0bCC264EF6A740754A11cA579b9d225e8Cc',
+      feeStaticHookV2: '0x6C24D0bCC264EF6A740754A11cA579b9d225e8Cc',
+      feeDynamicHook: '0x0000000000000000000000000000000000000000',
+      feeDynamicHookV2: '0x0000000000000000000000000000000000000000',
+    } satisfies RelatedV4,
+  },
   clanker_v4_unichain: {
     abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_bytecode,
+    },
     chainId: unichain.id,
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
