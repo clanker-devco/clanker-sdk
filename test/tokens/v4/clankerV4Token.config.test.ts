@@ -8,7 +8,7 @@ import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../../../src/abi/v4/
 import { ClankerVault_Instantiation_v4_abi } from '../../../src/abi/v4/ClankerVault.js';
 import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../../../src/abi/v4.1/ClankerMevSniperAuction.js';
 import { Clanker_PoolInitializationData_v4_1_abi } from '../../../src/abi/v4.1/ClankerPool.js';
-import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
+import { clankerTokenV4, clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
 import { CLANKERS, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
 
 test('basic', async () => {
@@ -258,4 +258,82 @@ test('vanity', async () => {
   expect(tx.value).toEqual(BigInt(3.2 * 1e18));
   expect(tx.expectedAddress?.toLowerCase()).toEndWith('b07');
   expect(tx.chainId).toEqual(8453);
+});
+
+test('presale configuration validation', () => {
+  const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
+
+  // Test valid presale configuration
+  const validPresaleConfig = {
+    name: 'Presale Token',
+    symbol: 'PST',
+    tokenAdmin: admin,
+    presale: {
+      minEthGoal: 1,
+      maxEthGoal: 10,
+      presaleDuration: 3600,
+      recipient: admin,
+      lockupDuration: 86400,
+      vestingDuration: 86400,
+    },
+  };
+
+  const parsed = clankerTokenV4.parse(validPresaleConfig);
+  expect(parsed.presale).toBeDefined();
+  expect(parsed.presale?.minEthGoal).toBe(1);
+  expect(parsed.presale?.maxEthGoal).toBe(10);
+  expect(parsed.presale?.presaleDuration).toBe(3600);
+  expect(parsed.presale?.recipient).toBe(admin);
+  expect(parsed.presale?.lockupDuration).toBe(86400);
+  expect(parsed.presale?.vestingDuration).toBe(86400);
+
+  // Test presale configuration without recipient (should default to tokenAdmin)
+  const presaleWithoutRecipient = {
+    name: 'Presale Token',
+    symbol: 'PST',
+    tokenAdmin: admin,
+    presale: {
+      minEthGoal: 1,
+      maxEthGoal: 10,
+      presaleDuration: 3600,
+      lockupDuration: 0,
+      vestingDuration: 0,
+    },
+  };
+
+  const parsedWithoutRecipient = clankerTokenV4.parse(presaleWithoutRecipient);
+  expect(parsedWithoutRecipient.presale).toBeDefined();
+  expect(parsedWithoutRecipient.presale?.recipient).toBeUndefined();
+
+  // Test invalid presale configuration (minEthGoal <= 0)
+  const invalidPresaleConfig = {
+    name: 'Presale Token',
+    symbol: 'PST',
+    tokenAdmin: admin,
+    presale: {
+      minEthGoal: 0, // Invalid
+      maxEthGoal: 10,
+      presaleDuration: 3600,
+    },
+  };
+
+  expect(() => clankerTokenV4.parse(invalidPresaleConfig)).toThrow(
+    'Too small: expected number to be >0'
+  );
+
+  // Test invalid presale configuration (duration < 60)
+  const invalidDurationConfig = {
+    name: 'Presale Token',
+    symbol: 'PST',
+    tokenAdmin: admin,
+    presale: {
+      minEthGoal: 1,
+      maxEthGoal: 10,
+      presaleDuration: 30, // Invalid - too short
+    },
+  };
+
+  expect(() => clankerTokenV4.parse(invalidDurationConfig)).toThrow(
+    'Too small: expected number to be >=60'
+  );
 });

@@ -4,7 +4,11 @@ import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
 import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
-import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
+import {
+  type ClankerTokenV4,
+  clankerTokenV4Converter,
+  clankerTokenV4PresaleConverter,
+} from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
 import {
   type Chain as ClankerChain,
@@ -79,7 +83,10 @@ export class Clanker {
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getClaimRewardsTransaction({ token, rewardRecipient });
+    const input = await this.getClaimRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return simulateClankerContract(this.publicClient, acc, input);
   }
@@ -103,7 +110,10 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getClaimRewardsTransaction({ token, rewardRecipient });
+    const input = await this.getClaimRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
@@ -152,7 +162,10 @@ export class Clanker {
     if (!rewardRecipient) throw new Error('Account required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
-    const tx = await this.getAvailableRewardsTransaction({ token, rewardRecipient });
+    const tx = await this.getAvailableRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return this.publicClient.readContract(tx);
   }
@@ -165,6 +178,16 @@ export class Clanker {
    */
   async getDeployTransaction(token: ClankerTokenV4) {
     return clankerTokenV4Converter(token);
+  }
+
+  /**
+   * Get an abi-typed transaction for starting a presale.
+   *
+   * @param token The token configuration with presale settings
+   * @returns Abi transaction for starting presale
+   */
+  async getStartPresaleTransaction(token: ClankerTokenV4) {
+    return clankerTokenV4PresaleConverter(token);
   }
 
   /**
@@ -197,6 +220,21 @@ export class Clanker {
     const input = await this.getDeployTransaction(token);
 
     return deployToken(input, this.wallet, this.publicClient);
+  }
+
+  /**
+   * Start a presale for a token
+   *
+   * @param token The token configuration with presale settings
+   * @returns Transaction hash and awaitable function for presale start
+   */
+  async startPresale(token: ClankerTokenV4) {
+    if (!this.wallet) throw new Error('Wallet client required for presale');
+    if (!this.publicClient) throw new Error('Public client required for presale');
+
+    const input = await this.getStartPresaleTransaction(token);
+
+    return writeClankerContract(this.publicClient, this.wallet, input as any);
   }
 
   /**
