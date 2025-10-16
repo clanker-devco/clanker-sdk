@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
-import { FEE_CONFIGS, POOL_POSITIONS } from '../../src/constants.js';
+import { arbitrum, base, mainnet, unichain } from 'viem/chains';
+import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../src/constants.js';
 import { Clanker } from '../../src/v4/index.js';
 
 /**
@@ -20,20 +20,56 @@ import { Clanker } from '../../src/v4/index.js';
  *   - DevBuy extension with initial swap
  */
 
+// ==================== CHAIN CONFIGURATION ====================
+// Uncomment the chain you want to deploy to:
+const CHAIN = mainnet;
+// const CHAIN = base;
+// const CHAIN = arbitrum;
+// const CHAIN = sepolia;
+// const CHAIN = unichain;
+
+// Chain-specific RPC URLs (using env vars for better rate limits)
+const RPC_URLS: Record<number, string | undefined> = {
+  [mainnet.id]: process.env.TESTS_RPC_URL_MAINNET,
+  [base.id]: process.env.TESTS_RPC_URL_BASE,
+  [arbitrum.id]: process.env.TESTS_RPC_URL_ARBITRUM,
+  [unichain.id]: process.env.TESTS_RPC_URL_UNICHAIN,
+};
+
+// Chain-specific explorer URLs
+const EXPLORER_URLS: Record<number, string> = {
+  [mainnet.id]: 'https://etherscan.io',
+  [base.id]: 'https://basescan.org',
+  [arbitrum.id]: 'https://arbiscan.io',
+  [unichain.id]: 'https://unichain-sepolia.blockscout.com',
+};
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 if (!PRIVATE_KEY || !isHex(PRIVATE_KEY)) throw new Error('Missing PRIVATE_KEY env var');
 
 const account = privateKeyToAccount(PRIVATE_KEY);
 
-const publicClient = createPublicClient({ chain: base, transport: http() }) as PublicClient;
-const wallet = createWalletClient({ account, chain: base, transport: http() });
+const RPC_URL = RPC_URLS[CHAIN.id];
+
+const publicClient = createPublicClient({
+  chain: CHAIN,
+  transport: http(RPC_URL),
+}) as PublicClient;
+const wallet = createWalletClient({
+  account,
+  chain: CHAIN,
+  transport: http(RPC_URL),
+});
 
 // Initialize Clanker SDK
 const clanker = new Clanker({ wallet, publicClient });
 
 console.log('\n🚀 Deploying V4 Token\n');
+console.log(`Chain: ${CHAIN.name} (${CHAIN.id})`);
+console.log(`Account: ${account.address}\n`);
 
 const { txHash, waitForTransaction, error } = await clanker.deploy({
+  chainId: CHAIN.id,
   name: 'My Token',
   symbol: 'TKN',
   image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
@@ -73,10 +109,10 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
     ],
   },
   pool: {
-    pairedToken: '0x4200000000000000000000000000000000000006',
+    pairedToken: WETH_ADDRESSES[CHAIN.id],
     positions: POOL_POSITIONS.Standard, // POOL_POSITIONS.Project
   },
-  fees: FEE_CONFIGS.DynamicBasic, // or FEE_CONFIGS.StaticBasic or FEE_CONFIGS.Dynamic3
+  fees: FEE_CONFIGS.StaticBasic, // or FEE_CONFIGS.StaticBasic or FEE_CONFIGS.Dynamic3
   vanity: true,
   sniperFees: {
     startingFee: 666_777, // 66.6777%
@@ -89,6 +125,6 @@ if (error) throw error;
 console.log(`Token deploying in tx: ${txHash}`);
 const { address: tokenAddress } = await waitForTransaction();
 
-console.log('Token deployed successfully!');
+console.log('\n✅ Token deployed successfully!');
 console.log('Token address:', tokenAddress);
-console.log('View on BaseScan:', `https://basescan.org/token/${tokenAddress}`);
+console.log('View on Explorer:', `${EXPLORER_URLS[CHAIN.id]}/token/${tokenAddress}`);
