@@ -1,0 +1,7 @@
+[install]
+# Only install package versions published at least 3 days ago
+# https://bun.com/docs/cli/install#minimum-release-age
+minimumReleaseAge = 259200 # seconds
+
+[test]
+coverage = true
