@@ -273,6 +273,26 @@ export const CLANKERS = {
       feeDynamicHook: '0x9b37A43422D7bBD4C8B231be11E50AD1acE828CC',
     } satisfies RelatedV4,
   },
+  clanker_v4_monad: {
+    abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_bytecode,
+    },
+    chainId: unichain.id,
+    type: 'clanker_v4',
+    address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
+    related: {
+      locker: '0x691f97752E91feAcD7933F32a1FEdCeDae7bB59c',
+      vault: '0xA9C0a423f0092176fC48d7B50a1fCae8cf5BB441',
+      airdrop: '0xE143f9872A33c955F23cF442BB4B1EFB3A7402A2',
+      devbuy: '0x267259e36914839Eb584e962558563760AE28862',
+      mevModule: '0x42A95190B4088C88Dd904d930c79deC1158bF09D',
+      feeLocker: '0x1d5A0F0BD3eA07F78FC14577f053de7A3FEc35B2',
+      feeStaticHook: '0xBc6e5aBDa425309c2534Bc2bC92562F5419ce8Cc',
+      feeDynamicHook: '0x9b37A43422D7bBD4C8B231be11E50AD1acE828CC',
+    } satisfies RelatedV4,
+  },
 } as const satisfies Record<string, ClankerDeployment>;
 
 export type Clankers = typeof CLANKERS;

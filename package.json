@@ -38,8 +38,8 @@
     "@openzeppelin/merkle-tree": "^1.0.8",
     "abitype": "^1.0.8",
     "inquirer": "^8.2.6",
-    "viem": "^2.7.9",
-    "zod": "^3.24.4"
+    "viem": "^2.38.3",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
@@ -50,6 +50,6 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "viem": "^2.7.9"
+    "viem": "^2.38.3"
   }
 }
