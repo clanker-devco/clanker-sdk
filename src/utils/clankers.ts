@@ -27,8 +27,8 @@ import {
   ClankerToken_v4_mainnet_abi,
   ClankerToken_v4_mainnet_bytecode,
 } from '../abi/v4.1.mainnet/ClankerToken.js';
-import { monad } from './chains/monad.js';
 import { ClankerToken_v4_monad_bytecode } from '../abi/v4.1.monad/ClankerToken.js';
+import { monad } from './chains/monad.js';
 
 type RelatedV0 = undefined;
 
