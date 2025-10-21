@@ -91,6 +91,15 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   },
   devBuy: {
     ethAmount: 0,
+    // For non-WETH pairs, you need to specify the pool key for ETH -> Paired Token swap:
+    // poolKey: {
+    //   currency0: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC (lower address)
+    //   currency1: WETH_ADDRESSES[CHAIN.id], // WETH (higher address)
+    //   fee: 500, // 0.05% fee tier
+    //   tickSpacing: 10, // Tick spacing for 0.05% tier
+    //   hooks: '0x0000000000000000000000000000000000000000',
+    // },
+    // amountOutMin: 0, // Set based on current ETH price for slippage protection
   },
   rewards: {
     recipients: [

@@ -167,8 +167,8 @@ const clankerTokenV4 = z.strictObject({
   devBuy: z
     .object({
       /** How much of the token to buy (denoted in ETH). */
-      ethAmount: z.number().gt(0, { error: 'If dev buy is enabled, the purchase amount 0.' }),
-      /** Pool identifier. Used if the clanker is not paired with ETH. Then the devbuy will pay ETH -> PAIR -> CLANKER. */
+      ethAmount: z.number().gt(0, { error: 'If dev buy is enabled, the purchase amount must be > 0.' }),
+      /** Pool identifier for ETH -> Paired Token swap. Required if the clanker is not paired with WETH. */
       poolKey: z
         .object({
           currency0: addressSchema,
@@ -177,9 +177,11 @@ const clankerTokenV4 = z.strictObject({
           tickSpacing: z.number(),
           hooks: addressSchema,
         })
-        .default(NULL_DEVBUY_POOL_CONFIG),
+        .optional(),
       /** Amount out min for the ETH -> PAIR swap. Used if the clanker is not paired with ETH. */
       amountOutMin: z.number().default(0),
+      /** Recipient address for the dev buy tokens. Defaults to tokenAdmin if not set. */
+      recipient: addressSchema.optional(),
     })
     .optional(),
   /** Fee structure for the token. */
@@ -429,9 +431,23 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
                   msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
                   extensionBps: 0,
                   extensionData: encodeAbiParameters(ClankerUniV4EthDevBuy_Instantiation_v4_abi, [
-                    cfg.devBuy.poolKey,
+                    // If paired with WETH, use NULL config, otherwise use provided poolKey or auto-detect
+                    cfg.pool.pairedToken === 'WETH' || cfg.pool.pairedToken === WETH_ADDRESSES[cfg.chainId]
+                      ? NULL_DEVBUY_POOL_CONFIG
+                      : cfg.devBuy.poolKey || {
+                          // Auto-construct pool key for WETH -> Paired Token swap
+                          currency0: cfg.pool.pairedToken < WETH_ADDRESSES[cfg.chainId]
+                            ? cfg.pool.pairedToken
+                            : WETH_ADDRESSES[cfg.chainId],
+                          currency1: cfg.pool.pairedToken < WETH_ADDRESSES[cfg.chainId]
+                            ? WETH_ADDRESSES[cfg.chainId]
+                            : cfg.pool.pairedToken,
+                          fee: 3000, // Default 0.3% fee tier
+                          tickSpacing: 60, // Standard tick spacing for 0.3% tier
+                          hooks: zeroAddress, // No hooks by default
+                        },
                     BigInt(cfg.devBuy.amountOutMin * 1e18),
-                    cfg.tokenAdmin,
+                    cfg.devBuy.recipient || cfg.tokenAdmin,
                   ]),
                 },
               ]

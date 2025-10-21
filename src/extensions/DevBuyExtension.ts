@@ -14,6 +14,14 @@ export interface DevBuyExtensionDataV4 {
   recipient: Address;
 }
 
+export interface DevBuyPoolKey {
+  currency0: Address;
+  currency1: Address;
+  fee: number;
+  tickSpacing: number;
+  hooks: Address;
+}
+
 export class DevBuyExtension implements IClankerExtension {
   readonly address = CLANKERS.clanker_v4.related.devbuy;
   readonly name = 'DevBuy';
