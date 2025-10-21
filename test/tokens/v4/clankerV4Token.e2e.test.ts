@@ -364,6 +364,75 @@ describe('v4 end to end', () => {
     expect(poolInitializedLog.args.pairedFee).toEqual(25_000);
   });
 
+  test('simulate static non weth dev buy', async () => {
+    const token: ClankerTokenV4 = {
+      name: 'TheName',
+      symbol: 'SYM',
+      image: 'www.example.com/image',
+      tokenAdmin: admin.address,
+      chainId: base.id,
+      pool: {
+        pairedToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        tickIfToken0IsClanker: -230400,
+        positions: POOL_POSITIONS.Standard,
+      },
+      devBuy: {
+        ethAmount: 0.5,
+        poolKey: {
+          currency0: '0x4200000000000000000000000000000000000006',
+          currency1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          fee: 500,
+          tickSpacing: 10,
+          hooks: '0x0000000000000000000000000000000000000000',
+        },
+        amountOutMin: 0,
+      },
+      fees: { type: 'static', clankerFee: 90, pairedFee: 250 },
+      vanity: true,
+    };
+
+    const tx = await clankerTokenV4Converter(token);
+    if (!tx.expectedAddress) throw new Error('Expected "expected address".');
+
+    const res = await simulateCalls(publicClient, {
+      calls: [
+        { to: tx.address, ...tx },
+        {
+          to: tx.expectedAddress,
+          data: encodeFunctionData({
+            abi: ClankerToken_v4_abi,
+            functionName: 'balanceOf',
+            args: [admin.address],
+          }),
+        },
+      ],
+      account: admin,
+      stateOverrides: [
+        {
+          address: admin.address,
+          balance: parseEther('10000'),
+        },
+      ],
+    });
+
+    const [creationResult, balanceResult] = res.results;
+
+    const address = decodeFunctionResult({
+      abi: Clanker_v4_abi,
+      functionName: 'deployToken',
+      data: creationResult.data,
+    });
+
+    const balance = decodeFunctionResult({
+      abi: ClankerToken_v4_abi,
+      functionName: 'balanceOf',
+      data: balanceResult.data,
+    });
+
+    expect(address).toEqual(tx.expectedAddress);
+    expect(balance).toBeGreaterThan(100000000000000000n);
+  });
+
   test('simulate dynamic', async () => {
     const token: ClankerTokenV4 = {
       name: 'TheName',
