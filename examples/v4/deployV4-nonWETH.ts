@@ -1,6 +1,6 @@
 import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { base, mainnet } from 'viem/chains';
+import { base } from 'viem/chains';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../src/constants.js';
 import { Clanker } from '../../src/v4/index.js';
 
@@ -55,7 +55,7 @@ console.log(`Chain: ${CHAIN.name} (${CHAIN.id})`);
 console.log(`Account: ${account.address}\n`);
 
 // Choose your paired token
-const PAIRED_TOKEN = PAIRED_TOKENS.USDC_BASE; // Change to your desired token
+const PAIRED_TOKEN = PAIRED_TOKENS.USDC_BASE as `0x${string}`; // Change to your desired token
 
 const { txHash, waitForTransaction, error } = await clanker.deploy({
   chainId: CHAIN.id,
@@ -82,8 +82,12 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
     // Pool configuration for WETH -> USDC swap (required for non-WETH pairs)
     poolKey: {
       // Ensure correct token ordering (lower address first)
-      currency0: PAIRED_TOKEN < WETH_ADDRESSES[CHAIN.id] ? PAIRED_TOKEN : WETH_ADDRESSES[CHAIN.id],
-      currency1: PAIRED_TOKEN < WETH_ADDRESSES[CHAIN.id] ? WETH_ADDRESSES[CHAIN.id] : PAIRED_TOKEN,
+      currency0: (PAIRED_TOKEN < WETH_ADDRESSES[CHAIN.id]
+        ? PAIRED_TOKEN
+        : WETH_ADDRESSES[CHAIN.id]) as `0x${string}`,
+      currency1: (PAIRED_TOKEN < WETH_ADDRESSES[CHAIN.id]
+        ? WETH_ADDRESSES[CHAIN.id]
+        : PAIRED_TOKEN) as `0x${string}`,
       fee: 500, // 0.05% fee tier for WETH/USDC
       tickSpacing: 10, // Tick spacing for 0.05% tier
       hooks: '0x0000000000000000000000000000000000000000', // No hooks
