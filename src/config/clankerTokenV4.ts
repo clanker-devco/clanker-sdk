@@ -16,6 +16,7 @@ import { ClankerUniV4EthDevBuy_Instantiation_v4_abi } from '../abi/v4/ClankerUni
 import { ClankerVault_Instantiation_v4_abi } from '../abi/v4/ClankerVault.js';
 import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../abi/v4.1/ClankerMevSniperAuction.js';
 import { Clanker_PoolInitializationData_v4_1_abi } from '../abi/v4.1/ClankerPool.js';
+import { Clanker_PresaleEthToCreator_v4_1_abi } from '../abi/v4.1/ClankerPresaleEthToCreator.js';
 import { DEFAULT_SUPPLY, POOL_POSITIONS, WETH_ADDRESSES } from '../constants.js';
 import { findVanityAddressV4 } from '../services/vanityAddress.js';
 import {
@@ -49,7 +50,7 @@ const FeeInToInt: Record<(typeof FeeIn)[number], number> = {
 };
 
 /** Clanker v4 token definition. */
-const clankerTokenV4 = z.strictObject({
+export const clankerTokenV4 = z.strictObject({
   /** Name of the token. Example: "My Token". */
   name: z.string(),
   /** Symbol for the token. Example: "MTK". */
@@ -119,7 +120,9 @@ const clankerTokenV4 = z.strictObject({
         v.positions.every(
           (p) => p.tickLower % v.tickSpacing === 0 && p.tickUpper % v.tickSpacing === 0
         ),
-      { error: 'All positions must have ticks that are multiples of the tick spacing.' }
+      {
+        error: 'All positions must have ticks that are multiples of the tick spacing.',
+      }
     ),
   /** Token locker */
   locker: z
@@ -180,6 +183,23 @@ const clankerTokenV4 = z.strictObject({
         .default(NULL_DEVBUY_POOL_CONFIG),
       /** Amount out min for the ETH -> PAIR swap. Used if the clanker is not paired with ETH. */
       amountOutMin: z.number().default(0),
+    })
+    .optional(),
+  /** Token presale. Tokens are sold through a presale mechanism before deployment. */
+  presale: z
+    .object({
+      /** Minimum ETH goal for the presale to be successful */
+      minEthGoal: z.number().gt(0),
+      /** Maximum ETH goal for the presale */
+      maxEthGoal: z.number().gt(0),
+      /** Duration of the presale in seconds */
+      presaleDuration: z.number().min(60), // Minimum 1 minute
+      /** Recipient of the ETH raised during presale. Defaults to tokenAdmin if not set. */
+      recipient: addressSchema.optional(),
+      /** Lockup duration for tokens after presale ends (in seconds) */
+      lockupDuration: z.number().min(0).default(0),
+      /** Vesting duration for tokens after lockup ends (in seconds) */
+      vestingDuration: z.number().min(0).default(0),
     })
     .optional(),
   /** Fee structure for the token. */
@@ -324,7 +344,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   if (roundedAirdropTooLow) {
     // Error if the requested airdrop amount is more than the rounded amount.
     throw new Error(
-      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${bpsAirdropped / 10_000n}%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
+      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${
+        bpsAirdropped / 10_000n
+      }%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
     );
   }
 
@@ -333,7 +355,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   if (roundedAirdropTooHigh) {
     // Error if the `roundingVerificationAirdrop` has a value more than 1bps away from the requested airdrop amount
     throw new Error(
-      `Precision error for airdrop. Difference ${roundingVerificationAirdrop - airdropAmount} is too large.`
+      `Precision error for airdrop. Difference ${
+        roundingVerificationAirdrop - airdropAmount
+      } is too large.`
     );
   }
 
@@ -523,3 +547,206 @@ export function encodeFeeConfig(
 
   throw new Error('Invalid config type');
 }
+
+/**
+ * Convert a ClankerTokenV4 configuration with presale into a presale start transaction.
+ * This is used when the token configuration includes presale settings.
+ */
+export const clankerTokenV4PresaleConverter = async (config: ClankerTokenV4) => {
+  const cfg = clankerTokenV4.parse(config);
+
+  if (!cfg.presale) {
+    throw new Error('Presale configuration is required for presale converter');
+  }
+
+  if (!cfg.rewards) {
+    cfg.rewards = {
+      recipients: [
+        {
+          admin: cfg.tokenAdmin,
+          recipient: cfg.tokenAdmin,
+          bps: 10_000,
+          token: 'Both',
+        },
+      ],
+    };
+  }
+
+  const metadata = stringify(cfg.metadata) || '';
+  const socialContext = stringify(cfg.context);
+
+  const clankerConfig = clankerConfigFor<ClankerDeployment<RelatedV4>>(cfg.chainId, 'clanker_v4');
+  if (!clankerConfig?.related) {
+    throw new Error(`No clanker v4 configuration for chain ${cfg.chainId}`);
+  }
+
+  if (!clankerConfig.related.presaleEthToCreator) {
+    throw new Error(`PresaleEthToCreator is not available on chain ${cfg.chainId}`);
+  }
+
+  const { salt, token: expectedAddress } = cfg.vanity
+    ? await findVanityAddressV4(
+        [
+          cfg.name,
+          cfg.symbol,
+          DEFAULT_SUPPLY,
+          cfg.tokenAdmin,
+          cfg.image,
+          metadata,
+          socialContext,
+          BigInt(cfg.chainId),
+        ],
+        cfg.tokenAdmin,
+        '0x4b07',
+        clankerConfig
+      )
+    : {
+        salt: zeroHash,
+        token: undefined,
+      };
+
+  const airdropAmount = BigInt(cfg.airdrop?.amount || 0) * BigInt(1e18);
+  // Ensure that we don't undercount the amount needed in the airdrop. Better that we allocate 1bp extra to
+  // the airdrop extension than allocate too little.
+  const bpsAirdropped =
+    (airdropAmount * 10_000n) / DEFAULT_SUPPLY +
+    ((airdropAmount * 10_000n) % DEFAULT_SUPPLY ? 1n : 0n);
+  const roundingVerificationAirdrop = (bpsAirdropped * DEFAULT_SUPPLY) / 10_000n;
+
+  const roundedAirdropTooLow = airdropAmount > roundingVerificationAirdrop;
+  if (roundedAirdropTooLow) {
+    // Error if the requested airdrop amount is more than the rounded amount.
+    throw new Error(
+      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${
+        bpsAirdropped / 10_000n
+      }%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
+    );
+  }
+
+  const roundedAirdropTooHigh =
+    ((roundingVerificationAirdrop - airdropAmount) * 10_000n) / DEFAULT_SUPPLY > 1n;
+  if (roundedAirdropTooHigh) {
+    // Error if the `roundingVerificationAirdrop` has a value more than 1bps away from the requested airdrop amount
+    throw new Error(
+      `Precision error for airdrop. Difference ${
+        roundingVerificationAirdrop - airdropAmount
+      } is too large.`
+    );
+  }
+
+  const { hook, poolData } = encodeFeeConfig(cfg, clankerConfig);
+
+  // Build the deployment config that will be used for the presale
+  const deploymentConfig = {
+    tokenConfig: {
+      tokenAdmin: cfg.tokenAdmin,
+      name: cfg.name,
+      symbol: cfg.symbol,
+      salt,
+      image: cfg.image,
+      metadata,
+      context: socialContext,
+      originatingChainId: BigInt(cfg.chainId),
+    },
+    lockerConfig: {
+      locker: cfg.locker.locker === 'Locker' ? clankerConfig.related.locker : cfg.locker.locker,
+      lockerData: encodeAbiParameters(ClankerLpLocker_Instantiation_v4_abi, [
+        {
+          feePreference: cfg.rewards.recipients.map(({ token }) => FeeInToInt[token]),
+        },
+      ]),
+      rewardAdmins: cfg.rewards.recipients.map(({ admin }) => admin),
+      rewardRecipients: cfg.rewards.recipients.map(({ recipient }) => recipient),
+      rewardBps: cfg.rewards.recipients.map(({ bps }) => bps),
+      tickLower: cfg.pool.positions.map(({ tickLower }) => tickLower),
+      tickUpper: cfg.pool.positions.map(({ tickUpper }) => tickUpper),
+      positionBps: cfg.pool.positions.map(({ positionBps }) => positionBps),
+    },
+    poolConfig: {
+      pairedToken:
+        cfg.pool.pairedToken === 'WETH' ? WETH_ADDRESSES[cfg.chainId] : cfg.pool.pairedToken,
+      tickIfToken0IsClanker: cfg.pool.tickIfToken0IsClanker,
+      tickSpacing: cfg.pool.tickSpacing,
+      hook: hook,
+      poolData: poolData,
+    },
+    mevModuleConfig: {
+      mevModule: clankerConfig.related?.mevModuleV2 || clankerConfig.related?.mevModule,
+      mevModuleData: clankerConfig.related?.mevModuleV2
+        ? encodeAbiParameters(Clanker_MevSniperAuction_InitData_v4_1_abi, [
+            {
+              startingFee: cfg.sniperFees.startingFee,
+              endingFee: cfg.sniperFees.endingFee,
+              secondsToDecay: BigInt(cfg.sniperFees.secondsToDecay),
+            },
+          ])
+        : '0x',
+    },
+    extensionConfigs: [
+      // vaulting extension
+      ...(cfg.vault
+        ? [
+            {
+              extension: clankerConfig.related.vault,
+              msgValue: 0n,
+              extensionBps: cfg.vault.percentage * 100,
+              extensionData: encodeAbiParameters(ClankerVault_Instantiation_v4_abi, [
+                cfg.vault.recipient ?? cfg.tokenAdmin,
+                BigInt(cfg.vault.lockupDuration),
+                BigInt(cfg.vault.vestingDuration),
+              ]),
+            },
+          ]
+        : []),
+      // airdrop extension
+      ...(cfg.airdrop
+        ? [
+            {
+              extension: clankerConfig.related.airdrop,
+              msgValue: 0n,
+              extensionBps: Number(bpsAirdropped),
+              extensionData: encodeAbiParameters(ClankerAirdropV2_Instantiation_v4_abi, [
+                cfg.airdrop.admin || cfg.tokenAdmin,
+                cfg.airdrop.merkleRoot,
+                BigInt(cfg.airdrop.lockupDuration),
+                BigInt(cfg.airdrop.vestingDuration),
+              ]),
+            },
+          ]
+        : []),
+      // devBuy extension
+      ...(cfg.devBuy
+        ? [
+            {
+              extension: clankerConfig.related.devbuy,
+              msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
+              extensionBps: 0,
+              extensionData: encodeAbiParameters(ClankerUniV4EthDevBuy_Instantiation_v4_abi, [
+                cfg.devBuy.poolKey,
+                BigInt(cfg.devBuy.amountOutMin * 1e18),
+                cfg.tokenAdmin,
+              ]),
+            },
+          ]
+        : []),
+    ],
+  };
+
+  return {
+    address: clankerConfig.related.presaleEthToCreator,
+    abi: Clanker_PresaleEthToCreator_v4_1_abi,
+    functionName: 'startPresale',
+    args: [
+      deploymentConfig,
+      BigInt(cfg.presale.minEthGoal * 1e18), // Convert to wei
+      BigInt(cfg.presale.maxEthGoal * 1e18), // Convert to wei
+      BigInt(cfg.presale.presaleDuration),
+      cfg.presale.recipient ?? cfg.tokenAdmin,
+      BigInt(cfg.presale.lockupDuration),
+      BigInt(cfg.presale.vestingDuration),
+    ],
+    value: 0n,
+    expectedAddress,
+    chainId: cfg.chainId,
+  };
+};
