@@ -14,11 +14,7 @@
   "bin": {
     "clanker-sdk": "./dist/cli/cli.js"
   },
-  "files": [
-    "dist",
-    ".env.example",
-    "README.md"
-  ],
+  "files": ["dist", ".env.example", "README.md"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/clanker-devco/clanker-sdk.git"
@@ -35,13 +31,7 @@
     "publish-package-production": "bun tsup && bun publish",
     "publish-package-canary": "bun tsup && bun publish --tag canary"
   },
-  "keywords": [
-    "clanker",
-    "token",
-    "deployment",
-    "ethereum",
-    "superchain"
-  ],
+  "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",
   "license": "MIT",
   "dependencies": {
