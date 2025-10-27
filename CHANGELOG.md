@@ -1,5 +1,11 @@
 # Clanker SDK - Changelog
 
+4.1.27
+- (Chain) Monad
+
+4.1.26
+- (Chain) Mainnet
+
 4.1.19
 - (QoL) Expose RelatedV3_1 type
 
