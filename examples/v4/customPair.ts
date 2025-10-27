@@ -1,7 +1,13 @@
-import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  isHex,
+  type PublicClient,
+  zeroAddress,
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { zeroAddress } from 'viem';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../src/constants.js';
 import { Clanker } from '../../src/v4/index.js';
 
