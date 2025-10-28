@@ -4,11 +4,7 @@ import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
 import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
-import {
-  type ClankerTokenV4,
-  clankerTokenV4Converter,
-  clankerTokenV4PresaleConverter,
-} from '../config/clankerTokenV4.js';
+import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
 import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
 import {
   type Chain as ClankerChain,
@@ -181,16 +177,6 @@ export class Clanker {
   }
 
   /**
-   * Get an abi-typed transaction for starting a presale.
-   *
-   * @param token The token configuration with presale settings
-   * @returns Abi transaction for starting presale
-   */
-  async getStartPresaleTransaction(token: ClankerTokenV4) {
-    return clankerTokenV4PresaleConverter(token);
-  }
-
-  /**
    * Simulate a token deployment
    *
    * @param token The token to deploy
@@ -220,22 +206,6 @@ export class Clanker {
     const input = await this.getDeployTransaction(token);
 
     return deployToken(input, this.wallet, this.publicClient);
-  }
-
-  /**
-   * Start a presale for a token
-   *
-   * @param token The token configuration with presale settings
-   * @returns Transaction hash and awaitable function for presale start
-   */
-  async startPresale(token: ClankerTokenV4) {
-    if (!this.wallet) throw new Error('Wallet client required for presale');
-    if (!this.publicClient) throw new Error('Public client required for presale');
-
-    const input = await this.getStartPresaleTransaction(token);
-
-    // biome-ignore lint/suspicious/noExplicitAny: Complex generic types from presale converter
-    return writeClankerContract(this.publicClient, this.wallet, input as any);
   }
 
   /**

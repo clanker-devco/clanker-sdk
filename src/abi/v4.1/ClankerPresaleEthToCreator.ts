@@ -878,4 +878,4 @@ export const Clanker_PresaleEthToCreator_v4_1_abi = [
   { type: 'error', name: 'RecipientMustBePresaleOwner', inputs: [] },
   { type: 'error', name: 'ReentrancyGuardReentrantCall', inputs: [] },
   { type: 'error', name: 'Unauthorized', inputs: [] },
-];
+] as const;

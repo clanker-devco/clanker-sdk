@@ -116,4 +116,4 @@ export const Clanker_PresaleAllowlist_v4_1_abi = [
   { type: 'error', name: 'InvalidProof', inputs: [] },
   { type: 'error', name: 'MerkleRootNotSet', inputs: [] },
   { type: 'error', name: 'Unauthorized', inputs: [] },
-];
+] as const;

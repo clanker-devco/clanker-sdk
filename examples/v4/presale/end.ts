@@ -8,7 +8,7 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { endPresale, getPresale } from '../../../src/v4/extensions/presaleEthToCreator.js';
+import { endPresale, getPresale } from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
 /**

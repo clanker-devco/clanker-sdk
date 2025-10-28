@@ -200,4 +200,3 @@ bun run examples/v4/presale/claim.ts
 
 - [Clanker SDK Documentation](https://github.com/clanker-devco/clanker-sdk)
 - [V4 Extensions](../../../src/v4/extensions/)
-

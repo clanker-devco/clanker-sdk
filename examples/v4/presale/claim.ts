@@ -6,7 +6,7 @@ import {
   claimTokens,
   getAmountAvailableToClaim,
   getPresale,
-} from '../../../src/v4/extensions/presaleEthToCreator.js';
+} from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
 /**
