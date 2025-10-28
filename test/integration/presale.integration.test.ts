@@ -13,6 +13,7 @@ describe('Presale Integration Tests', () => {
   const publicClient = createPublicClient({
     chain: base,
     transport: http(),
+    // biome-ignore lint/suspicious/noExplicitAny: Test client configuration
   }) as any;
 
   const adminWallet = createWalletClient({

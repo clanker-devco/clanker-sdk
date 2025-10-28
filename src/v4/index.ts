@@ -234,6 +234,7 @@ export class Clanker {
 
     const input = await this.getStartPresaleTransaction(token);
 
+    // biome-ignore lint/suspicious/noExplicitAny: Complex generic types from presale converter
     return writeClankerContract(this.publicClient, this.wallet, input as any);
   }
 

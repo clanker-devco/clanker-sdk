@@ -11,6 +11,7 @@ describe('Clanker presale integration', () => {
   const publicClient = createPublicClient({
     chain: base,
     transport: http(),
+    // biome-ignore lint/suspicious/noExplicitAny: Test client configuration
   }) as any;
 
   const walletClient = createWalletClient({

@@ -1,8 +1,9 @@
-import type { ExtractAbiErrorNames } from 'abitype';
+import type { Abi, ExtractAbiErrorNames } from 'abitype';
 import { BaseError, ContractFunctionRevertedError, InsufficientFundsError } from 'viem';
 import type { ClankerContract } from './clanker-contracts.js';
 
-type ClankerErrorName = ExtractAbiErrorNames<ClankerContract>;
+// biome-ignore lint/suspicious/noExplicitAny: ClankerContract is a union of typeof ABIs that needs type coercion
+type ClankerErrorName = ExtractAbiErrorNames<ClankerContract extends Abi ? ClankerContract : any>;
 
 type ClankerErrorType = 'caller' | 'state' | 'unknown';
 type ClankerErrorData = {

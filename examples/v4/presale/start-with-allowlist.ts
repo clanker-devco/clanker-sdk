@@ -9,16 +9,16 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import {
+  type ClankerDeployment,
+  clankerConfigFor,
+  type RelatedV4,
+} from '../../../src/utils/clankers.js';
+import {
   type DeploymentConfig,
   type PresaleConfig,
   startPresale,
 } from '../../../src/v4/extensions/presaleEthToCreator.js';
 import { Clanker } from '../../../src/v4/index.js';
-import {
-  clankerConfigFor,
-  type ClankerDeployment,
-  type RelatedV4,
-} from '../../../src/utils/clankers.js';
 
 /**
  * Start Presale with Allowlist Example

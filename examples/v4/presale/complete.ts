@@ -10,14 +10,14 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import {
-  buyIntoPresale,
-  claimEth,
-  claimTokens,
+  // buyIntoPresale,
+  // claimEth,
+  // claimTokens,
   type DeploymentConfig,
   endPresale,
-  getAmountAvailableToClaim,
+  // getAmountAvailableToClaim,
   getPresale,
-  getPresaleBuys,
+  // getPresaleBuys,
   type PresaleConfig,
   startPresale,
 } from '../../../src/v4/extensions/presaleEthToCreator.js';
@@ -152,26 +152,26 @@ async function runPresaleExample() {
 
     // User 1 buys 0.5 ETH
     // Uncomment user1Clanker at the top of the file to enable this
-    const { txHash: buy1TxHash, error: buy1Error } = await buyIntoPresale({
-      clanker: user1Clanker,
-      presaleId,
-      ethAmount: 0.5,
-    });
-    if (buy1Error) throw buy1Error;
-    console.log(`✅ User 1 bought 0.5 ETH: ${CHAIN.blockExplorers.default.url}/tx/${buy1TxHash}`);
+    // const { txHash: buy1TxHash, error: buy1Error } = await buyIntoPresale({
+    //   clanker: user1Clanker,
+    //   presaleId,
+    //   ethAmount: 0.5,
+    // });
+    // if (buy1Error) throw buy1Error;
+    // console.log(`✅ User 1 bought 0.5 ETH: ${CHAIN.blockExplorers.default.url}/tx/${buy1TxHash}`);
 
-    await sleep(1000);
+    // await sleep(1000);
 
     // User 2 buys 1.5 ETH
-    const { txHash: buy2TxHash, error: buy2Error } = await buyIntoPresale({
-      clanker: user2Clanker,
-      presaleId,
-      ethAmount: 1.5,
-    });
-    if (buy2Error) throw buy2Error;
-    console.log(`✅ User 2 bought 1.5 ETH: ${CHAIN.blockExplorers.default.url}/tx/${buy2TxHash}`);
+    // const { txHash: buy2TxHash, error: buy2Error } = await buyIntoPresale({
+    //   clanker: user2Clanker,
+    //   presaleId,
+    //   ethAmount: 1.5,
+    // });
+    // if (buy2Error) throw buy2Error;
+    // console.log(`✅ User 2 bought 1.5 ETH: ${CHAIN.blockExplorers.default.url}/tx/${buy2TxHash}`);
 
-    await sleep(1000);
+    // await sleep(1000);
 
     // Check presale status
     console.log('\n📊 Checking presale status...');
@@ -185,18 +185,18 @@ async function runPresaleExample() {
     );
 
     // Check user contributions
-    const user1Buys = await getPresaleBuys({
-      clanker,
-      presaleId,
-      user: user1.address,
-    });
-    const user2Buys = await getPresaleBuys({
-      clanker,
-      presaleId,
-      user: user2.address,
-    });
-    console.log(`User 1 contributed: ${Number(user1Buys) / 1e18} ETH`);
-    console.log(`User 2 contributed: ${Number(user2Buys) / 1e18} ETH`);
+    // const user1Buys = await getPresaleBuys({
+    //   clanker,
+    //   presaleId,
+    //   user: user1.address,
+    // });
+    // const user2Buys = await getPresaleBuys({
+    //   clanker,
+    //   presaleId,
+    //   user: user2.address,
+    // });
+    // console.log(`User 1 contributed: ${Number(user1Buys) / 1e18} ETH`);
+    // console.log(`User 2 contributed: ${Number(user2Buys) / 1e18} ETH`);
 
     // Step 3: End the presale
     console.log('\n🏁 Ending presale...');
@@ -224,67 +224,67 @@ async function runPresaleExample() {
       await sleep(1000); // In real usage, wait for actual lockup duration
 
       // User 1 claims tokens
-      const { txHash: claim1TxHash, error: claim1Error } = await claimTokens({
-        clanker: user1Clanker,
-        presaleId,
-      });
-      if (claim1Error) throw claim1Error;
-      console.log(
-        `✅ User 1 claimed tokens: ${CHAIN.blockExplorers.default.url}/tx/${claim1TxHash}`
-      );
+      // const { txHash: claim1TxHash, error: claim1Error } = await claimTokens({
+      //   clanker: user1Clanker,
+      //   presaleId,
+      // });
+      // if (claim1Error) throw claim1Error;
+      // console.log(
+      //   `✅ User 1 claimed tokens: ${CHAIN.blockExplorers.default.url}/tx/${claim1TxHash}`
+      // );
 
-      await sleep(1000);
+      // await sleep(1000);
 
       // User 2 claims tokens
-      const { txHash: claim2TxHash, error: claim2Error } = await claimTokens({
-        clanker: user2Clanker,
-        presaleId,
-      });
-      if (claim2Error) throw claim2Error;
-      console.log(
-        `✅ User 2 claimed tokens: ${CHAIN.blockExplorers.default.url}/tx/${claim2TxHash}`
-      );
+      // const { txHash: claim2TxHash, error: claim2Error } = await claimTokens({
+      //   clanker: user2Clanker,
+      //   presaleId,
+      // });
+      // if (claim2Error) throw claim2Error;
+      // console.log(
+      //   `✅ User 2 claimed tokens: ${CHAIN.blockExplorers.default.url}/tx/${claim2TxHash}`
+      // );
 
       // Check available amounts
-      const user1Available = await getAmountAvailableToClaim({
-        clanker,
-        presaleId,
-        user: user1.address,
-      });
-      const user2Available = await getAmountAvailableToClaim({
-        clanker,
-        presaleId,
-        user: user2.address,
-      });
-      console.log(`User 1 available to claim: ${Number(user1Available) / 1e18} tokens`);
-      console.log(`User 2 available to claim: ${Number(user2Available) / 1e18} tokens`);
+      // const user1Available = await getAmountAvailableToClaim({
+      //   clanker,
+      //   presaleId,
+      //   user: user1.address,
+      // });
+      // const user2Available = await getAmountAvailableToClaim({
+      //   clanker,
+      //   presaleId,
+      //   user: user2.address,
+      // });
+      // console.log(`User 1 available to claim: ${Number(user1Available) / 1e18} tokens`);
+      // console.log(`User 2 available to claim: ${Number(user2Available) / 1e18} tokens`);
     } else {
       // Presale failed - users can claim their ETH back
       console.log('\n❌ Presale failed! Users can claim ETH back...');
 
       // User 1 claims ETH
-      const { txHash: claimEth1TxHash, error: claimEth1Error } = await claimEth({
-        clanker: user1Clanker,
-        presaleId,
-        recipient: user1.address,
-      });
-      if (claimEth1Error) throw claimEth1Error;
-      console.log(
-        `✅ User 1 claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEth1TxHash}`
-      );
+      // const { txHash: claimEth1TxHash, error: claimEth1Error } = await claimEth({
+      //   clanker: user1Clanker,
+      //   presaleId,
+      //   recipient: user1.address,
+      // });
+      // if (claimEth1Error) throw claimEth1Error;
+      // console.log(
+      //   `✅ User 1 claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEth1TxHash}`
+      // );
 
-      await sleep(1000);
+      // await sleep(1000);
 
       // User 2 claims ETH
-      const { txHash: claimEth2TxHash, error: claimEth2Error } = await claimEth({
-        clanker: user2Clanker,
-        presaleId,
-        recipient: user2.address,
-      });
-      if (claimEth2Error) throw claimEth2Error;
-      console.log(
-        `✅ User 2 claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEth2TxHash}`
-      );
+      // const { txHash: claimEth2TxHash, error: claimEth2Error } = await claimEth({
+      //   clanker: user2Clanker,
+      //   presaleId,
+      //   recipient: user2.address,
+      // });
+      // if (claimEth2Error) throw claimEth2Error;
+      // console.log(
+      //   `✅ User 2 claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEth2TxHash}`
+      // );
     }
 
     console.log('\n🎊 Presale example completed successfully!');
