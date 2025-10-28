@@ -30,10 +30,16 @@ const PresaleConfigSchema = z.object({
   presaleDuration: z.number().min(60), // Minimum 1 minute
   /** Recipient of the ETH raised during presale */
   recipient: addressSchema,
-  /** Lockup duration for tokens after presale ends (in seconds) */
-  lockupDuration: z.number().min(0).default(0),
+  /** Lockup duration for tokens after presale ends (in seconds). Minimum 7 days (604800). */
+  lockupDuration: z.number().min(604800).default(604800),
   /** Vesting duration for tokens after lockup ends (in seconds) */
   vestingDuration: z.number().min(0).default(0),
+  /** Allowlist contract address (zero address for no allowlist) */
+  allowlist: addressSchema.default('0x0000000000000000000000000000000000000000'),
+  /** Allowlist initialization data (0x for no allowlist) */
+  allowlistInitializationData: z.custom<`0x${string}`>().default('0x'),
+  /** Percentage of token supply allocated to presale (in basis points, 10000 = 100%). Defaults to 5000 (50%) */
+  presaleSupplyBps: z.number().min(1).max(10000).default(5000),
 });
 
 export type PresaleConfig = z.input<typeof PresaleConfigSchema>;
@@ -160,19 +166,37 @@ export function getStartPresaleTransaction({
 
   const parsedConfig = PresaleConfigSchema.parse(presaleConfig);
 
+  // The presale contract must be the last extension in the extensionConfigs array
+  // extensionBps determines what % of token supply goes to the presale
+  // The remaining supply goes to the liquidity pool
+  const presaleExtension = {
+    extension: config.related.presaleEthToCreator,
+    msgValue: 0n,
+    extensionBps: parsedConfig.presaleSupplyBps,
+    extensionData: '0x' as `0x${string}`,
+  };
+
+  // Create a new deployment config with the presale extension added as the last item
+  const deploymentConfigWithPresale: DeploymentConfig = {
+    ...deploymentConfig,
+    extensionConfigs: [...deploymentConfig.extensionConfigs, presaleExtension],
+  };
+
   return {
     chainId,
     address: config.related.presaleEthToCreator,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'startPresale',
     args: [
-      deploymentConfig,
+      deploymentConfigWithPresale,
       BigInt(parsedConfig.minEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.maxEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.presaleDuration),
       parsedConfig.recipient,
       BigInt(parsedConfig.lockupDuration),
       BigInt(parsedConfig.vestingDuration),
+      parsedConfig.allowlist,
+      parsedConfig.allowlistInitializationData,
     ],
   };
 }
@@ -570,4 +594,15 @@ export async function getAmountAvailableToClaim(data: {
     functionName: 'amountAvailableToClaim',
     args: [data.presaleId, data.user],
   }) as unknown as Promise<bigint>;
+}
+
+/**
+ * Get the allowlist contract address for a specific chain
+ *
+ * @param chainId The chain ID to get the allowlist address for
+ * @returns The allowlist contract address, or undefined if not available
+ */
+export function getAllowlistAddress(chainId: ClankerChain): `0x${string}` | undefined {
+  const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
+  return config?.related?.presaleAllowlist;
 }
