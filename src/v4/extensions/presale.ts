@@ -46,104 +46,6 @@ const PresaleConfigSchema = z.object({
 
 export type PresaleConfig = z.input<typeof PresaleConfigSchema>;
 
-// Deployment configuration structure matching the contract ABI
-// export interface DeploymentConfig {
-//   tokenConfig: {
-//     tokenAdmin: `0x${string}`;
-//     name: string;
-//     symbol: string;
-//     salt: `0x${string}`;
-//     image: string;
-//     metadata: string;
-//     context: string;
-//     originatingChainId: bigint;
-//   };
-//   poolConfig: {
-//     hook: `0x${string}`;
-//     pairedToken: `0x${string}`;
-//     tickIfToken0IsClanker: number;
-//     tickSpacing: number;
-//     poolData: `0x${string}`;
-//   };
-//   lockerConfig: {
-//     locker: `0x${string}`;
-//     rewardAdmins: `0x${string}`[];
-//     rewardRecipients: `0x${string}`[];
-//     rewardBps: number[];
-//     tickLower: number[];
-//     tickUpper: number[];
-//     positionBps: number[];
-//     lockerData: `0x${string}`;
-//   };
-//   mevModuleConfig: {
-//     mevModule: `0x${string}`;
-//     mevModuleData: `0x${string}`;
-//   };
-//   extensionConfigs: {
-//     extension: `0x${string}`;
-//     msgValue: bigint;
-//     extensionBps: number;
-//     extensionData: `0x${string}`;
-//   }[];
-// }
-
-// Presale data structure
-export interface PresaleData {
-  deploymentConfig: {
-    tokenConfig: {
-      tokenAdmin: `0x${string}`;
-      name: string;
-      symbol: string;
-      salt: `0x${string}`;
-      image: string;
-      metadata: string;
-      context: string;
-      originatingChainId: bigint;
-    };
-    poolConfig: {
-      hook: `0x${string}`;
-      pairedToken: `0x${string}`;
-      tickIfToken0IsClanker: number;
-      tickSpacing: number;
-      poolData: `0x${string}`;
-    };
-    lockerConfig: {
-      locker: `0x${string}`;
-      rewardAdmins: `0x${string}`[];
-      rewardRecipients: `0x${string}`[];
-      rewardBps: number[];
-      tickLower: number[];
-      tickUpper: number[];
-      positionBps: number[];
-      lockerData: `0x${string}`;
-    };
-    mevModuleConfig: {
-      mevModule: `0x${string}`;
-      mevModuleData: `0x${string}`;
-    };
-    extensionConfigs: {
-      extension: `0x${string}`;
-      msgValue: bigint;
-      extensionBps: number;
-      extensionData: `0x${string}`;
-    }[];
-  };
-  status: PresaleStatus;
-  recipient: `0x${string}`;
-  minEthGoal: bigint;
-  maxEthGoal: bigint;
-  endTime: bigint;
-  deployedToken: `0x${string}`;
-  ethRaised: bigint;
-  tokenSupply: bigint;
-  deploymentExpected: boolean;
-  ethClaimed: boolean;
-  lockupDuration: bigint;
-  vestingDuration: bigint;
-  lockupEndTime: bigint;
-  vestingEndTime: bigint;
-}
-
 /**
  * Get a transaction to start a presale
  *
@@ -175,6 +77,7 @@ export async function getStartPresaleTransaction({
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'startPresale',
     args: [
+      // biome-ignore lint: TODO come back to type these
       tokenDeploymentConfig.args as any,
       BigInt(parsedConfig.minEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.maxEthGoal * 1e18), // Convert to wei
@@ -423,10 +326,7 @@ export function claimEth(data: { clanker: Clanker; presaleId: bigint; recipient:
  * @param presaleId The ID of the presale
  * @returns Presale data
  */
-export async function getPresale(data: {
-  clanker: Clanker;
-  presaleId: bigint;
-}): Promise<PresaleData> {
+export async function getPresale(data: { clanker: Clanker; presaleId: bigint }) {
   if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
 
   const chain = data.clanker.publicClient.chain;
@@ -445,7 +345,7 @@ export async function getPresale(data: {
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'getPresale',
     args: [data.presaleId],
-  }) as unknown as Promise<PresaleData>;
+  });
 }
 
 /**
@@ -455,10 +355,7 @@ export async function getPresale(data: {
  * @param presaleId The ID of the presale
  * @returns Presale data
  */
-export async function getPresaleState(data: {
-  clanker: Clanker;
-  presaleId: bigint;
-}): Promise<PresaleData> {
+export async function getPresaleState(data: { clanker: Clanker; presaleId: bigint }) {
   if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
 
   const chain = data.clanker.publicClient.chain;
@@ -477,7 +374,7 @@ export async function getPresaleState(data: {
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'presaleState',
     args: [data.presaleId],
-  }) as unknown as Promise<PresaleData>;
+  });
 }
 
 /**
@@ -511,7 +408,7 @@ export async function getPresaleBuys(data: {
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'presaleBuys',
     args: [data.presaleId, data.user],
-  }) as unknown as Promise<bigint>;
+  });
 }
 
 /**
@@ -545,7 +442,7 @@ export async function getPresaleClaimed(data: {
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'presaleClaimed',
     args: [data.presaleId, data.user],
-  }) as unknown as Promise<bigint>;
+  });
 }
 
 /**
@@ -579,7 +476,7 @@ export async function getAmountAvailableToClaim(data: {
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'amountAvailableToClaim',
     args: [data.presaleId, data.user],
-  }) as unknown as Promise<bigint>;
+  });
 }
 
 /**

@@ -49,6 +49,7 @@ async function startPresaleExample() {
         image: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi',
         tokenAdmin: account.address,
         metadata: { description: 'A token created through presale' },
+        // biome-ignore lint: TODO come back to type these
         presale: { bps: presaleConfig.presaleSupplyBps! },
       },
       presaleConfig,
