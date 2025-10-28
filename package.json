@@ -1,6 +1,6 @@
 {
   "name": "clanker-sdk",
-  "version": "4.1.26",
+  "version": "4.1.27",
   "description": "SDK for deploying tokens using Clanker",
   "type": "module",
   "main": "./dist/index.js",
@@ -38,8 +38,8 @@
     "@openzeppelin/merkle-tree": "^1.0.8",
     "abitype": "^1.0.8",
     "inquirer": "^8.2.6",
-    "viem": "^2.7.9",
-    "zod": "^3.24.4"
+    "viem": "^2.38.3",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
@@ -50,7 +50,6 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "viem": "^2.7.9"
-  },
-  "packageManager": "pnpm@10.17.1+sha512.17c560fca4867ae9473a3899ad84a88334914f379be46d455cbf92e5cf4b39d34985d452d2583baf19967fa76cb5c17bc9e245529d0b98745721aa7200ecaf7a"
+    "viem": "^2.38.3"
+  }
 }

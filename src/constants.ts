@@ -8,6 +8,7 @@ import {
   unichain,
 } from 'viem/chains';
 import type { ClankerTokenV4 } from './config/clankerTokenV4.js';
+import { monad } from './utils/chains/monad.js';
 import type { Chain } from './utils/clankers.js';
 
 export const DEGEN_ADDRESS: `0x${string}` = '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed';
@@ -26,6 +27,7 @@ export const WETH_ADDRESSES: Record<Chain, `0x${string}`> = {
   [unichain.id]: '0x4200000000000000000000000000000000000006',
   [abstract.id]: '0x3439153EB7AF838Ad19d56E1571FBD09333C2809',
   [monadTestnet.id]: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701', // WMON
+  [monad.id]: '0x3bd359c1119da7da1d913d1c4d2b7c461115433a',
 };
 
 export const DEFAULT_SUPPLY = 100_000_000_000_000_000_000_000_000_000n;
