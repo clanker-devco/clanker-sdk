@@ -95,8 +95,8 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
           poolKey: {
             currency0: WETH_ADDRESSES[base.id], // WETH on Base
             currency1: CUSTOM_PAIRED_TOKEN,
-            fee: 3000, // 0.3% fee (3000 = 0.3%)
-            tickSpacing: 60, // Standard tick spacing for 0.3% pools
+            fee: 10000, // 1% fee (10000 = 1%)
+            tickSpacing: 200, // Standard tick spacing for 1% pools
             hooks: zeroAddress,
           },
           // Minimum amount of paired token to receive (slippage protection)
