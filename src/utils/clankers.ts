@@ -27,6 +27,8 @@ import {
   ClankerToken_v4_mainnet_abi,
   ClankerToken_v4_mainnet_bytecode,
 } from '../abi/v4.1.mainnet/ClankerToken.js';
+import { ClankerToken_v4_monad_bytecode } from '../abi/v4.1.monad/ClankerToken.js';
+import { monad } from './chains/monad.js';
 
 type RelatedV0 = undefined;
 
@@ -272,6 +274,28 @@ export const CLANKERS = {
       feeLocker: '0x1d5A0F0BD3eA07F78FC14577f053de7A3FEc35B2',
       feeStaticHook: '0xBc6e5aBDa425309c2534Bc2bC92562F5419ce8Cc',
       feeDynamicHook: '0x9b37A43422D7bBD4C8B231be11E50AD1acE828CC',
+    } satisfies RelatedV4,
+  },
+  clanker_v4_monad: {
+    abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_monad_bytecode,
+    },
+    chainId: monad.id,
+    type: 'clanker_v4',
+    address: '0xF9a0C289Eab6B571c6247094a853810987E5B26D',
+    related: {
+      locker: '0xDe51a86D3b6EC9ac4756115D3744335Aa2c30144',
+      vault: '0xe7D402A5BEd94E5c49Ac0639E80f784D06E2D397',
+      airdrop: '0x654E7221fa51d4359ded21D524E3AfF18e93A507',
+      devbuy: '0x8790d79283eB941c719b616CfD0Ef116D13C7683',
+      mevModule: '0x0000000000000000000000000000000000000000',
+      mevModuleV2: '0x3231D1ddfdC4Ad585cF1939FfEcd9c88b338Dbf2',
+      feeLocker: '0x46B77BaCFd712D79131F1AD7611794869483C353',
+      feeStaticHook: '0x0000000000000000000000000000000000000000',
+      feeStaticHookV2: '0x94F802a9EFE4dd542FdBd77a25D9e69A6dC828Cc',
+      feeDynamicHook: '0x0000000000000000000000000000000000000000',
     } satisfies RelatedV4,
   },
 } as const satisfies Record<string, ClankerDeployment>;
