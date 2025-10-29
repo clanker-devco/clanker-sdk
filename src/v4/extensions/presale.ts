@@ -1,5 +1,7 @@
+import { zeroAddress } from 'viem';
 import * as z from 'zod/v4';
 import { Clanker_PresaleEthToCreator_v4_1_abi } from '../../abi/v4.1/ClankerPresaleEthToCreator.js';
+import { type ClankerTokenV4, clankerTokenV4Converter } from '../../config/clankerTokenV4.js';
 import {
   type Chain as ClankerChain,
   type ClankerDeployment,
@@ -10,7 +12,7 @@ import {
   type ClankerTransactionConfig,
   writeClankerContract,
 } from '../../utils/write-clanker-contracts.js';
-import { addressSchema } from '../../utils/zod-onchain.js';
+import { addressSchema, hexSchema } from '../../utils/zod-onchain.js';
 import type { Clanker } from '../index.js';
 
 // Presale status enum from the contract
@@ -30,111 +32,19 @@ const PresaleConfigSchema = z.object({
   presaleDuration: z.number().min(60), // Minimum 1 minute
   /** Recipient of the ETH raised during presale */
   recipient: addressSchema,
-  /** Lockup duration for tokens after presale ends (in seconds) */
-  lockupDuration: z.number().min(0).default(0),
+  /** Lockup duration for tokens after presale ends (in seconds). Minimum 7 days (604800). */
+  lockupDuration: z.number().min(604800).default(604800),
   /** Vesting duration for tokens after lockup ends (in seconds) */
   vestingDuration: z.number().min(0).default(0),
+  /** Allowlist contract address (zero address for no allowlist) */
+  allowlist: addressSchema.default(zeroAddress),
+  /** Allowlist initialization data (0x for no allowlist) */
+  allowlistInitializationData: hexSchema.default('0x'),
+  /** Percentage of token supply allocated to presale (in basis points, 10000 = 100%). Defaults to 5000 (50%) */
+  presaleSupplyBps: z.number().min(1).max(10000).default(5000),
 });
 
 export type PresaleConfig = z.input<typeof PresaleConfigSchema>;
-
-// Deployment configuration structure matching the contract ABI
-export interface DeploymentConfig {
-  tokenConfig: {
-    tokenAdmin: `0x${string}`;
-    name: string;
-    symbol: string;
-    salt: `0x${string}`;
-    image: string;
-    metadata: string;
-    context: string;
-    originatingChainId: bigint;
-  };
-  poolConfig: {
-    hook: `0x${string}`;
-    pairedToken: `0x${string}`;
-    tickIfToken0IsClanker: number;
-    tickSpacing: number;
-    poolData: `0x${string}`;
-  };
-  lockerConfig: {
-    locker: `0x${string}`;
-    rewardAdmins: `0x${string}`[];
-    rewardRecipients: `0x${string}`[];
-    rewardBps: number[];
-    tickLower: number[];
-    tickUpper: number[];
-    positionBps: number[];
-    lockerData: `0x${string}`;
-  };
-  mevModuleConfig: {
-    mevModule: `0x${string}`;
-    mevModuleData: `0x${string}`;
-  };
-  extensionConfigs: {
-    extension: `0x${string}`;
-    msgValue: bigint;
-    extensionBps: number;
-    extensionData: `0x${string}`;
-  }[];
-}
-
-// Presale data structure
-export interface PresaleData {
-  deploymentConfig: {
-    tokenConfig: {
-      tokenAdmin: `0x${string}`;
-      name: string;
-      symbol: string;
-      salt: `0x${string}`;
-      image: string;
-      metadata: string;
-      context: string;
-      originatingChainId: bigint;
-    };
-    poolConfig: {
-      hook: `0x${string}`;
-      pairedToken: `0x${string}`;
-      tickIfToken0IsClanker: number;
-      tickSpacing: number;
-      poolData: `0x${string}`;
-    };
-    lockerConfig: {
-      locker: `0x${string}`;
-      rewardAdmins: `0x${string}`[];
-      rewardRecipients: `0x${string}`[];
-      rewardBps: number[];
-      tickLower: number[];
-      tickUpper: number[];
-      positionBps: number[];
-      lockerData: `0x${string}`;
-    };
-    mevModuleConfig: {
-      mevModule: `0x${string}`;
-      mevModuleData: `0x${string}`;
-    };
-    extensionConfigs: {
-      extension: `0x${string}`;
-      msgValue: bigint;
-      extensionBps: number;
-      extensionData: `0x${string}`;
-    }[];
-  };
-  status: PresaleStatus;
-  recipient: `0x${string}`;
-  minEthGoal: bigint;
-  maxEthGoal: bigint;
-  endTime: bigint;
-  deployedToken: `0x${string}`;
-  ethRaised: bigint;
-  tokenSupply: bigint;
-  deploymentExpected: boolean;
-  ethClaimed: boolean;
-  lockupDuration: bigint;
-  vestingDuration: bigint;
-  lockupEndTime: bigint;
-  vestingEndTime: bigint;
-}
 
 /**
  * Get a transaction to start a presale
@@ -144,35 +54,38 @@ export interface PresaleData {
  * @param chainId The chain ID
  * @returns Transaction configuration for starting a presale
  */
-export function getStartPresaleTransaction({
-  deploymentConfig,
+export async function getStartPresaleTransaction({
+  tokenConfig,
   presaleConfig,
-  chainId,
 }: {
-  deploymentConfig: DeploymentConfig;
+  tokenConfig: ClankerTokenV4;
   presaleConfig: PresaleConfig;
-  chainId: ClankerChain;
-}): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'startPresale'> {
+}): Promise<ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'startPresale'>> {
+  const tokenDeploymentConfig = await clankerTokenV4Converter(tokenConfig);
+
+  const chainId = tokenDeploymentConfig.chainId as ClankerChain;
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
-  if (!config?.related?.presaleEthToCreator) {
-    throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
+  if (!config?.related?.presale) {
+    throw new Error(`Presales are not available on chain ${chainId}`);
   }
 
   const parsedConfig = PresaleConfigSchema.parse(presaleConfig);
 
   return {
     chainId,
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'startPresale',
     args: [
-      deploymentConfig,
+      tokenDeploymentConfig.args[0],
       BigInt(parsedConfig.minEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.maxEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.presaleDuration),
       parsedConfig.recipient,
       BigInt(parsedConfig.lockupDuration),
       BigInt(parsedConfig.vestingDuration),
+      parsedConfig.allowlist,
+      parsedConfig.allowlistInitializationData,
     ],
   };
 }
@@ -185,18 +98,17 @@ export function getStartPresaleTransaction({
  * @param presaleConfig The presale configuration
  * @returns Outcome of the transaction
  */
-export function startPresale(data: {
+export async function startPresale(data: {
   clanker: Clanker;
-  deploymentConfig: DeploymentConfig;
+  tokenConfig: ClankerTokenV4;
   presaleConfig: PresaleConfig;
 }) {
   if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
   if (!data.clanker.wallet) throw new Error('Wallet client required on clanker');
 
-  const tx = getStartPresaleTransaction({
-    deploymentConfig: data.deploymentConfig,
+  const tx = await getStartPresaleTransaction({
+    tokenConfig: data.tokenConfig,
     presaleConfig: data.presaleConfig,
-    chainId: data.clanker.wallet.chain.id as ClankerChain,
   });
 
   return writeClankerContract(data.clanker.publicClient, data.clanker.wallet, tx);
@@ -220,13 +132,13 @@ export function getBuyIntoPresaleTransaction({
   value: bigint;
 }): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'buyIntoPresale'> {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
   }
 
   return {
     chainId,
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'buyIntoPresale',
     args: [presaleId],
@@ -273,13 +185,13 @@ export function getEndPresaleTransaction({
   chainId: ClankerChain;
 }): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'endPresale'> {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
   }
 
   return {
     chainId,
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'endPresale',
     args: [presaleId, salt],
@@ -322,13 +234,13 @@ export function getClaimTokensTransaction({
   chainId: ClankerChain;
 }): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'claimTokens'> {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
   }
 
   return {
     chainId,
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'claimTokens',
     args: [presaleId],
@@ -372,13 +284,13 @@ export function getClaimEthTransaction({
   chainId: ClankerChain;
 }): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'claimEth'> {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
   }
 
   return {
     chainId,
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'claimEth',
     args: [presaleId, recipient],
@@ -413,10 +325,7 @@ export function claimEth(data: { clanker: Clanker; presaleId: bigint; recipient:
  * @param presaleId The ID of the presale
  * @returns Presale data
  */
-export async function getPresale(data: {
-  clanker: Clanker;
-  presaleId: bigint;
-}): Promise<PresaleData> {
+export async function getPresale(data: { clanker: Clanker; presaleId: bigint }) {
   if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
 
   const chain = data.clanker.publicClient.chain;
@@ -426,16 +335,16 @@ export async function getPresale(data: {
     chain.id as ClankerChain,
     'clanker_v4'
   );
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chain.id}`);
   }
 
   return data.clanker.publicClient.readContract({
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'getPresale',
     args: [data.presaleId],
-  }) as unknown as Promise<PresaleData>;
+  });
 }
 
 /**
@@ -445,10 +354,7 @@ export async function getPresale(data: {
  * @param presaleId The ID of the presale
  * @returns Presale data
  */
-export async function getPresaleState(data: {
-  clanker: Clanker;
-  presaleId: bigint;
-}): Promise<PresaleData> {
+export async function getPresaleState(data: { clanker: Clanker; presaleId: bigint }) {
   if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
 
   const chain = data.clanker.publicClient.chain;
@@ -458,16 +364,16 @@ export async function getPresaleState(data: {
     chain.id as ClankerChain,
     'clanker_v4'
   );
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chain.id}`);
   }
 
   return data.clanker.publicClient.readContract({
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'presaleState',
     args: [data.presaleId],
-  }) as unknown as Promise<PresaleData>;
+  });
 }
 
 /**
@@ -492,16 +398,16 @@ export async function getPresaleBuys(data: {
     chain.id as ClankerChain,
     'clanker_v4'
   );
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chain.id}`);
   }
 
   return data.clanker.publicClient.readContract({
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'presaleBuys',
     args: [data.presaleId, data.user],
-  }) as unknown as Promise<bigint>;
+  });
 }
 
 /**
@@ -526,16 +432,16 @@ export async function getPresaleClaimed(data: {
     chain.id as ClankerChain,
     'clanker_v4'
   );
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chain.id}`);
   }
 
   return data.clanker.publicClient.readContract({
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'presaleClaimed',
     args: [data.presaleId, data.user],
-  }) as unknown as Promise<bigint>;
+  });
 }
 
 /**
@@ -560,14 +466,25 @@ export async function getAmountAvailableToClaim(data: {
     chain.id as ClankerChain,
     'clanker_v4'
   );
-  if (!config?.related?.presaleEthToCreator) {
+  if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chain.id}`);
   }
 
   return data.clanker.publicClient.readContract({
-    address: config.related.presaleEthToCreator,
+    address: config.related.presale,
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'amountAvailableToClaim',
     args: [data.presaleId, data.user],
-  }) as unknown as Promise<bigint>;
+  });
+}
+
+/**
+ * Get the allowlist contract address for a specific chain
+ *
+ * @param chainId The chain ID to get the allowlist address for
+ * @returns The allowlist contract address, or undefined if not available
+ */
+export function getAllowlistAddress(chainId: ClankerChain): `0x${string}` | undefined {
+  const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
+  return config?.related?.presaleAllowlist;
 }
