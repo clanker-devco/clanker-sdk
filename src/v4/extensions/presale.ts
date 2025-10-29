@@ -77,8 +77,7 @@ export async function getStartPresaleTransaction({
     abi: Clanker_PresaleEthToCreator_v4_1_abi,
     functionName: 'startPresale',
     args: [
-      // biome-ignore lint: TODO come back to type these
-      tokenDeploymentConfig.args as any,
+      tokenDeploymentConfig.args[0],
       BigInt(parsedConfig.minEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.maxEthGoal * 1e18), // Convert to wei
       BigInt(parsedConfig.presaleDuration),
