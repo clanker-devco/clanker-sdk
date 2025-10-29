@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { getPresale, getPresaleBuys } from '../../../src/v4/extensions/presaleEthToCreator.js';
+import { getPresale, getPresaleBuys } from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
 /**
