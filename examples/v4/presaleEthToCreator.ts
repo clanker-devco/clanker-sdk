@@ -18,6 +18,7 @@ import {
   getPresale,
   getPresaleBuys,
   type PresaleConfig,
+  PresaleStatus,
   startPresale,
 } from '../../src/v4/extensions/presale.js';
 import { Clanker } from '../../src/v4/index.js';
@@ -167,7 +168,7 @@ async function runPresaleExample() {
     console.log(`Final Status: ${finalPresaleData.status}`);
     console.log(`Deployed Token: ${finalPresaleData.deployedToken}`);
 
-    if (finalPresaleData.status === 1) {
+    if (finalPresaleData.status === PresaleStatus.Claimable) {
       // Presale was successful - users can claim tokens
       console.log('\n🎉 Presale successful! Users can claim tokens...');
 

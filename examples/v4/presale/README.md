@@ -7,7 +7,7 @@ This directory contains examples for using the Clanker Presale functionality.
 Presales allow token creators to raise ETH before deploying their token. Key features:
 - **Minimum/Maximum Goals**: Set ETH targets for success
 - **Time-bound**: Presales run for a specific duration
-- **Refundable**: If minimum goal isn't met, buyers can claim ETH back
+- **Refundable**: If minimum goal isn't met, buyers can withdraw their ETH back
 - **Lockup/Vesting**: Control when tokens become claimable
 - **Allowlist Support**: Optionally restrict participation to whitelisted addresses
 
@@ -20,13 +20,15 @@ Presales allow token creators to raise ETH before deploying their token. Key fea
 3. **`withdraw.ts`** - Withdraw ETH from an active presale (reduce/remove contribution)
 4. **`status.ts`** - Check presale status and user contributions
 5. **`end.ts`** - End a presale (deploys token if successful)
-6. **`claim.ts`** - Claim tokens (if successful) or ETH refund (if failed)
-7. **`complete.ts`** - Complete lifecycle example (all steps in one file)
+6. **`end-early.ts`** - ⭐ End a presale early once minimum goal is met (owner only)
+7. **`claim.ts`** - Claim tokens after successful presale
+8. **`claimEth.ts`** - Presale owner claims raised ETH from successful presale
+9. **`complete.ts`** - Complete lifecycle example (all steps in one file)
 
 ### Allowlist (Whitelist) Presales
 
-8. **`start-with-allowlist.ts`** - Start a presale with an allowlist
-9. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale
+9. **`start-with-allowlist.ts`** - Start a presale with an allowlist
+10. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale
 
 ## Allowlist Addresses
 
@@ -107,7 +109,7 @@ import { getPresale, getPresaleBuys } from 'clanker-sdk/v4/extensions';
 
 // Get overall presale data
 const presaleData = await getPresale({ clanker, presaleId: 1n });
-console.log(`Status: ${presaleData.status}`); // 0=Active, 1=Successful, 2=Failed
+console.log(`Status: ${presaleData.status}`); // 0=NotCreated, 1=Active, 2=SuccessfulMinimumHit, 3=SuccessfulMaximumHit, 4=Failed, 5=Claimable
 console.log(`ETH Raised: ${presaleData.ethRaised}`);
 
 // Get user's contribution
@@ -120,6 +122,11 @@ const userContribution = await getPresaleBuys({
 
 ### Ending a Presale
 
+A presale can be ended in three ways:
+1. **Maximum goal reached** - Anyone can call `endPresale` once max ETH is raised
+2. **Duration expired + min goal met** - Anyone can call `endPresale` after time expires
+3. **Early completion** - Presale owner can call `endPresale` early if minimum goal is met
+
 ```typescript
 import { endPresale } from 'clanker-sdk/v4/extensions';
 
@@ -130,21 +137,47 @@ const { txHash } = await endPresale({
 });
 ```
 
-### Claiming Rewards
+### Claiming Tokens (Users)
+
+After a successful presale, users can claim their tokens once the lockup period passes:
 
 ```typescript
-import { claimTokens, claimEth } from 'clanker-sdk/v4/extensions';
+import { claimTokens } from 'clanker-sdk/v4/extensions';
 
-// If presale succeeded, claim tokens
+// Claim tokens from successful presale
 const { txHash } = await claimTokens({
   clanker,
   presaleId: 1n
 });
+```
 
-// If presale failed, claim ETH refund
+### Claiming ETH (Presale Owner)
+
+After a successful presale, the presale owner can claim the raised ETH (minus Clanker fee):
+
+```typescript
+import { claimEth } from 'clanker-sdk/v4/extensions';
+
+// Presale owner claims raised ETH
 const { txHash } = await claimEth({
   clanker,
   presaleId: 1n,
+  recipient: '0x...' // ETH recipient address
+});
+```
+
+### Withdrawing From Failed Presale
+
+If a presale fails (minimum goal not met), users can withdraw their ETH:
+
+```typescript
+import { withdrawFromPresale } from 'clanker-sdk/v4/extensions';
+
+// Withdraw ETH from failed presale
+const { txHash } = await withdrawFromPresale({
+  clanker,
+  presaleId: 1n,
+  ethAmount: 0.5, // Amount to withdraw
   recipient: '0x...'
 });
 ```
@@ -154,21 +187,30 @@ const { txHash } = await claimEth({
 ```
 1. START PRESALE
    ↓
-2. ACTIVE PERIOD
+2. ACTIVE (Status: 1)
    ├─→ Users buy in with ETH
-   └─→ Users can withdraw ETH (reduce/cancel contribution)
+   ├─→ Users can withdraw ETH (reduce/cancel contribution)
+   └─→ Presale owner can end early if min goal met ⭐
    ↓
-3. END PRESALE
+3. GOAL CHECK (when ending)
+   ├─→ Min goal reached → SuccessfulMinimumHit (Status: 2)
+   ├─→ Max goal reached → SuccessfulMaximumHit (Status: 3)
+   └─→ Time expired + min goal not met → Failed (Status: 4)
    ↓
-   ├─→ SUCCESS (min goal reached)
+4. END PRESALE (3 ways to trigger)
+   ├─→ Max goal reached (anyone can end)
+   ├─→ Duration expired + min goal met (anyone can end)
+   └─→ Owner ends early after min goal met (owner only) ⭐
+   ↓
+   ├─→ SUCCESS → Claimable (Status: 5)
    │   ↓
    │   - Token deployed
-   │   - ETH sent to recipient
-   │   - Users can claim tokens after lockup
+   │   - Presale owner can claim raised ETH (minus Clanker fee)
+   │   - Users can claim tokens after lockup period
    │
-   └─→ FAILED (min goal not reached)
+   └─→ FAILED (Status: 4)
        ↓
-       - Users can claim ETH refunds
+       - Users can withdraw their ETH contributions
 ```
 
 ## Environment Setup
@@ -194,11 +236,17 @@ bun run examples/v4/presale/withdraw.ts
 # Check status
 bun run examples/v4/presale/status.ts
 
-# End presale
+# End presale (regular)
 bun run examples/v4/presale/end.ts
+
+# End presale early (owner only, once min goal met)
+bun run examples/v4/presale/end-early.ts
 
 # Claim rewards
 bun run examples/v4/presale/claim.ts
+
+# Presale owner claims ETH
+bun run examples/v4/presale/claimEth.ts
 ```
 
 ## Important Notes
@@ -210,12 +258,16 @@ bun run examples/v4/presale/claim.ts
 2. **Presale as Extension**: The presale contract automatically registers itself as an extension when you call `startPresale()`. The SDK handles this automatically - you don't need to add it manually to `extensionConfigs`
 3. **Extract Presale ID**: After starting a presale, you need to extract the `presaleId` from the transaction logs to use in subsequent operations
 4. **Salt Consistency**: Use the same `salt` when ending the presale as you used when starting it
-5. **Timing**: Presales can only be ended after the duration has passed OR the max goal is reached
-6. **Early Withdrawal**: Users can withdraw their ETH contributions at any time while the presale is still ACTIVE (before it ends)
-7. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
-8. **Vesting**: Tokens vest linearly over the vesting duration after lockup
-9. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate
-10. **Other Extensions**: If you need to use other extensions along with presale, add them to `extensionConfigs` - the presale will automatically be added as the last extension
+5. **Early Completion**: ⭐ **NEW** - Presale owners can end the presale early once the minimum goal is reached, even if the duration hasn't expired. This allows for faster token deployment when the presale is going well.
+6. **Timing**: Presales can be ended in three ways:
+   - Maximum goal reached (anyone can end)
+   - Duration expired + minimum goal met (anyone can end)
+   - Presale owner ends early after minimum goal met (owner only)
+7. **Early Withdrawal**: Users can withdraw their ETH contributions at any time while the presale is still ACTIVE (before it ends)
+8. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
+9. **Vesting**: Tokens vest linearly over the vesting duration after lockup
+10. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate
+11. **Other Extensions**: If you need to use other extensions along with presale, add them to `extensionConfigs` - the presale will automatically be added as the last extension
 
 ## Additional Resources
 

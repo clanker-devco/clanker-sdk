@@ -27,7 +27,7 @@ const clanker = new Clanker({ publicClient, wallet });
 
 // Presale configuration
 const presaleConfig: PresaleConfig = {
-  minEthGoal: 1, // 1 ETH minimum to succeed
+  minEthGoal: 0.01, // 0.01 ETH minimum to succeed
   maxEthGoal: 10, // 10 ETH maximum cap
   presaleDuration: 3600, // 1 hour duration
   recipient: account.address, // ETH goes to this address when presale ends successfully

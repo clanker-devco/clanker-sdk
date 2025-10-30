@@ -18,7 +18,9 @@ import {
   getPresale,
   // getPresaleBuys,
   type PresaleConfig,
+  PresaleStatus,
   startPresale,
+  // withdrawFromPresale,
 } from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
@@ -37,7 +39,8 @@ import { Clanker } from '../../../src/v4/index.js';
  * 1. Start a presale with specific goals and duration
  * 2. Users buy into the presale with ETH
  * 3. End the presale (successful or failed)
- * 4. Claim tokens (if successful) or ETH (if failed)
+ * 4. If successful: Users claim tokens, presale owner claims ETH
+ * 5. If failed: Users withdraw their ETH contributions
  */
 
 const CHAIN = base;
@@ -180,7 +183,7 @@ async function runPresaleExample() {
     console.log(`Final Status: ${finalPresaleData.status}`);
     console.log(`Deployed Token: ${finalPresaleData.deployedToken}`);
 
-    if (finalPresaleData.status === 1) {
+    if (finalPresaleData.status === PresaleStatus.Claimable) {
       // Presale was successful - users can claim tokens
       console.log('\n🎉 Presale successful! Users can claim tokens...');
 
@@ -223,32 +226,55 @@ async function runPresaleExample() {
       // });
       // console.log(`User 1 available to claim: ${Number(user1Available) / 1e18} tokens`);
       // console.log(`User 2 available to claim: ${Number(user2Available) / 1e18} tokens`);
-    } else {
-      // Presale failed - users can claim their ETH back
-      console.log('\n❌ Presale failed! Users can claim ETH back...');
 
-      // User 1 claims ETH
-      // const { txHash: claimEth1TxHash, error: claimEth1Error } = await claimEth({
+      // Presale owner claims the raised ETH (minus Clanker fee)
+      // const { txHash: claimEthTxHash, error: claimEthError } = await claimEth({
+      //   clanker,
+      //   presaleId,
+      //   recipient: account.address,
+      // });
+      // if (claimEthError) throw claimEthError;
+      // console.log(
+      //   `✅ Presale owner claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEthTxHash}`
+      // );
+    } else {
+      // Presale failed - users can withdraw their ETH back
+      console.log('\n❌ Presale failed! Users can withdraw ETH back...');
+
+      // User 1 withdraws ETH
+      // const user1Buys = await getPresaleBuys({
+      //   clanker,
+      //   presaleId,
+      //   user: user1.address,
+      // });
+      // const { txHash: withdraw1TxHash, error: withdraw1Error } = await withdrawFromPresale({
       //   clanker: user1Clanker,
       //   presaleId,
+      //   ethAmount: Number(user1Buys) / 1e18, // Withdraw full amount
       //   recipient: user1.address,
       // });
-      // if (claimEth1Error) throw claimEth1Error;
+      // if (withdraw1Error) throw withdraw1Error;
       // console.log(
-      //   `✅ User 1 claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEth1TxHash}`
+      //   `✅ User 1 withdrew ETH: ${CHAIN.blockExplorers.default.url}/tx/${withdraw1TxHash}`
       // );
 
       // await sleep(1000);
 
-      // User 2 claims ETH
-      // const { txHash: claimEth2TxHash, error: claimEth2Error } = await claimEth({
+      // User 2 withdraws ETH
+      // const user2Buys = await getPresaleBuys({
+      //   clanker,
+      //   presaleId,
+      //   user: user2.address,
+      // });
+      // const { txHash: withdraw2TxHash, error: withdraw2Error } = await withdrawFromPresale({
       //   clanker: user2Clanker,
       //   presaleId,
+      //   ethAmount: Number(user2Buys) / 1e18, // Withdraw full amount
       //   recipient: user2.address,
       // });
-      // if (claimEth2Error) throw claimEth2Error;
+      // if (withdraw2Error) throw withdraw2Error;
       // console.log(
-      //   `✅ User 2 claimed ETH: ${CHAIN.blockExplorers.default.url}/tx/${claimEth2TxHash}`
+      //   `✅ User 2 withdrew ETH: ${CHAIN.blockExplorers.default.url}/tx/${withdraw2TxHash}`
       // );
     }
 

@@ -14,9 +14,14 @@ import { Clanker } from '../../../src/v4/index.js';
 /**
  * End Presale Example
  *
- * This example demonstrates how to end a presale after the duration has passed
- * or the max goal has been reached. Ending the presale will:
+ * This example demonstrates how to end a presale. A presale can be ended in three ways:
+ * 1. Maximum ETH goal is reached (anyone can call endPresale)
+ * 2. Duration has expired and minimum goal was reached (anyone can call endPresale)
+ * 3. Presale owner wants to end early after minimum goal is reached (only owner can call)
+ *
+ * Ending the presale will:
  * - Deploy the token if minimum goal was reached
+ * - Send ETH to recipient (minus Clanker fee) if successful
  * - Allow users to claim tokens (if successful) or ETH refunds (if failed)
  */
 
@@ -50,9 +55,39 @@ async function endPresaleExample() {
     console.log(`ETH Raised: ${(Number(presaleData.ethRaised) / 1e18).toFixed(4)} ETH`);
     console.log(`Min Goal: ${(Number(presaleData.minEthGoal) / 1e18).toFixed(4)} ETH`);
     console.log(`Max Goal: ${(Number(presaleData.maxEthGoal) / 1e18).toFixed(4)} ETH`);
+    console.log(`End Time: ${new Date(Number(presaleData.endTime) * 1000).toLocaleString()}`);
+    console.log(`Presale Owner: ${presaleData.presaleOwner}`);
+    console.log(`Your Address: ${account.address}`);
 
     const goalMet = presaleData.ethRaised >= presaleData.minEthGoal;
+    const maxGoalMet = presaleData.ethRaised >= presaleData.maxEthGoal;
+    const timeExpired = presaleData.endTime <= BigInt(Math.floor(Date.now() / 1000));
+    const isOwner = presaleData.presaleOwner.toLowerCase() === account.address.toLowerCase();
+
     console.log(`\n${goalMet ? '✅' : '❌'} Minimum goal ${goalMet ? 'met' : 'not met'}`);
+    console.log(`${maxGoalMet ? '✅' : '⏳'} Maximum goal ${maxGoalMet ? 'met' : 'not met'}`);
+    console.log(`${timeExpired ? '✅' : '⏳'} Duration ${timeExpired ? 'expired' : 'ongoing'}`);
+
+    // Check if presale can be ended
+    const canEndEarly = isOwner && goalMet && !timeExpired;
+    if (canEndEarly) {
+      console.log('\n🚀 Early Completion Available!');
+      console.log('   You are the presale owner and minimum goal is met.');
+      console.log('   You can end the presale early before the duration expires.');
+    }
+
+    if (!goalMet && !timeExpired) {
+      console.log('\n⚠️  Warning: Minimum goal not met and duration not expired.');
+      console.log('   Presale cannot be ended yet.');
+      return;
+    }
+
+    if (goalMet && !timeExpired && !isOwner) {
+      console.log('\n⚠️  Warning: Minimum goal met but duration not expired.');
+      console.log('   Only the presale owner can end early.');
+      console.log('   Wait for duration to expire or use owner wallet.');
+      return;
+    }
 
     // End the presale
     console.log('\n📝 Ending presale...');

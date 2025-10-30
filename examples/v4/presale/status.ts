@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { getPresale, getPresaleBuys } from '../../../src/v4/extensions/presale.js';
+import { getPresale, getPresaleBuys, PresaleStatus } from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
 /**
@@ -26,7 +26,7 @@ const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
 const clanker = new Clanker({ publicClient, wallet });
 
 // Configuration
-const PRESALE_ID = 1n; // Replace with your actual presale ID
+const PRESALE_ID = 9n; // Replace with your actual presale ID
 const USER_ADDRESS = account.address; // Address to check contributions for
 
 async function checkPresaleStatusExample() {
@@ -72,13 +72,20 @@ async function checkPresaleStatusExample() {
 
     // Display additional helpful info based on status
     console.log('\n=== Next Steps ===');
-    if (presaleData.status === 0) {
+    if (presaleData.status === PresaleStatus.NotCreated) {
+      console.log('⏳ Presale is not created yet');
+    } else if (presaleData.status === PresaleStatus.Active) {
       console.log('✅ Presale is active - you can buy in using buy.ts');
       const remaining = presaleData.maxEthGoal - presaleData.ethRaised;
       console.log(`💰 Remaining capacity: ${formatEth(remaining)} ETH`);
-    } else if (presaleData.status === 1) {
+    } else if (
+      presaleData.status === PresaleStatus.SuccessfulMinimumHit ||
+      presaleData.status === PresaleStatus.SuccessfulMaximumHit
+    ) {
+      console.log('⏳ Presale goal met - waiting to be finalized with end.ts or end-early.ts');
+    } else if (presaleData.status === PresaleStatus.Claimable) {
       console.log('🎉 Presale succeeded - use claim.ts to claim tokens');
-    } else if (presaleData.status === 2) {
+    } else if (presaleData.status === PresaleStatus.Failed) {
       console.log('❌ Presale failed - use claim.ts to claim ETH refund');
     }
   } catch (error) {
@@ -89,12 +96,18 @@ async function checkPresaleStatusExample() {
 
 function getStatusText(status: number): string {
   switch (status) {
-    case 0:
+    case PresaleStatus.NotCreated:
+      return 'Not Created ⚪';
+    case PresaleStatus.Active:
       return 'Active 🟢';
-    case 1:
-      return 'Successful ✅';
-    case 2:
+    case PresaleStatus.SuccessfulMinimumHit:
+      return 'Min Goal Hit ⏳';
+    case PresaleStatus.SuccessfulMaximumHit:
+      return 'Max Goal Hit ⏳';
+    case PresaleStatus.Failed:
       return 'Failed ❌';
+    case PresaleStatus.Claimable:
+      return 'Claimable ✅';
     default:
       return 'Unknown';
   }

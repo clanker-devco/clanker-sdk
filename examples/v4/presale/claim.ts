@@ -6,6 +6,7 @@ import {
   claimTokens,
   getAmountAvailableToClaim,
   getPresale,
+  PresaleStatus,
 } from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
@@ -32,7 +33,7 @@ const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
 const clanker = new Clanker({ publicClient, wallet });
 
 // Configuration
-const PRESALE_ID = 1n; // Replace with your actual presale ID
+const PRESALE_ID = 9n; // Replace with your actual presale ID
 const RECIPIENT_ADDRESS = account.address; // Address to receive tokens/ETH
 
 async function claimPresaleExample() {
@@ -46,12 +47,19 @@ async function claimPresaleExample() {
     console.log('\n=== Presale Status ===');
     console.log(`Status: ${getStatusText(presaleData.status)}`);
 
-    if (presaleData.status === 0) {
-      console.log('⚠️  Presale is still active. Wait for it to end before claiming.');
+    if (
+      presaleData.status === PresaleStatus.NotCreated ||
+      presaleData.status === PresaleStatus.Active ||
+      presaleData.status === PresaleStatus.SuccessfulMinimumHit ||
+      presaleData.status === PresaleStatus.SuccessfulMaximumHit
+    ) {
+      console.log(
+        '⚠️  Presale is not ready for claiming yet. Wait for it to be finalized (Claimable status).'
+      );
       return;
     }
 
-    if (presaleData.status === 1) {
+    if (presaleData.status === PresaleStatus.Claimable) {
       // Successful presale - claim tokens
       console.log('\n🎉 Presale was successful! Claiming tokens...');
 
@@ -83,7 +91,7 @@ async function claimPresaleExample() {
       console.log(`✅ Tokens claimed successfully!`);
       console.log(`Transaction: ${CHAIN.blockExplorers.default.url}/tx/${txHash}`);
       console.log(`\n💡 Check your wallet for the tokens at: ${presaleData.deployedToken}`);
-    } else if (presaleData.status === 2) {
+    } else if (presaleData.status === PresaleStatus.Failed) {
       // Failed presale - claim ETH refund
       console.log('\n❌ Presale failed. Claiming ETH refund...');
 
@@ -108,12 +116,18 @@ async function claimPresaleExample() {
 
 function getStatusText(status: number): string {
   switch (status) {
-    case 0:
+    case PresaleStatus.NotCreated:
+      return 'Not Created ⚪';
+    case PresaleStatus.Active:
       return 'Active 🟢';
-    case 1:
-      return 'Successful ✅';
-    case 2:
+    case PresaleStatus.SuccessfulMinimumHit:
+      return 'Min Goal Hit ⏳';
+    case PresaleStatus.SuccessfulMaximumHit:
+      return 'Max Goal Hit ⏳';
+    case PresaleStatus.Failed:
       return 'Failed ❌';
+    case PresaleStatus.Claimable:
+      return 'Claimable ✅';
     default:
       return 'Unknown';
   }

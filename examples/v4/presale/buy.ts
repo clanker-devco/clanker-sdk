@@ -27,7 +27,7 @@ const clanker = new Clanker({ publicClient, wallet });
 
 // Configuration
 const PRESALE_ID = 1n; // Replace with your actual presale ID
-const ETH_AMOUNT = 0.5; // Amount of ETH to contribute
+const ETH_AMOUNT = 0.01; // Amount of ETH to contribute
 
 async function buyIntoPresaleExample() {
   console.log('💰 Buying Into Presale\n');

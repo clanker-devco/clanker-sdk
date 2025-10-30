@@ -17,9 +17,12 @@ import type { Clanker } from '../index.js';
 
 // Presale status enum from the contract
 export enum PresaleStatus {
-  Active = 0,
-  Successful = 1,
-  Failed = 2,
+  NotCreated = 0,
+  Active = 1,
+  SuccessfulMinimumHit = 2,
+  SuccessfulMaximumHit = 3,
+  Failed = 4,
+  Claimable = 5,
 }
 
 // Presale configuration schema
@@ -170,6 +173,11 @@ export function buyIntoPresale(data: { clanker: Clanker; presaleId: bigint; ethA
 /**
  * Get a transaction to end a presale
  *
+ * A presale can be ended in three scenarios:
+ * 1. Maximum ETH goal is reached (anyone can call)
+ * 2. Minimum ETH goal is reached AND duration has expired (anyone can call)
+ * 3. Minimum ETH goal is reached AND presale owner wants to end early (only presale owner can call)
+ *
  * @param presaleId The ID of the presale
  * @param salt The salt for token deployment
  * @param chainId The chain ID
@@ -200,6 +208,16 @@ export function getEndPresaleTransaction({
 
 /**
  * End a presale and deploy the token
+ *
+ * A presale can be ended in three scenarios:
+ * 1. Maximum ETH goal is reached (anyone can call)
+ * 2. Minimum ETH goal is reached AND duration has expired (anyone can call)
+ * 3. Minimum ETH goal is reached AND presale owner wants to end early (only presale owner can call)
+ *
+ * If the presale is successful (minimum goal reached), this will:
+ * - Deploy the token
+ * - Send raised ETH to the recipient (minus Clanker fee)
+ * - Allow users to claim tokens after lockup period
  *
  * @param clanker Clanker object used for ending presale
  * @param presaleId The ID of the presale
@@ -267,10 +285,15 @@ export function claimTokens(data: { clanker: Clanker; presaleId: bigint }) {
 }
 
 /**
- * Get a transaction to claim ETH from a presale (for failed presales)
+ * Get a transaction to claim ETH from a successful presale (for presale owners)
+ *
+ * This function allows the presale owner to claim the raised ETH after the presale
+ * has been completed and the token has been deployed. Only callable by the presale
+ * owner or contract owner. A Clanker fee is deducted and the remaining ETH is sent
+ * to the recipient.
  *
  * @param presaleId The ID of the presale
- * @param recipient The recipient address for the ETH
+ * @param recipient The recipient address for the ETH (must be presale owner if called by contract owner)
  * @param chainId The chain ID
  * @returns Transaction configuration for claiming ETH
  */
@@ -298,11 +321,18 @@ export function getClaimEthTransaction({
 }
 
 /**
- * Claim ETH from a failed presale
+ * Claim ETH from a successful presale
+ *
+ * This function allows the presale owner to claim the raised ETH after the presale
+ * has been completed and the token has been deployed. Only callable by the presale
+ * owner or contract owner. A Clanker fee is deducted and the remaining ETH is sent
+ * to the recipient. Can only be called once per presale.
+ *
+ * Note: For withdrawing from failed or active presales, use `withdrawFromPresale` instead.
  *
  * @param clanker Clanker object used for claiming ETH
  * @param presaleId The ID of the presale
- * @param recipient The recipient address for the ETH
+ * @param recipient The recipient address for the ETH (must be presale owner if called by contract owner)
  * @returns Outcome of the transaction
  */
 export function claimEth(data: { clanker: Clanker; presaleId: bigint; recipient: `0x${string}` }) {
