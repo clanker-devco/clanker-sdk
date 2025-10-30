@@ -17,15 +17,16 @@ Presales allow token creators to raise ETH before deploying their token. Key fea
 
 1. **`start.ts`** - Start a new presale
 2. **`buy.ts`** - Buy into an active presale
-3. **`status.ts`** - Check presale status and user contributions
-4. **`end.ts`** - End a presale (deploys token if successful)
-5. **`claim.ts`** - Claim tokens (if successful) or ETH refund (if failed)
-6. **`complete.ts`** - Complete lifecycle example (all steps in one file)
+3. **`withdraw.ts`** - Withdraw ETH from an active presale (reduce/remove contribution)
+4. **`status.ts`** - Check presale status and user contributions
+5. **`end.ts`** - End a presale (deploys token if successful)
+6. **`claim.ts`** - Claim tokens (if successful) or ETH refund (if failed)
+7. **`complete.ts`** - Complete lifecycle example (all steps in one file)
 
 ### Allowlist (Whitelist) Presales
 
-7. **`start-with-allowlist.ts`** - Start a presale with an allowlist
-8. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale
+8. **`start-with-allowlist.ts`** - Start a presale with an allowlist
+9. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale
 
 ## Allowlist Addresses
 
@@ -85,6 +86,20 @@ const { txHash } = await buyIntoPresale({
 });
 ```
 
+### Withdrawing From a Presale
+
+```typescript
+import { withdrawFromPresale } from 'clanker-sdk/v4/extensions';
+
+// Withdraw all or part of your contribution while presale is still active
+const { txHash } = await withdrawFromPresale({
+  clanker,
+  presaleId: 1n,
+  ethAmount: 0.2, // Amount to withdraw (must be <= your contribution)
+  recipient: '0x...' // Where to send the withdrawn ETH
+});
+```
+
 ### Checking Presale Status
 
 ```typescript
@@ -139,7 +154,9 @@ const { txHash } = await claimEth({
 ```
 1. START PRESALE
    ↓
-2. ACTIVE PERIOD (users buy in with ETH)
+2. ACTIVE PERIOD
+   ├─→ Users buy in with ETH
+   └─→ Users can withdraw ETH (reduce/cancel contribution)
    ↓
 3. END PRESALE
    ↓
@@ -171,6 +188,9 @@ bun run examples/v4/presale/start.ts
 # Buy into a presale
 bun run examples/v4/presale/buy.ts
 
+# Withdraw from a presale
+bun run examples/v4/presale/withdraw.ts
+
 # Check status
 bun run examples/v4/presale/status.ts
 
@@ -191,10 +211,11 @@ bun run examples/v4/presale/claim.ts
 3. **Extract Presale ID**: After starting a presale, you need to extract the `presaleId` from the transaction logs to use in subsequent operations
 4. **Salt Consistency**: Use the same `salt` when ending the presale as you used when starting it
 5. **Timing**: Presales can only be ended after the duration has passed OR the max goal is reached
-6. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
-7. **Vesting**: Tokens vest linearly over the vesting duration after lockup
-8. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate
-9. **Other Extensions**: If you need to use other extensions along with presale, add them to `extensionConfigs` - the presale will automatically be added as the last extension
+6. **Early Withdrawal**: Users can withdraw their ETH contributions at any time while the presale is still ACTIVE (before it ends)
+7. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
+8. **Vesting**: Tokens vest linearly over the vesting duration after lockup
+9. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate
+10. **Other Extensions**: If you need to use other extensions along with presale, add them to `extensionConfigs` - the presale will automatically be added as the last extension
 
 ## Additional Resources
 
