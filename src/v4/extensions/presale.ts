@@ -479,6 +479,68 @@ export async function getAmountAvailableToClaim(data: {
 }
 
 /**
+ * Get a transaction to withdraw from a presale
+ *
+ * @param presaleId The ID of the presale
+ * @param amount The amount of ETH to withdraw (in wei)
+ * @param recipient The recipient address for the withdrawn ETH
+ * @param chainId The chain ID
+ * @returns Transaction configuration for withdrawing from a presale
+ */
+export function getWithdrawFromPresaleTransaction({
+  presaleId,
+  amount,
+  recipient,
+  chainId,
+}: {
+  presaleId: bigint;
+  amount: bigint;
+  recipient: `0x${string}`;
+  chainId: ClankerChain;
+}): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'withdrawFromPresale'> {
+  const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
+  if (!config?.related?.presale) {
+    throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
+  }
+
+  return {
+    chainId,
+    address: config.related.presale,
+    abi: Clanker_PresaleEthToCreator_v4_1_abi,
+    functionName: 'withdrawFromPresale',
+    args: [presaleId, amount, recipient],
+  };
+}
+
+/**
+ * Withdraw ETH from an active presale
+ *
+ * @param clanker Clanker object used for withdrawing from presale
+ * @param presaleId The ID of the presale
+ * @param ethAmount The ETH amount to withdraw (in ETH, will be converted to wei)
+ * @param recipient The recipient address for the withdrawn ETH
+ * @returns Outcome of the transaction
+ */
+export function withdrawFromPresale(data: {
+  clanker: Clanker;
+  presaleId: bigint;
+  ethAmount: number;
+  recipient: `0x${string}`;
+}) {
+  if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
+  if (!data.clanker.wallet) throw new Error('Wallet client required on clanker');
+
+  const tx = getWithdrawFromPresaleTransaction({
+    presaleId: data.presaleId,
+    amount: BigInt(data.ethAmount * 1e18), // Convert ETH to wei
+    recipient: data.recipient,
+    chainId: data.clanker.wallet.chain.id as ClankerChain,
+  });
+
+  return writeClankerContract(data.clanker.publicClient, data.clanker.wallet, tx);
+}
+
+/**
  * Get the allowlist contract address for a specific chain
  *
  * @param chainId The chain ID to get the allowlist address for
