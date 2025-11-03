@@ -79,7 +79,10 @@ export class Clanker {
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getClaimRewardsTransaction({ token, rewardRecipient });
+    const input = await this.getClaimRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return simulateClankerContract(this.publicClient, acc, input);
   }
@@ -103,7 +106,10 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getClaimRewardsTransaction({ token, rewardRecipient });
+    const input = await this.getClaimRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
@@ -152,7 +158,10 @@ export class Clanker {
     if (!rewardRecipient) throw new Error('Account required for simulation');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
-    const tx = await this.getAvailableRewardsTransaction({ token, rewardRecipient });
+    const tx = await this.getAvailableRewardsTransaction({
+      token,
+      rewardRecipient,
+    });
 
     return this.publicClient.readContract(tx);
   }

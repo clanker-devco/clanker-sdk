@@ -56,6 +56,9 @@ export type RelatedV4 = {
   feeLocker: `0x${string}`;
   feeStaticHook: `0x${string}`;
   feeDynamicHook: `0x${string}`;
+  // Called presaleEthToCreator onchain
+  presale?: `0x${string}`;
+  presaleAllowlist?: `0x${string}`;
 
   mevModuleV2?: `0x${string}`;
   feeStaticHookV2?: `0x${string}`;
@@ -188,6 +191,8 @@ export const CLANKERS = {
       feeStaticHookV2: '0xb429d62f8f3bFFb98CdB9569533eA23bF0Ba28CC',
       feeDynamicHook: '0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC',
       feeDynamicHookV2: '0xd60D6B218116cFd801E28F78d011a203D2b068Cc',
+      presale: '0xeeBbC567C3D612f50a67820f39CDD30dcCF7E6b8',
+      presaleAllowlist: '0x789c2452353eee400868E7d3e5aDD6Be0Ef4185D',
     } satisfies RelatedV4,
   },
   clanker_v4_sepolia: {
@@ -253,6 +258,8 @@ export const CLANKERS = {
       feeStaticHookV2: '0x6C24D0bCC264EF6A740754A11cA579b9d225e8Cc',
       feeDynamicHook: '0x0000000000000000000000000000000000000000',
       feeDynamicHookV2: '0x0000000000000000000000000000000000000000',
+      presale: '0xf7db81910444ab0f07bA264d7636d219A8c7769D',
+      presaleAllowlist: '0xF6C7Ff92F71e2eDd19c421E4962949Df4cD6b6F3',
     } satisfies RelatedV4,
   },
   clanker_v4_unichain: {

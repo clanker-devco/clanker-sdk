@@ -49,7 +49,7 @@ const FeeInToInt: Record<(typeof FeeIn)[number], number> = {
 };
 
 /** Clanker v4 token definition. */
-const clankerTokenV4 = z.strictObject({
+export const clankerTokenV4 = z.strictObject({
   /** Name of the token. Example: "My Token". */
   name: z.string(),
   /** Symbol for the token. Example: "MTK". */
@@ -119,7 +119,9 @@ const clankerTokenV4 = z.strictObject({
         v.positions.every(
           (p) => p.tickLower % v.tickSpacing === 0 && p.tickUpper % v.tickSpacing === 0
         ),
-      { error: 'All positions must have ticks that are multiples of the tick spacing.' }
+      {
+        error: 'All positions must have ticks that are multiples of the tick spacing.',
+      }
     ),
   /** Token locker */
   locker: z
@@ -258,6 +260,14 @@ const clankerTokenV4 = z.strictObject({
         }),
     })
     .optional(),
+  /** Presale configuration for the token. Must be deployed via the presale contract. */
+  presale: z
+    .object({
+      /** Bps for allocation to presale */
+      bps: z.number().min(0).max(10_000),
+    })
+    .optional(),
+
   /** Whether or not to enable the "0xb07" address suffix. */
   vanity: z.boolean().default(false),
 });
@@ -289,6 +299,10 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   const clankerConfig = clankerConfigFor<ClankerDeployment<RelatedV4>>(cfg.chainId, 'clanker_v4');
   if (!clankerConfig?.related) {
     throw new Error(`No clanker v4 configuration for chain ${cfg.chainId}`);
+  }
+
+  if (cfg.presale && !clankerConfig?.related?.presale) {
+    throw new Error(`Presales are not available on chain ${cfg.chainId}`);
   }
 
   const { salt, token: expectedAddress } = cfg.vanity
@@ -324,7 +338,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   if (roundedAirdropTooLow) {
     // Error if the requested airdrop amount is more than the rounded amount.
     throw new Error(
-      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${bpsAirdropped / 10_000n}%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
+      `Precision error for airdrop. Expected ${airdropAmount} but only ${roundingVerificationAirdrop} (${
+        bpsAirdropped / 10_000n
+      }%) allocated. Difference ${airdropAmount - roundingVerificationAirdrop}.`
     );
   }
 
@@ -333,7 +349,9 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
   if (roundedAirdropTooHigh) {
     // Error if the `roundingVerificationAirdrop` has a value more than 1bps away from the requested airdrop amount
     throw new Error(
-      `Precision error for airdrop. Difference ${roundingVerificationAirdrop - airdropAmount} is too large.`
+      `Precision error for airdrop. Difference ${
+        roundingVerificationAirdrop - airdropAmount
+      } is too large.`
     );
   }
 
@@ -433,6 +451,18 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
                     BigInt(cfg.devBuy.amountOutMin * 1e18),
                     cfg.tokenAdmin,
                   ]),
+                },
+              ]
+            : []),
+          // presale extension
+          // (MUST BE LAST)
+          ...(cfg.presale && clankerConfig?.related?.presale
+            ? [
+                {
+                  extension: clankerConfig?.related?.presale,
+                  msgValue: 0n,
+                  extensionBps: cfg.presale.bps,
+                  extensionData: '0x' as `0x${string}`,
                 },
               ]
             : []),
