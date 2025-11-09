@@ -16,7 +16,7 @@ describe('v4 - monad - end to end', () => {
     transport: http(process.env.TESTS_RPC_URL_MONAD),
   });
 
-  test('simulate static', async () => {
+  test.skipIf(!process.env.TESTS_RPC_URL_MONAD)('simulate static', async () => {
     const token: ClankerTokenV4 = {
       name: 'TheName',
       symbol: 'SYM',
