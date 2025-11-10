@@ -7,6 +7,7 @@ import {
   fetchAirdropProofs,
   getClaimAirdropTransaction,
   registerAirdrop,
+  verifyAirdropReceivers,
 } from '../../src/v4/extensions/airdrop.js';
 import { Clanker } from '../../src/v4/index.js';
 
@@ -27,7 +28,10 @@ if (!PRIVATE_KEY || !isHex(PRIVATE_KEY)) throw new Error('Missing PRIVATE_KEY en
 
 const account = privateKeyToAccount(PRIVATE_KEY);
 
-const publicClient = createPublicClient({ chain: base, transport: http() }) as PublicClient;
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http(),
+}) as PublicClient;
 const wallet = createWalletClient({ account, chain: base, transport: http() });
 
 const clanker = new Clanker({ publicClient, wallet });
@@ -97,6 +101,34 @@ const { proofs } = await fetchAirdropProofs(address, '0x308112D06027Cd838627b94d
 console.log(`Proofs for 0x308112D06027Cd838627b94dDFC16ea6B4D90004: `, proofs);
 
 const { proof, entry } = proofs[0];
+
+// Verify which recipients have already claimed their airdrop:
+const verificationResults = await verifyAirdropReceivers({
+  clanker,
+  token: address,
+  recipients: [
+    {
+      account: '0x308112D06027Cd838627b94dDFC16ea6B4D90004',
+      amount: 200_000_000,
+    },
+    {
+      account: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace',
+      amount: 50_000_000,
+    },
+    {
+      account: '0x04F6ef12a8B6c2346C8505eE4Cff71C43D2dd825',
+      amount: 10_000_000,
+    },
+  ],
+});
+
+console.log('Verification results:', verificationResults);
+// Each result shows:
+// - recipient: the address
+// - allocatedAmount: total amount they were allocated
+// - availableToClaim: amount still available to claim
+// - hasClaimed: boolean indicating if they've claimed anything
+// - claimedAmount: amount they've already claimed
 
 // Once the cliff has passed, use this to claim:
 const _tx = getClaimAirdropTransaction({
