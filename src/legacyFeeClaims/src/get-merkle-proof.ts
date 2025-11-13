@@ -9,7 +9,10 @@ interface TokenCreatorEntry {
 }
 
 function generateLeafHash(tokenAddress: string, currentCreator: string): string {
-  const encoded = ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [tokenAddress, currentCreator]);
+  const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
+    ['address', 'address'],
+    [tokenAddress, currentCreator]
+  );
   return ethers.keccak256(encoded);
 }
 
