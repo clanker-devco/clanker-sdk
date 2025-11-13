@@ -9,7 +9,8 @@
     "./cli": "./dist/cli/cli.js",
     "./v3": "./dist/v3/index.js",
     "./v4": "./dist/v4/index.js",
-    "./v4/extensions": "./dist/v4/extensions/index.js"
+    "./v4/extensions": "./dist/v4/extensions/index.js",
+    "./legacyFeeClaims": "./dist/legacyFeeClaims/index.js"
   },
   "bin": {
     "clanker-sdk": "./dist/cli/cli.js"
@@ -44,8 +45,12 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "@types/bun": "latest",
+    "@types/csv-parse": "^1.2.5",
     "@types/inquirer": "^8.2.6",
     "@types/node": "^22.14.0",
+    "csv-parse": "^6.1.0",
+    "ethers": "^6.15.0",
+    "merkletreejs": "^0.6.0",
     "tsup": "^8.4.0",
     "typescript": "^5.3.3"
   },

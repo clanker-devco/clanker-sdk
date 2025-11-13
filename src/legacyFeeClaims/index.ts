@@ -1,4 +1,6 @@
+import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
+import { keccak256 } from 'viem';
 import { simulateContract, writeContract } from 'viem/actions';
 import { Clanker_v0_abi } from '../abi/legacyFeeClaims/ClankerSafeErc20Spender.js';
 import { type ClankerError, understandError } from '../utils/errors.js';
@@ -383,6 +385,122 @@ export class LegacyFeeClaims {
     });
   }
 }
+
+// ============================================================================
+// Merkle Proof Utilities
+// ============================================================================
+
+/**
+ * Interface for token creator entries in the CSV data
+ */
+export interface TokenCreatorEntry {
+  tokenAddress: `0x${string}`;
+  currentCreator: `0x${string}`;
+}
+
+/**
+ * Result of merkle proof generation
+ */
+export interface MerkleProofResult {
+  tokenAddress: `0x${string}`;
+  currentCreator: `0x${string}`;
+  proof: `0x${string}`[];
+  leafHash: `0x${string}`;
+  root: `0x${string}`;
+  index: number;
+}
+
+/**
+ * Generate a leaf hash for a token-creator pair.
+ * This matches the Solidity implementation: keccak256(abi.encodePacked(tokenAddress, currentCreator))
+ *
+ * @param tokenAddress The token address
+ * @param currentCreator The creator address
+ * @returns The leaf hash
+ */
+export function generateLeafHash(
+  tokenAddress: `0x${string}`,
+  currentCreator: `0x${string}`
+): `0x${string}` {
+  // Remove the 0x prefix and concatenate directly for packed encoding
+  // This matches Solidity's abi.encodePacked(tokenAddress, currentCreator)
+  const packed = `0x${tokenAddress.slice(2)}${currentCreator.slice(2)}` as `0x${string}`;
+
+  return keccak256(packed);
+}
+
+/**
+ * Build a merkle tree from token-creator entries and get a proof for a specific token.
+ *
+ * @param entries Array of token-creator pairs
+ * @param targetToken The token address to generate a proof for
+ * @returns Merkle proof result or null if token not found
+ */
+export function getTokenCreatorMerkleProof(
+  entries: TokenCreatorEntry[],
+  targetToken: `0x${string}`
+): MerkleProofResult | null {
+  const normalizedTarget = targetToken.toLowerCase() as `0x${string}`;
+
+  // Find the target entry
+  const targetIndex = entries.findIndex((e) => e.tokenAddress.toLowerCase() === normalizedTarget);
+
+  if (targetIndex === -1) {
+    return null;
+  }
+
+  const targetEntry = entries[targetIndex];
+
+  // Build the merkle tree using OpenZeppelin's StandardMerkleTree
+  // Format: [tokenAddress, currentCreator] for each entry
+  const values = entries.map((e) => [e.tokenAddress, e.currentCreator]);
+
+  // Create tree with keccak256 hashing and address types
+  const tree = StandardMerkleTree.of(values, ['address', 'address']);
+
+  // Get the proof for our target entry
+  const proof = tree.getProof(targetIndex) as `0x${string}`[];
+
+  // Generate the leaf hash for verification
+  const leafHash = generateLeafHash(targetEntry.tokenAddress, targetEntry.currentCreator);
+
+  return {
+    tokenAddress: targetEntry.tokenAddress,
+    currentCreator: targetEntry.currentCreator,
+    proof,
+    leafHash,
+    root: tree.root as `0x${string}`,
+    index: targetIndex,
+  };
+}
+
+/**
+ * Parse CSV content into token-creator entries.
+ *
+ * @param csvContent CSV string with columns: tokenAddress,currentCreator
+ * @returns Array of token-creator entries
+ */
+export function parseTokenCreatorCSV(csvContent: string): TokenCreatorEntry[] {
+  const lines = csvContent.trim().split('\n');
+
+  // Skip header row
+  const dataLines = lines.slice(1);
+
+  return dataLines.map((line) => {
+    const [tokenAddress, currentCreator] = line.split(',').map((s) => s.trim());
+    return {
+      tokenAddress: tokenAddress as `0x${string}`,
+      currentCreator: currentCreator as `0x${string}`,
+    };
+  });
+}
+
+/**
+ * Get the expected merkle root for the current dataset.
+ * This is the root that should be set in the contract.
+ */
+export const EXPECTED_MERKLE_ROOT =
+  '0x704ffc95da12e8083ea2a683c2d3482ae237122f70f5e4ba6ca313b699b5fdde' as const;
 
 // Export standalone functions for convenience
 
