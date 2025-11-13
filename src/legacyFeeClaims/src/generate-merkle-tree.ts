@@ -16,7 +16,7 @@ interface MerkleLeaf {
 
 function generateLeafHash(tokenAddress: string, currentCreator: string): string {
   // Encode the token address and current creator as a packed encoding
-  const encoded = ethers.solidityPacked(['address', 'address'], [tokenAddress, currentCreator]);
+  const encoded = ethers.AbiCoder.defaultAbiCoder.encode(['address', 'address'], [tokenAddress, currentCreator]);
   return ethers.keccak256(encoded);
 }
 
