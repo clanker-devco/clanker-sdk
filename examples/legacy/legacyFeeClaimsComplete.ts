@@ -15,11 +15,19 @@
  * Step 3: Claim accumulated fees
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { PublicClient } from 'viem';
 import { createPublicClient, createWalletClient, formatUnits, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { LEGACY_FEE_CLAIMS_ADDRESS, LegacyFeeClaims } from '../../src/legacyFeeClaims/index.js';
+import {
+  EXPECTED_MERKLE_ROOT,
+  getTokenCreatorMerkleProof,
+  LegacyFeeClaims,
+  parseTokenCreatorCSV,
+  type TokenCreatorEntry,
+} from '../../src/legacyFeeClaims/index.js';
 
 // ============================================================================
 // Configuration
@@ -40,14 +48,10 @@ const CONFIG = {
 
   // Where you want to receive the claimed fees
   recipientAddress: '0xYourRecipientAddress' as `0x${string}`,
-
-  // Merkle proof for initialization (get from Clanker team/frontend)
-  // Leave empty if already initialized
-  merkleProof: [
-    // '0x...',
-    // '0x...',
-  ] as `0x${string}`[],
 };
+
+// Global variable to cache loaded entries
+let cachedEntries: TokenCreatorEntry[] | null = null;
 
 // ============================================================================
 // Setup
@@ -74,6 +78,50 @@ const legacyFeeClaims = new LegacyFeeClaims({
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Load token-creator entries from CSV file and generate merkle proof for a token.
+ * The CSV file should be located at: src/legacyFeeClaims/data/token_creators_with_updates.csv
+ *
+ * @param tokenAddress The token address to generate a proof for
+ * @returns Merkle proof result or null if token not found
+ */
+function loadAndGenerateProof(tokenAddress: `0x${string}`) {
+  try {
+    // Load entries (with caching)
+    if (!cachedEntries) {
+      console.log('Loading token-creator data...');
+      const csvPath = join(
+        process.cwd(),
+        'src/legacyFeeClaims/data/token_creators_with_updates.csv'
+      );
+      const csvContent = readFileSync(csvPath, 'utf-8');
+      cachedEntries = parseTokenCreatorCSV(csvContent);
+      console.log(`Loaded ${cachedEntries.length} entries`);
+    }
+
+    const proofResult = getTokenCreatorMerkleProof(cachedEntries, tokenAddress);
+
+    if (!proofResult) {
+      console.log('❌ Token not found in dataset');
+      return null;
+    }
+
+    console.log('✅ Proof generated');
+    console.log(`   Creator: ${proofResult.currentCreator}`);
+    console.log(`   Proof length: ${proofResult.proof.length} elements`);
+
+    // Verify the root matches expected
+    if (proofResult.root !== EXPECTED_MERKLE_ROOT) {
+      console.warn(`⚠️  Root mismatch: ${proofResult.root}`);
+    }
+
+    return proofResult;
+  } catch (error) {
+    console.error('❌ Error loading data:', error);
+    return null;
+  }
+}
 
 /**
  * Check the balance of tokens in the Safe
@@ -127,23 +175,18 @@ async function checkSafeBalance(safeAddress: `0x${string}`, tokenAddress: `0x${s
 // ============================================================================
 
 async function main() {
-  console.log('╔══════════════════════════════════════════════════════════════╗');
-  console.log('║       Legacy Fee Claims - Complete Workflow Example          ║');
-  console.log('╚══════════════════════════════════════════════════════════════╝\n');
+  console.log('\n=== Legacy Fee Claims - Complete Workflow ===\n');
 
-  console.log('Configuration:');
-  console.log('  Token Address:', CONFIG.tokenAddress);
-  console.log('  Safe Address:', CONFIG.safeAddress);
+  console.log('Config:');
+  console.log('  Token:', CONFIG.tokenAddress);
+  console.log('  Safe:', CONFIG.safeAddress);
   console.log('  Recipient:', CONFIG.recipientAddress);
   console.log('  Your Address:', account.address);
-  console.log('  Contract:', LEGACY_FEE_CLAIMS_ADDRESS);
   console.log('  Network: Base\n');
 
   try {
-    // ========================================================================
-    // STEP 1: Check Current Status
-    // ========================================================================
-    console.log('📋 Step 1: Checking current status...\n');
+    // Check current status
+    console.log('1. Checking current status...\n');
 
     const currentCreator = await legacyFeeClaims.getTokenCreator({
       token: CONFIG.tokenAddress,
@@ -151,111 +194,94 @@ async function main() {
 
     const isInitialized = currentCreator !== '0x0000000000000000000000000000000000000000';
 
-    console.log('  Current Creator:', currentCreator);
-    console.log('  Initialized:', isInitialized ? '✅ Yes' : '❌ No');
+    console.log('Current Creator:', currentCreator);
+    console.log('Initialized:', isInitialized ? '✅' : '❌');
 
     if (isInitialized) {
       const isYourAddress = currentCreator.toLowerCase() === account.address.toLowerCase();
-      console.log('  You are creator:', isYourAddress ? '✅ Yes' : '❌ No');
+      console.log('You are creator:', isYourAddress ? '✅' : '❌');
 
       if (!isYourAddress) {
-        console.log('\n⚠️  Warning: You are not the registered creator!');
-        console.log('   Creator address:', currentCreator);
-        console.log('   Your address:', account.address);
-        console.log('\n   Only the creator can claim fees or update the creator address.');
+        console.error('\n❌ You are not the registered creator');
+        console.error('   Creator:', currentCreator);
+        console.error('   Your address:', account.address);
         return;
       }
     }
 
-    // ========================================================================
-    // STEP 2: Initialize (if needed)
-    // ========================================================================
+    // Initialize if needed
     if (!isInitialized) {
-      console.log('\n🔐 Step 2: Initializing token creator...\n');
+      console.log('\n2. Initializing token creator...\n');
 
-      if (CONFIG.merkleProof.length === 0) {
-        console.log('❌ Error: Merkle proof required for initialization!');
-        console.log('   Please obtain your Merkle proof from:');
-        console.log('   • Clanker Frontend: https://www.clanker.world');
-        console.log('   • Contact Clanker team on Farcaster\n');
+      const proofResult = loadAndGenerateProof(CONFIG.tokenAddress);
+
+      if (!proofResult) {
+        console.error('❌ Could not generate merkle proof');
         return;
       }
 
-      console.log('  Proof length:', CONFIG.merkleProof.length, 'elements');
-      console.log('  Setting creator to:', account.address);
+      if (proofResult.currentCreator.toLowerCase() !== account.address.toLowerCase()) {
+        console.error('\n❌ Address mismatch');
+        console.error('   Your address:', account.address);
+        console.error('   Expected creator:', proofResult.currentCreator);
+        return;
+      }
 
-      // Simulate first
-      console.log('\n  🔍 Simulating transaction...');
+      console.log('Simulating...');
       const simulation = await legacyFeeClaims.initializeTokenCreatorSimulate({
         token: CONFIG.tokenAddress,
         newCreator: account.address,
-        proof: CONFIG.merkleProof,
+        proof: proofResult.proof,
       });
 
       if (simulation.error) {
-        console.log('  ❌ Simulation failed:', simulation.error.message);
-        console.log('\n  Common issues:');
-        console.log('  • Invalid proof');
-        console.log('  • Not called from original creator address');
-        console.log('  • Token already initialized');
+        console.error('❌ Simulation failed:', simulation.error.message);
         return;
       }
 
-      console.log('  ✅ Simulation successful');
-
-      // Execute
-      console.log('\n  📤 Executing transaction...');
+      console.log('Executing...');
       const result = await legacyFeeClaims.initializeTokenCreator({
         token: CONFIG.tokenAddress,
         newCreator: account.address,
-        proof: CONFIG.merkleProof,
+        proof: proofResult.proof,
       });
 
       if (result.error) {
-        console.log('  ❌ Transaction failed:', result.error.message);
+        console.error('❌ Transaction failed:', result.error.message);
         return;
       }
 
-      console.log('  ✅ Transaction successful!');
-      console.log('  TX Hash:', result.txHash);
-      console.log(`  View: https://basescan.org/tx/${result.txHash}`);
+      console.log('✅ Transaction sent:', result.txHash);
+      console.log(`   View: https://basescan.org/tx/${result.txHash}`);
 
-      // Wait for confirmation
-      console.log('\n  ⏳ Waiting for confirmation...');
+      console.log('Waiting for confirmation...');
       await publicClient.waitForTransactionReceipt({ hash: result.txHash });
-      console.log('  ✅ Confirmed!');
+      console.log('✅ Confirmed');
     } else {
-      console.log('\n✅ Step 2: Already initialized, skipping...\n');
+      console.log('\n2. Already initialized, skipping...\n');
     }
 
-    // ========================================================================
-    // STEP 3: Check Available Fees
-    // ========================================================================
-    console.log('\n💰 Step 3: Checking available fees...\n');
+    // Check available fees
+    console.log('\n3. Checking available fees...\n');
 
     const balance = await checkSafeBalance(CONFIG.safeAddress, CONFIG.tokenAddress);
 
     if (!balance) {
-      console.log('  ❌ Could not check balance');
+      console.error('❌ Could not check balance');
       return;
     }
 
-    console.log('  Balance in Safe:', balance.formatted, 'tokens');
-    console.log('  Raw balance:', balance.raw.toString());
+    console.log('Balance in Safe:', balance.formatted, 'tokens');
 
     if (balance.raw === 0n) {
-      console.log('\n  ℹ️  No fees available to claim at this time.');
-      console.log('  Fees accumulate as users trade your token.');
+      console.log('ℹ️  No fees available to claim');
       return;
     }
 
-    // ========================================================================
-    // STEP 4: Claim Fees
-    // ========================================================================
-    console.log('\n🎯 Step 4: Claiming fees...\n');
+    // Claim fees
+    console.log('\n4. Claiming fees...\n');
 
-    // Simulate first
-    console.log('  🔍 Simulating claim...');
+    console.log('Simulating claim...');
     const claimSimulation = await legacyFeeClaims.tokenCreatorTransferSimulate({
       safe: CONFIG.safeAddress,
       token: CONFIG.tokenAddress,
@@ -263,18 +289,11 @@ async function main() {
     });
 
     if (claimSimulation.error) {
-      console.log('  ❌ Simulation failed:', claimSimulation.error.message);
-      console.log('\n  Common issues:');
-      console.log('  • Not authorized (not the creator)');
-      console.log('  • Incorrect Safe address');
-      console.log('  • No balance in Safe');
+      console.error('❌ Simulation failed:', claimSimulation.error.message);
       return;
     }
 
-    console.log('  ✅ Simulation successful');
-
-    // Execute claim
-    console.log('\n  📤 Executing claim...');
+    console.log('Executing claim...');
     const claimResult = await legacyFeeClaims.tokenCreatorTransfer({
       safe: CONFIG.safeAddress,
       token: CONFIG.tokenAddress,
@@ -282,47 +301,32 @@ async function main() {
     });
 
     if (claimResult.error) {
-      console.log('  ❌ Claim failed:', claimResult.error.message);
+      console.error('❌ Claim failed:', claimResult.error.message);
 
-      // Special case: token doesn't allow transfers to zero address
       if (
         CONFIG.recipientAddress === '0x0000000000000000000000000000000000000000' &&
         claimResult.error.message.includes('transfer')
       ) {
-        console.log('\n  💡 Tip: This token may not allow transfers to zero address.');
-        console.log('  Try using the burn address instead:');
-        console.log('  0x000000000000000000000000000000000000dEaD');
+        console.log('💡 Try using burn address: 0x000000000000000000000000000000000000dEaD');
       }
       return;
     }
 
-    console.log('  ✅ Claim successful!');
-    console.log('  TX Hash:', claimResult.txHash);
-    console.log(`  View: https://basescan.org/tx/${claimResult.txHash}`);
+    console.log('✅ Claim successful:', claimResult.txHash);
+    console.log(`   View: https://basescan.org/tx/${claimResult.txHash}`);
 
-    // Wait for confirmation
-    console.log('\n  ⏳ Waiting for confirmation...');
+    console.log('Waiting for confirmation...');
     await publicClient.waitForTransactionReceipt({ hash: claimResult.txHash });
-    console.log('  ✅ Confirmed!');
+    console.log('✅ Confirmed');
 
-    console.log('\n  💸 Amount claimed:', balance.formatted, 'tokens');
-    console.log('  📍 Sent to:', CONFIG.recipientAddress);
-
-    // ========================================================================
-    // Success Summary
-    // ========================================================================
-    console.log('\n╔══════════════════════════════════════════════════════════════╗');
-    console.log('║                    ✅ Success Summary                         ║');
-    console.log('╚══════════════════════════════════════════════════════════════╝\n');
-    console.log('  Token:', CONFIG.tokenAddress);
-    console.log('  Claimed:', balance.formatted, 'tokens');
-    console.log('  Recipient:', CONFIG.recipientAddress);
-    console.log('  Transactions:', claimResult.txHash);
-    console.log('\n  🎉 Fees successfully claimed!\n');
+    console.log('\n=== Success ===');
+    console.log('Amount claimed:', balance.formatted, 'tokens');
+    console.log('Sent to:', CONFIG.recipientAddress);
+    console.log('TX:', claimResult.txHash, '\n');
   } catch (error) {
-    console.error('\n❌ Unexpected error:', error);
+    console.error('\n❌ Error:', error);
     if (error instanceof Error) {
-      console.error('   Message:', error.message);
+      console.error('Message:', error.message);
     }
     process.exit(1);
   }
@@ -338,9 +342,9 @@ async function main() {
 async function _exampleUpdateCreator() {
   const newCreatorAddress = '0xNewAdminAddress' as `0x${string}`;
 
-  console.log('\n🔄 Updating creator address...\n');
-  console.log('  Current:', account.address);
-  console.log('  New:', newCreatorAddress);
+  console.log('\nUpdating creator address...');
+  console.log('Current:', account.address);
+  console.log('New:', newCreatorAddress);
 
   const result = await legacyFeeClaims.updateTokenCreator({
     token: CONFIG.tokenAddress,
@@ -348,12 +352,10 @@ async function _exampleUpdateCreator() {
   });
 
   if (result.error) {
-    console.log('  ❌ Failed:', result.error.message);
+    console.error('❌ Failed:', result.error.message);
   } else {
-    console.log('  ✅ Success!');
-    console.log('  TX:', result.txHash);
-    console.log('\n  ⚠️  Note: You can no longer claim fees from this address.');
-    console.log('  The new creator address must now be used for claims.');
+    console.log('✅ Success:', result.txHash);
+    console.log('⚠️  Note: You can no longer claim fees from this address');
   }
 }
 
@@ -361,7 +363,7 @@ async function _exampleUpdateCreator() {
  * Example: Read-only check of token creator info
  */
 async function _exampleReadOnly() {
-  console.log('\n📖 Read-Only Check (no transactions)\n');
+  console.log('\nRead-Only Check (no transactions)\n');
 
   const creator = await legacyFeeClaims.getTokenCreator({
     token: CONFIG.tokenAddress,
@@ -371,12 +373,12 @@ async function _exampleReadOnly() {
 
   const balance = await checkSafeBalance(CONFIG.safeAddress, CONFIG.tokenAddress);
 
-  console.log('  Token:', CONFIG.tokenAddress);
-  console.log('  Creator:', creator);
-  console.log('  Merkle Root:', root);
-  console.log('  Balance in Safe:', balance?.formatted || 'N/A', 'tokens');
+  console.log('Token:', CONFIG.tokenAddress);
+  console.log('Creator:', creator);
+  console.log('Merkle Root:', root);
+  console.log('Balance in Safe:', balance?.formatted || 'N/A', 'tokens');
   console.log(
-    '  Initialized:',
+    'Initialized:',
     creator !== '0x0000000000000000000000000000000000000000' ? 'Yes' : 'No'
   );
 }
@@ -387,15 +389,11 @@ async function _exampleReadOnly() {
 
 // Main workflow
 main()
-  .then(() => {
-    console.log('✅ Complete!\n');
-    process.exit(0);
-  })
+  .then(() => process.exit(0))
   .catch((error) => {
-    console.error('\n💥 Fatal error:', error);
+    console.error('Fatal error:', error);
     process.exit(1);
   });
-
 // Uncomment to run other examples:
 // _exampleUpdateCreator().then(() => process.exit(0));
 // _exampleReadOnly().then(() => process.exit(0));
