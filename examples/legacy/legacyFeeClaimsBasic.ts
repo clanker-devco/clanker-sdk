@@ -1,26 +1,34 @@
 /**
- * Example: Claiming Legacy Fees from Clanker v0-v3.1 Tokens
+ * Basic Examples: Legacy Fee Claims for Clanker v0-v3.1 Tokens
  *
- * This example demonstrates how to:
- * 1. Initialize token creator ownership with a Merkle proof
- * 2. Update the creator/admin address for a token
- * 3. Claim accumulated fees from the Safe to a recipient
- * 4. Read token creator information
+ * STEP 1: Read token creator information (check current status)
+ * STEP 2: Initialize token creator ownership (claim your token)
+ * STEP 3: Update creator/admin address (transfer control)
+ * STEP 4: Claim accumulated fees (get your tokens)
+ *
+ * Uncomment the desired function in main() to run it.
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { PublicClient } from 'viem';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { LegacyFeeClaims } from '../../src/legacyFeeClaims/index.js';
+import {
+  getTokenCreatorMerkleProof,
+  LegacyFeeClaims,
+  parseTokenCreatorCSV,
+  type TokenCreatorEntry,
+} from '../../src/legacyFeeClaims/index.js';
 
-// Load environment variables
+// Setup
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 if (!PRIVATE_KEY) {
   throw new Error('Missing PRIVATE_KEY environment variable');
 }
 
-// Initialize viem clients
 const account = privateKeyToAccount(PRIVATE_KEY);
 
 const publicClient = createPublicClient({
@@ -34,174 +42,153 @@ const wallet = createWalletClient({
   transport: http(),
 });
 
-// Initialize LegacyFeeClaims SDK
 const legacyFeeClaims = new LegacyFeeClaims({
   wallet,
   publicClient,
 });
 
-/**
- * Example 1: Initialize Token Creator Ownership
- *
- * This must be called once per token by the original creator to claim ownership
- * of the token's fees. The proof must be obtained from the Clanker team or frontend.
- */
-async function _initializeTokenCreator() {
-  const tokenAddress = '0xYourTokenAddress' as `0x${string}`;
-  const newCreatorAddress = account.address; // Or a different address to manage claims
-  const proof: `0x${string}`[] = [
-    // Merkle proof from Clanker team/frontend
-    '0x...',
-    '0x...',
-  ];
+// Configuration - Update these values for your token
+const CONFIG = {
+  tokenAddress: '0xYourTokenAddress' as `0x${string}`,
+  safeAddress: '0x1eaf444ebDf6495C57aD52A04C61521bBf564ace' as `0x${string}`,
+  recipientAddress: account.address, // Where to receive claimed fees
+  newCreatorAddress: account.address, // For transferring control
+};
 
-  console.log('\n🚀 Initializing Token Creator...\n');
+let cachedEntries: TokenCreatorEntry[] | null = null;
 
-  // Option 1: Direct execution
+// Helper: Load CSV and generate Merkle proof
+function loadAndGenerateProof(tokenAddress: `0x${string}`) {
+  try {
+    if (!cachedEntries) {
+      const csvPath = join(
+        process.cwd(),
+        'src/legacyFeeClaims/data/token_creators_with_updates.csv'
+      );
+      const csvContent = readFileSync(csvPath, 'utf-8');
+      cachedEntries = parseTokenCreatorCSV(csvContent);
+    }
+
+    return getTokenCreatorMerkleProof(cachedEntries, tokenAddress);
+  } catch (error) {
+    console.error('Error loading data:', error);
+    return null;
+  }
+}
+
+// STEP 1: Read Token Creator Information
+// Check current status without making any transactions
+async function step1_readTokenInfo() {
+  const creator = await legacyFeeClaims.getTokenCreator({ token: CONFIG.tokenAddress });
+  const isInitialized = creator !== '0x0000000000000000000000000000000000000000';
+
+  console.log('Token:', CONFIG.tokenAddress);
+  console.log('Creator:', creator);
+  console.log('Initialized:', isInitialized);
+
+  if (isInitialized) {
+    console.log('Is your address:', creator.toLowerCase() === account.address.toLowerCase());
+  }
+}
+
+// STEP 2: Initialize Token Creator Ownership
+// Claim ownership of your token (one-time only, auto-generates Merkle proof from CSV)
+// biome-ignore lint/correctness/noUnusedVariables: Example function - uncomment in main() to us
+async function step2_initializeTokenCreator() {
+  // Auto-generate proof from CSV data
+  const proofResult = loadAndGenerateProof(CONFIG.tokenAddress);
+  if (!proofResult) {
+    console.error('Error: Token not found in dataset');
+    return;
+  }
+
+  if (proofResult.currentCreator.toLowerCase() !== account.address.toLowerCase()) {
+    console.error('Error: Address mismatch. Use the wallet that created the token.');
+    console.error('Expected creator:', proofResult.currentCreator);
+    return;
+  }
+  console.log('Proof:', proofResult.proof);
   const result = await legacyFeeClaims.initializeTokenCreator({
-    token: tokenAddress,
-    newCreator: newCreatorAddress,
-    proof,
+    token: CONFIG.tokenAddress,
+    newCreator: account.address,
+    proof: proofResult.proof,
   });
 
   if (result.error) {
-    console.error('❌ Error:', result.error);
+    console.error('Error:', result.error.message);
   } else {
-    console.log('✅ Transaction Hash:', result.txHash);
-    console.log('View on BaseScan:', `https://basescan.org/tx/${result.txHash}`);
+    console.log('Success! TX:', result.txHash);
+    console.log('View:', `https://basescan.org/tx/${result.txHash}`);
   }
-
-  // Option 2: Simulate first, then execute
-  // const simulation = await legacyFeeClaims.initializeTokenCreatorSimulate({
-  //   token: tokenAddress,
-  //   newCreator: newCreatorAddress,
-  //   proof,
-  // });
-  //
-  // if (simulation.error) {
-  //   console.error('Simulation failed:', simulation.error);
-  // } else {
-  //   console.log('Simulation successful, proceeding with transaction...');
-  //   // Then execute the actual transaction
-  // }
 }
 
-/**
- * Example 2: Update Token Creator Admin
- *
- * Change the address that can trigger fee claims for your token.
- * Only callable by the current creator address.
- */
-async function _updateTokenCreator() {
-  const tokenAddress = '0xYourTokenAddress' as `0x${string}`;
-  const newCreatorAddress = '0xNewAdminAddress' as `0x${string}`;
-
-  console.log('\n🔄 Updating Token Creator...\n');
-
+// STEP 3: Update Creator/Admin Address
+// Transfer control to a different address (WARNING: you lose access after this!)
+// biome-ignore lint/correctness/noUnusedVariables: Example function - uncomment in main() to use
+async function step3_updateTokenCreator() {
   const result = await legacyFeeClaims.updateTokenCreator({
-    token: tokenAddress,
-    newCreator: newCreatorAddress,
+    token: CONFIG.tokenAddress,
+    newCreator: CONFIG.newCreatorAddress,
   });
 
   if (result.error) {
-    console.error('❌ Error:', result.error);
+    console.error('Error:', result.error.message);
   } else {
-    console.log('✅ Transaction Hash:', result.txHash);
-    console.log('View on BaseScan:', `https://basescan.org/tx/${result.txHash}`);
+    console.log('Success! TX:', result.txHash);
+    console.log('View:', `https://basescan.org/tx/${result.txHash}`);
   }
 }
 
-/**
- * Example 3: Claim Token Creator Fees
- *
- * Transfer all accumulated fees from the Safe to a recipient address.
- * Only callable by the authorized creator address.
- */
-async function _claimTokenCreatorFees() {
-  const safeAddress = '0xSafeAddress' as `0x${string}`; // The Safe holding the fees
-  const tokenAddress = '0xYourTokenAddress' as `0x${string}`; // The token to claim fees for
-  const recipientAddress = account.address; // Where to send the fees
-
-  console.log('\n💰 Claiming Token Creator Fees...\n');
-
+// STEP 4: Claim Accumulated Fees
+// Transfer all fees from the Safe to your recipient address
+// biome-ignore lint/correctness/noUnusedVariables: Example function - uncomment in main() to use
+async function step4_claimFees() {
   const result = await legacyFeeClaims.tokenCreatorTransfer({
-    safe: safeAddress,
-    token: tokenAddress,
-    recipient: recipientAddress,
+    safe: CONFIG.safeAddress,
+    token: CONFIG.tokenAddress,
+    recipient: CONFIG.recipientAddress,
   });
 
   if (result.error) {
-    console.error('❌ Error:', result.error);
+    console.error('Error:', result.error.message);
   } else {
-    console.log('✅ Transaction Hash:', result.txHash);
-    console.log('View on BaseScan:', `https://basescan.org/tx/${result.txHash}`);
+    console.log('Success! TX:', result.txHash);
+    console.log('View:', `https://basescan.org/tx/${result.txHash}`);
   }
-
-  // Note: If you get an error sending to the zero address, try the burn address instead:
-  // const burnAddress = '0x000000000000000000000000000000000000dEaD' as `0x${string}`;
 }
 
-/**
- * Example 4: Read Token Creator Information
- *
- * Check who is the current authorized creator for a token.
- */
-async function getTokenCreatorInfo() {
-  const tokenAddress = '0xYourTokenAddress' as `0x${string}`;
-
-  console.log('\n📖 Reading Token Creator Info...\n');
-
-  const creator = await legacyFeeClaims.getTokenCreator({
-    token: tokenAddress,
-  });
-
-  console.log('Current Token Creator:', creator);
-
-  // Get the Merkle root (for debugging/verification)
-  const root = await legacyFeeClaims.getTokenCreatorRoot();
-  console.log('Token Creator Merkle Root:', root);
-}
-
-/**
- * Example 5: Using Standalone Functions
- *
- * You can also use the exported standalone functions to get transaction configs
- * for use with your own viem clients or for offline signing.
- */
-async function _useStandaloneFunctions() {
+// BONUS: Using Standalone Functions
+// Get transaction configs without executing (for advanced usage)
+// biome-ignore lint/correctness/noUnusedVariables: Example function - uncomment in main() to use
+async function bonus_standaloneFunction() {
   const { getTokenCreatorTransferTransaction } = await import('../../src/legacyFeeClaims/index.js');
 
   const txConfig = getTokenCreatorTransferTransaction({
-    safe: '0xSafeAddress' as `0x${string}`,
-    token: '0xTokenAddress' as `0x${string}`,
-    recipient: account.address,
+    safe: CONFIG.safeAddress,
+    token: CONFIG.tokenAddress,
+    recipient: CONFIG.recipientAddress,
   });
 
-  console.log('Transaction Config:', txConfig);
-
-  // Use this config with your own viem client
-  // const hash = await wallet.writeContract(txConfig);
+  console.log('TX Config:', txConfig);
+  // Use with your own client: const hash = await wallet.writeContract(txConfig);
 }
 
-// Main execution
+// Main
 async function main() {
-  console.log('🎯 Legacy Fee Claims Example');
-  console.log('Contract Address:', legacyFeeClaims.constructor.name);
+  console.log('Address:', account.address);
+  console.log('Network: Base\n');
 
-  // Run examples (comment/uncomment as needed)
-  // await initializeTokenCreator();
-  // await updateTokenCreator();
-  // await claimTokenCreatorFees();
-  await getTokenCreatorInfo();
-  // await useStandaloneFunctions();
+  // Uncomment the function you want to run:
+  await step1_readTokenInfo();
+  // await step2_initializeTokenCreator();
+  // await step3_updateTokenCreator();
+  // await step4_claimFees();
+  // await bonus_standaloneFunction();
 }
 
 main()
-  .then(() => {
-    console.log('\n✅ Done!');
-    process.exit(0);
-  })
+  .then(() => process.exit(0))
   .catch((error) => {
-    console.error('\n❌ Error:', error);
+    console.error('Error:', error);
     process.exit(1);
   });
