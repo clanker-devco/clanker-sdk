@@ -8,7 +8,8 @@ import { type ClankerError, understandError } from '../utils/errors.js';
 /**
  * Contract address for ClankerSafeErc20Spender on Base network
  */
-export const LEGACY_FEE_CLAIMS_ADDRESS = '0x10F4485d6f90239B72c6A5eaD2F2320993D285E4' as const;
+// export const LEGACY_FEE_CLAIMS_ADDRESS = '0x10F4485d6f90239B72c6A5eaD2F2320993D285E4' as const;
+export const LEGACY_FEE_CLAIMS_ADDRESS = '0xe6D6cd9C493Ebf28C4b75d95B251eCA684D6b0de' as const;
 
 type LegacyFeeClaimsConfig = {
   wallet?: WalletClient<Transport, Chain, Account>;
@@ -138,6 +139,7 @@ export class LegacyFeeClaims {
       });
       return { txHash, error: undefined };
     } catch (e) {
+      console.error(JSON.stringify(e, null, 2));
       return { txHash: undefined, error: understandError(e) };
     }
   }
@@ -500,7 +502,7 @@ export function parseTokenCreatorCSV(csvContent: string): TokenCreatorEntry[] {
  * This is the root that should be set in the contract.
  */
 export const EXPECTED_MERKLE_ROOT =
-  '0x704ffc95da12e8083ea2a683c2d3482ae237122f70f5e4ba6ca313b699b5fdde' as const;
+  '0xa7dcc91a2136ef1b3c708dbab901cbeb075f6df5cf5987494fedc340c57f7025' as const;
 
 // Export standalone functions for convenience
 
