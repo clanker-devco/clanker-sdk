@@ -86,7 +86,10 @@ describe('Legacy Fee Claims - Merkle Proof Generation', () => {
 
       expect(proof1).not.toBeNull();
       expect(proof2).not.toBeNull();
-      expect(proof1?.root).toBe(proof2?.root);
+
+      if (proof1 && proof2) {
+        expect(proof1.root).toBe(proof2.root);
+      }
     });
 
     test('should find token at correct index', () => {
