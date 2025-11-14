@@ -7,8 +7,7 @@ import { type ClankerError, understandError } from '../utils/errors.js';
 /**
  * Contract address for ClankerSafeErc20Spender on Base network
  */
-// export const LEGACY_FEE_CLAIMS_ADDRESS = '0x10F4485d6f90239B72c6A5eaD2F2320993D285E4' as const;
-export const LEGACY_FEE_CLAIMS_ADDRESS = '0xe6D6cd9C493Ebf28C4b75d95B251eCA684D6b0de' as const;
+export const LEGACY_FEE_CLAIMS_ADDRESS = '0x10F4485d6f90239B72c6A5eaD2F2320993D285E4' as const;
 
 type LegacyFeeClaimsConfig = {
   wallet?: WalletClient<Transport, Chain, Account>;
