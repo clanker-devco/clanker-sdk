@@ -1,6 +1,5 @@
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
-import { keccak256 } from 'viem';
 import { simulateContract, writeContract } from 'viem/actions';
 import { Clanker_v0_abi } from '../abi/legacyFeeClaims/ClankerSafeErc20Spender.js';
 import { type ClankerError, understandError } from '../utils/errors.js';
@@ -413,25 +412,6 @@ export interface MerkleProofResult {
 }
 
 /**
- * Generate a leaf hash for a token-creator pair.
- * This matches the Solidity implementation: keccak256(abi.encodePacked(tokenAddress, currentCreator))
- *
- * @param tokenAddress The token address
- * @param currentCreator The creator address
- * @returns The leaf hash
- */
-export function generateLeafHash(
-  tokenAddress: `0x${string}`,
-  currentCreator: `0x${string}`
-): `0x${string}` {
-  // Remove the 0x prefix and concatenate directly for packed encoding
-  // This matches Solidity's abi.encodePacked(tokenAddress, currentCreator)
-  const packed = `0x${tokenAddress.slice(2)}${currentCreator.slice(2)}` as `0x${string}`;
-
-  return keccak256(packed);
-}
-
-/**
  * Build a merkle tree from token-creator entries and get a proof for a specific token.
  *
  * @param entries Array of token-creator pairs
@@ -463,8 +443,11 @@ export function getTokenCreatorMerkleProof(
   // Get the proof for our target entry
   const proof = tree.getProof(targetIndex) as `0x${string}`[];
 
-  // Generate the leaf hash for verification
-  const leafHash = generateLeafHash(targetEntry.tokenAddress, targetEntry.currentCreator);
+  // Generate the leaf hash using StandardMerkleTree
+  const leafHash = tree.leafHash([
+    targetEntry.tokenAddress,
+    targetEntry.currentCreator,
+  ]) as `0x${string}`;
 
   return {
     tokenAddress: targetEntry.tokenAddress,

@@ -1,19 +1,23 @@
 import { readFileSync } from 'node:fs';
-import { parse } from 'csv-parse/sync';
-import { ethers } from 'ethers';
-import { MerkleTree } from 'merkletreejs';
+import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 
-interface TokenCreatorEntry {
-  tokenAddress: string;
-  currentCreator: string;
-}
-
-function generateLeafHash(tokenAddress: string, currentCreator: string): string {
-  const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
-    ['address', 'address'],
-    [tokenAddress, currentCreator]
-  );
-  return ethers.keccak256(encoded);
+interface MerkleTreeData {
+  root: string;
+  totalLeaves: number;
+  leaves: Array<{
+    index: number;
+    tokenAddress: string;
+    currentCreator: string;
+    hash: string;
+  }>;
+  proofs?: Array<{
+    index: number;
+    tokenAddress: string;
+    currentCreator: string;
+    leaf: string;
+    proof: string[];
+    isValid: boolean;
+  }>;
 }
 
 async function main() {
@@ -30,62 +34,56 @@ async function main() {
 
   console.log(`Looking up proof for token: ${normalizedTarget}\n`);
 
-  // Read the CSV file
-  console.log('Reading CSV file...');
-  const csvContent = readFileSync('data/token_creators_with_updates.csv', 'utf-8');
-  const records = parse(csvContent, {
-    columns: true,
-    skip_empty_lines: true,
-  }) as TokenCreatorEntry[];
+  // Load the pre-generated merkle tree data
+  console.log('Loading merkle tree data...');
+  const treeDataContent = readFileSync('output/merkle-tree-data.json', 'utf-8');
+  const treeData: MerkleTreeData = JSON.parse(treeDataContent);
 
-  console.log(`Loaded ${records.length} entries`);
+  console.log(`Loaded tree with ${treeData.totalLeaves} leaves`);
+  console.log(`Merkle Root: ${treeData.root}\n`);
 
-  // Find the target entry
-  const targetIndex = records.findIndex((r) => r.tokenAddress.toLowerCase() === normalizedTarget);
+  // Find the target entry in the leaves
+  const targetLeaf = treeData.leaves.find(
+    (leaf) => leaf.tokenAddress.toLowerCase() === normalizedTarget
+  );
 
-  if (targetIndex === -1) {
+  if (!targetLeaf) {
     console.error(`❌ Token address ${normalizedTarget} not found in the dataset`);
     process.exit(1);
   }
 
-  const targetEntry = records[targetIndex];
-  console.log(`\n✅ Found token at index ${targetIndex}`);
-  console.log(`   Token Address: ${targetEntry.tokenAddress}`);
-  console.log(`   Current Creator: ${targetEntry.currentCreator}\n`);
+  console.log(`✅ Found token at index ${targetLeaf.index}`);
+  console.log(`   Token Address: ${targetLeaf.tokenAddress}`);
+  console.log(`   Current Creator: ${targetLeaf.currentCreator}`);
+  console.log(`   Leaf Hash: ${targetLeaf.hash}\n`);
 
-  // Generate all leaf hashes
-  console.log('Generating leaf hashes...');
-  const leaves = records.map((record, index) => {
-    if (index % 50000 === 0 && index > 0) {
-      console.log(`  Processed ${index} leaves...`);
-    }
-    return generateLeafHash(record.tokenAddress, record.currentCreator);
-  });
+  // Rebuild the tree using OpenZeppelin StandardMerkleTree
+  console.log('Rebuilding merkle tree with OpenZeppelin StandardMerkleTree...');
+  const values = treeData.leaves.map((leaf) => [leaf.tokenAddress, leaf.currentCreator]);
+  const tree = StandardMerkleTree.of(values, ['address', 'address']);
 
-  // Build the tree
-  console.log('Building merkle tree...');
-  const tree = new MerkleTree(leaves, ethers.keccak256, {
-    sortPairs: true,
-    hashLeaves: false,
-  });
-
-  const root = tree.getHexRoot();
-  console.log(`Merkle Root: ${root}\n`);
+  // Verify the root matches
+  if (tree.root !== treeData.root) {
+    console.error('⚠️  Warning: Regenerated tree root does not match stored root');
+    console.error(`   Stored:      ${treeData.root}`);
+    console.error(`   Regenerated: ${tree.root}`);
+  }
 
   // Generate proof for the target
-  const targetLeafHash = leaves[targetIndex];
-  const proof = tree.getHexProof(targetLeafHash);
+  const proof = tree.getProof(targetLeaf.index);
+  const value = [targetLeaf.tokenAddress, targetLeaf.currentCreator];
+
+  // Verify the proof using StandardMerkleTree.verify(value, proof)
+  const isValid = tree.verify(value, proof);
 
   console.log('📋 Merkle Proof:');
-  console.log(`   Leaf Hash: ${targetLeafHash}`);
+  console.log(`   Index: ${targetLeaf.index}`);
   console.log(`   Proof Length: ${proof.length}`);
   console.log(`   Proof:`);
   proof.forEach((p: string, i: number) => {
     console.log(`     [${i}]: ${p}`);
   });
 
-  // Verify the proof
-  const isValid = tree.verify(proof, targetLeafHash, root);
   console.log(`\n🔍 Proof Verification: ${isValid ? '✅ Valid' : '❌ Invalid'}`);
 
   // Output as JSON for easy copying
@@ -93,12 +91,13 @@ async function main() {
   console.log(
     JSON.stringify(
       {
-        tokenAddress: targetEntry.tokenAddress,
-        currentCreator: targetEntry.currentCreator,
-        index: targetIndex,
-        leafHash: targetLeafHash,
+        tokenAddress: targetLeaf.tokenAddress,
+        currentCreator: targetLeaf.currentCreator,
+        index: targetLeaf.index,
+        leafHash: targetLeaf.hash,
         proof,
-        root,
+        root: tree.root,
+        isValid,
       },
       null,
       2

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
+import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import {
-  generateLeafHash,
   getTokenCreatorMerkleProof,
   type TokenCreatorEntry,
 } from '../../src/legacyFeeClaims/index.js';
@@ -21,33 +21,6 @@ describe('Legacy Fee Claims - Merkle Proof Generation', () => {
       currentCreator: '0xcfdda69723fc8e9b86c0430e45b2de6ca1b2f51f',
     },
   ];
-
-  describe('generateLeafHash', () => {
-    test('should generate a valid leaf hash', () => {
-      const leafHash = generateLeafHash(
-        TEST_ENTRIES[0].tokenAddress,
-        TEST_ENTRIES[0].currentCreator
-      );
-
-      expect(leafHash).toBeDefined();
-      expect(leafHash).toStartWith('0x');
-      expect(leafHash.length).toBe(66); // 0x + 64 hex chars
-    });
-
-    test('should generate consistent hashes for same input', () => {
-      const hash1 = generateLeafHash(TEST_ENTRIES[0].tokenAddress, TEST_ENTRIES[0].currentCreator);
-      const hash2 = generateLeafHash(TEST_ENTRIES[0].tokenAddress, TEST_ENTRIES[0].currentCreator);
-
-      expect(hash1).toBe(hash2);
-    });
-
-    test('should generate different hashes for different inputs', () => {
-      const hash1 = generateLeafHash(TEST_ENTRIES[0].tokenAddress, TEST_ENTRIES[0].currentCreator);
-      const hash2 = generateLeafHash(TEST_ENTRIES[1].tokenAddress, TEST_ENTRIES[1].currentCreator);
-
-      expect(hash1).not.toBe(hash2);
-    });
-  });
 
   describe('getTokenCreatorMerkleProof', () => {
     test('should generate a valid proof for an existing token', () => {
@@ -113,14 +86,22 @@ describe('Legacy Fee Claims - Merkle Proof Generation', () => {
       }
     });
 
-    test('should generate leaf hash matching the entry', () => {
+    test('should generate valid leaf hash', () => {
       const proofResult = getTokenCreatorMerkleProof(TEST_ENTRIES, TEST_ENTRIES[0].tokenAddress);
-      const expectedLeafHash = generateLeafHash(
-        TEST_ENTRIES[0].tokenAddress,
-        TEST_ENTRIES[0].currentCreator
-      );
 
       expect(proofResult).not.toBeNull();
+      expect(proofResult?.leafHash).toBeDefined();
+      expect(proofResult?.leafHash).toStartWith('0x');
+      expect(proofResult?.leafHash.length).toBe(66); // 0x + 64 hex chars
+
+      // Verify it matches OpenZeppelin's StandardMerkleTree leaf hash
+      const values = TEST_ENTRIES.map((e) => [e.tokenAddress, e.currentCreator]);
+      const tree = StandardMerkleTree.of(values, ['address', 'address']);
+      const expectedLeafHash = tree.leafHash([
+        TEST_ENTRIES[0].tokenAddress,
+        TEST_ENTRIES[0].currentCreator,
+      ]) as `0x${string}`;
+
       expect(proofResult?.leafHash).toBe(expectedLeafHash);
     });
   });

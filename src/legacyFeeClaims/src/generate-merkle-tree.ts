@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
+import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { parse } from 'csv-parse/sync';
-import { ethers } from 'ethers';
-import { MerkleTree } from 'merkletreejs';
 
 interface TokenCreatorEntry {
   tokenAddress: string;
@@ -12,15 +11,7 @@ interface MerkleLeaf {
   tokenAddress: string;
   currentCreator: string;
   hash: string;
-}
-
-function generateLeafHash(tokenAddress: string, currentCreator: string): string {
-  // Encode the token address and current creator as a packed encoding
-  const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
-    ['address', 'address'],
-    [tokenAddress, currentCreator]
-  );
-  return ethers.keccak256(encoded);
+  index: number;
 }
 
 async function main() {
@@ -38,30 +29,38 @@ async function main() {
 
   console.log(`Found ${records.length} entries`);
 
-  // Generate leaves with hashes
-  console.log('Generating leaf hashes...');
-  const leaves: MerkleLeaf[] = records.map((record, index) => {
-    if (index % 50000 === 0 && index > 0) {
-      console.log(`  Processed ${index} leaves...`);
+  console.log('Building merkle tree with OpenZeppelin StandardMerkleTree...');
+  // Build the merkle tree using OpenZeppelin's StandardMerkleTree
+  // Format: [tokenAddress, currentCreator] for each entry
+  const values = records.map((record) => [record.tokenAddress, record.currentCreator]);
+
+  // Create tree with standard ABI encoding and address types
+  const tree = StandardMerkleTree.of(values, ['address', 'address']);
+
+  const root = tree.root;
+
+  console.log('Extracting leaf hashes from tree...');
+  // Extract leaves with their hashes from the tree structure
+  const leaves: MerkleLeaf[] = [];
+  let processedCount = 0;
+  for (const [index, value] of tree.entries()) {
+    const [tokenAddress, currentCreator] = value;
+    // Get the leaf hash by getting the proof and deriving the leaf
+    // StandardMerkleTree stores the leaf hashes in its internal structure
+    const leafHash = tree.leafHash(value);
+
+    leaves.push({
+      tokenAddress,
+      currentCreator,
+      hash: leafHash,
+      index,
+    });
+
+    if (processedCount % 50000 === 0 && processedCount > 0) {
+      console.log(`  Processed ${processedCount} leaves...`);
     }
-    const hash = generateLeafHash(record.tokenAddress, record.currentCreator);
-    return {
-      tokenAddress: record.tokenAddress,
-      currentCreator: record.currentCreator,
-      hash,
-    };
-  });
-
-  console.log('Building merkle tree...');
-  const leafHashes = leaves.map((l) => l.hash);
-
-  // Create merkle tree with keccak256 hashing and sorted pairs
-  const tree = new MerkleTree(leafHashes, ethers.keccak256, {
-    sortPairs: true,
-    hashLeaves: false, // We've already hashed the leaves
-  });
-
-  const root = tree.getHexRoot();
+    processedCount++;
+  }
 
   console.log(`\nMerkle Root: ${root}\n`);
 
@@ -78,15 +77,25 @@ async function main() {
 
   if (generateAllProofs) {
     console.log('Generating proofs for all leaves (this may take a while)...');
-    proofsData = leaves.map((leaf, index) => {
-      if (index % 50000 === 0 && index > 0) {
-        console.log(`  Generated ${index} proofs...`);
+    proofsData = leaves.map((leaf) => {
+      if (leaf.index % 50000 === 0 && leaf.index > 0) {
+        console.log(`  Generated ${leaf.index} proofs...`);
       }
-      const proof = tree.getHexProof(leaf.hash);
-      const isValid = tree.verify(proof, leaf.hash, root);
+      const proof = tree.getProof(leaf.index);
+      const value = [leaf.tokenAddress, leaf.currentCreator];
+
+      // Verify using StandardMerkleTree.verify(value, proof)
+      let isValid = false;
+      try {
+        isValid = tree.verify(value, proof);
+      } catch (e) {
+        // Verification might fail due to proof format issues, mark as false
+        console.error(`Warning: Verification failed for leaf ${leaf.index}:`, e);
+        isValid = false;
+      }
 
       return {
-        index,
+        index: leaf.index,
         tokenAddress: leaf.tokenAddress,
         currentCreator: leaf.currentCreator,
         leaf: leaf.hash,
@@ -107,8 +116,18 @@ async function main() {
 
     proofsData = sampleIndices.map((index) => {
       const leaf = leaves[index];
-      const proof = tree.getHexProof(leaf.hash);
-      const isValid = tree.verify(proof, leaf.hash, root);
+      const proof = tree.getProof(index);
+      const value = [leaf.tokenAddress, leaf.currentCreator];
+
+      // Verify using StandardMerkleTree.verify(value, proof)
+      let isValid = false;
+      try {
+        isValid = tree.verify(value, proof);
+      } catch (e) {
+        // Verification might fail due to proof format issues, mark as false
+        console.error(`Warning: Verification failed for leaf ${index}:`, e);
+        isValid = false;
+      }
 
       return {
         index,
@@ -133,12 +152,7 @@ async function main() {
     let leavesWritten = false;
     for (let i = 0; i < leaves.length; i++) {
       const leaf = leaves[i];
-      leavesContent += `${JSON.stringify({
-        index: i,
-        tokenAddress: leaf.tokenAddress,
-        currentCreator: leaf.currentCreator,
-        hash: leaf.hash,
-      })}\n`;
+      leavesContent += `${JSON.stringify(leaf)}\n`;
 
       // Write in chunks to avoid memory issues
       if (i % 10000 === 0 && i > 0) {
@@ -186,12 +200,7 @@ async function main() {
     const outputData = {
       root,
       totalLeaves: leaves.length,
-      leaves: leaves.map((leaf, index) => ({
-        index,
-        tokenAddress: leaf.tokenAddress,
-        currentCreator: leaf.currentCreator,
-        hash: leaf.hash,
-      })),
+      leaves,
       proofs: proofsData,
     };
 
