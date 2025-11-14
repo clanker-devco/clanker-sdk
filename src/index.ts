@@ -10,3 +10,6 @@ export {
   encodeAirdropData,
   getMerkleProof,
 } from './utils/merkleTree.js';
+
+// Legacy Fee Claims is exported as a separate subpath to avoid bundling large CSV data
+// Import with: import { ... } from 'clanker-sdk/legacyFeeClaims'

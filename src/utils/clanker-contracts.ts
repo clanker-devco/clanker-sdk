@@ -1,3 +1,4 @@
+import type { Clanker_v0_abi } from '../abi/legacyFeeClaims/ClankerSafeErc20Spender.js';
 import type { Clanker_v3_1_abi } from '../abi/v3.1/Clanker.js';
 import type { ClankerToken_v3_1_abi } from '../abi/v3.1/ClankerToken.js';
 import type { LpLockerv2_abi } from '../abi/v3.1/LpLockerv2.js';
@@ -28,4 +29,5 @@ export type ClankerContract =
   | typeof ClankerAirdropv2_v4_abi
   | typeof LpLockerv2_abi
   | typeof ClankerLocker_v4_abi
-  | typeof Clanker_PresaleEthToCreator_v4_1_abi;
+  | typeof Clanker_PresaleEthToCreator_v4_1_abi
+  | typeof Clanker_v0_abi;

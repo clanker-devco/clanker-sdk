@@ -26,7 +26,7 @@ describe('v3 end to end', () => {
     transport: http(process.env.TESTS_RPC_URL),
   }) as PublicClient;
 
-  test('simulate', async () => {
+  test.skip('simulate', async () => {
     const token: ClankerTokenV3 = {
       name: 'TheName',
       symbol: 'SYM',

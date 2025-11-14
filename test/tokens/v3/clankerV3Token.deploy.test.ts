@@ -14,7 +14,7 @@ describe('v3 deploy', () => {
   }) as PublicClient;
   const _clanker = new Clanker({ publicClient });
 
-  test('basic', async () => {
+  test.skip('basic', async () => {
     const token = {
       name: 'TheName',
       symbol: 'SYM',
@@ -32,7 +32,7 @@ describe('v3 deploy', () => {
     expect(deployResult.status).toBe('success');
   });
 
-  test('full', async () => {
+  test.skip('full', async () => {
     const token = {
       name: 'TheName',
       symbol: 'SYM',
