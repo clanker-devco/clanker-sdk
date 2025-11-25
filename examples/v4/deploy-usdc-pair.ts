@@ -5,36 +5,36 @@ import { FEE_CONFIGS } from '../../src/constants.js';
 import { Clanker } from '../../src/v4/index.js';
 
 /**
- * V4 Token Deployment with USDC on Base
+ * V4 Token Deployment with USDC on Base - Configurable Market Cap
  *
- * This example shows how to deploy a V4 token paired with USDC.
+ * This example shows how to deploy a V4 token paired with USDC with
+ * configurable starting and ending market caps.
  *
- * WHY ~$10 STARTING MARKET CAP?
+ * HOW IT WORKS:
  *
- * The tick calculation accounts for the decimal difference between USDC (6) and WETH (18):
- * - WETH standard tick: -230,400 → ~$27k market cap (when WETH ≈ $3,500)
- * - USDC adjustment: -276,400 (for 10^12 decimal difference)
- * - Result tick: -506,800 → ~$10 market cap
+ * 1. Set your desired market cap range using the configuration variables:
+ *    - STARTING_MARKET_CAP_USDC: Your target starting price (e.g., $10)
+ *    - ENDING_MARKET_CAP_USDC: Your target max price (e.g., $43M)
  *
- * The ~$10 starting market cap happens because:
- * 1. We only adjusted for the decimal difference (10^12 = -276,400 ticks)
- * 2. We didn't adjust for the ETH/USDC price ratio (~$3,500 = additional ~-194,000 ticks)
- * 3. Without that second adjustment, the token starts at a lower USD price
+ * 2. The getTickFromMarketCapUSDC() function automatically calculates the
+ *    correct Uniswap V4 ticks for your USDC pair based on:
+ *    - Total supply: 100B tokens
+ *    - Token decimals: 18
+ *    - USDC decimals: 6
+ *    - Formula: tick = log(marketCap / 10^23) / log(1.0001)
  *
- * This gives you a MUCH lower starting market cap, which is often desirable for fair launches!
+ * 3. Ticks are automatically rounded to the tickSpacing (200) for validity.
  *
- * Price progression:
- * - Starting: ~$10 market cap (tick -506,800)
- * - Ending: ~$43M market cap (tick -396,400)
- *
- * Note: DevBuy is currently disabled. Uncomment the devBuy section to enable initial purchase.
+ * WHY USDC INSTEAD OF WETH?
+ * - USDC pairs give you direct USD pricing (no ETH price volatility)
+ * - Easier for users to understand token value
+ * - Better for stablecoins and USD-denominated projects
  */
 
 const CHAIN = base;
 const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 
 // USDC/ETH pool on Base Mainnet - required for DevBuy to swap ETH -> USDC
-// Uncomment if using devBuy
 const USDC_ETH_POOL_KEY = {
   currency0: '0x0000000000000000000000000000000000000000',
   currency1: BASE_USDC,
@@ -43,12 +43,53 @@ const USDC_ETH_POOL_KEY = {
   hooks: '0x0000000000000000000000000000000000000000',
 } as const;
 
+/**
+ * Calculate the tick for a desired market cap in USDC
+ *
+ * @param marketCapUSDC - Desired market cap in USDC (e.g., 10 for $10)
+ * @param tickSpacing - Tick spacing (must be multiple of this, default 200)
+ * @returns The tick value rounded to the nearest tickSpacing
+ *
+ * Formula:
+ * - Total supply: 100B tokens (10^11 * 10^18 with decimals = 10^29)
+ * - USDC: 6 decimals (10^6)
+ * - Price per token = (marketCap * 10^6) / 10^29 = marketCap / 10^23
+ * - tick = log(price) / log(1.0001)
+ */
+function getTickFromMarketCapUSDC(marketCapUSDC: number, tickSpacing: number = 200): number {
+  // Price = (marketCap in USDC with decimals) / (total supply with decimals)
+  // = (marketCap * 10^6) / (100B * 10^18)
+  // = marketCap / 10^23
+  const price = marketCapUSDC / 1e23;
+
+  // tick = log(price) / log(1.0001)
+  const rawTick = Math.log(price) / Math.log(1.0001);
+
+  // Round to nearest tickSpacing
+  return Math.floor(rawTick / tickSpacing) * tickSpacing;
+}
+
+// Configuration: Set your desired market cap range
+const STARTING_MARKET_CAP_USDC = 10_000; // $10k starting market cap
+const ENDING_MARKET_CAP_USDC = 100_000_000; // $43M ending market cap
+
+// Calculate ticks based on desired market caps
+const tickLower = getTickFromMarketCapUSDC(STARTING_MARKET_CAP_USDC);
+const tickUpper = getTickFromMarketCapUSDC(ENDING_MARKET_CAP_USDC);
+
+console.log(`📊 Calculated ticks for USDC pair:`);
+console.log(
+  `   Starting: $${STARTING_MARKET_CAP_USDC.toLocaleString()} → tick ${tickLower.toLocaleString()}`
+);
+console.log(
+  `   Ending: $${ENDING_MARKET_CAP_USDC.toLocaleString()} → tick ${tickUpper.toLocaleString()}\n`
+);
+
 // Custom pool positions for USDC (6 decimals)
-// Adjusted from WETH standard positions by -276,400 ticks (for 10^12 decimal difference)
 const USDC_POOL_POSITIONS = [
   {
-    tickLower: -506800, // ~$10 market cap (WETH: -230400, USDC: -506800)
-    tickUpper: -396400, // ~$43M market cap (WETH: -120000, USDC: -396400)
+    tickLower,
+    tickUpper,
     positionBps: 10_000, // All tokens in one LP position
   },
 ];
@@ -86,7 +127,7 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   // Pool paired with USDC using custom tick positions
   pool: {
     pairedToken: BASE_USDC,
-    tickIfToken0IsClanker: -506800, // Must match tickLower for validation
+    tickIfToken0IsClanker: tickLower, // Must match tickLower for validation
     tickSpacing: 200,
     positions: USDC_POOL_POSITIONS,
   },
