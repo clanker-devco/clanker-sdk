@@ -35,6 +35,7 @@ export const DEFAULT_SUPPLY = 100_000_000_000_000_000_000_000_000_000n;
 export enum PoolPositions {
   Standard = 'Standard',
   Project = 'Project',
+  TwentyETH = 'TwentyETH',
 }
 
 type PoolPosition = {
@@ -65,6 +66,33 @@ export const POOL_POSITIONS: Record<PoolPositions, PoolPosition[]> = {
     },
     {
       tickLower: -202000, // ~$450K
+      tickUpper: -155000, // ~$50M
+      positionBps: 1_500, // 15% of LP
+    },
+    {
+      tickLower: -155000, // ~$50M
+      tickUpper: -120000, // ~$1.5B
+      positionBps: 2_000, // 20% of LP
+    },
+    {
+      tickLower: -141000, // ~$200M
+      tickUpper: -120000, // ~$1.5B
+      positionBps: 500, // 5% of LP
+    },
+  ],
+  TwentyETH: [
+    {
+      tickLower: -223400, // 20 ETH (starting tick)
+      tickUpper: -212000, // ~$180K
+      positionBps: 1_000, // 10% of LP
+    },
+    {
+      tickLower: -212000, // ~$180K
+      tickUpper: -155000, // ~$50M
+      positionBps: 5_000, // 50% of LP
+    },
+    {
+      tickLower: -201000, // ~$500K
       tickUpper: -155000, // ~$50M
       positionBps: 1_500, // 15% of LP
     },
