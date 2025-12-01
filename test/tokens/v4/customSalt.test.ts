@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'bun:test';
-import { keccak256, stringify, toHex, zeroHash, type Hex } from 'viem';
+import { type Hex, keccak256, stringify, toHex, zeroHash } from 'viem';
 import { base } from 'viem/chains';
+import { clankerTokenV4 } from '../../../src/config/clankerTokenV4.js';
 import { DEFAULT_SUPPLY } from '../../../src/constants.js';
 import { clankerConfigFor, predictTokenAddressV4 } from '../../../src/index.js';
-import { clankerTokenV4 } from '../../../src/config/clankerTokenV4.js';
 
 describe('Custom Salt V4', () => {
   const testAddress = '0x1234567890123456789012345678901234567890' as const;
   const chainId = base.id;
-  const config = clankerConfigFor(chainId, 'clanker_v4')!;
+  const config = clankerConfigFor(chainId, 'clanker_v4');
+  if (!config) throw new Error('Config not found');
 
   const tokenConfig = {
     name: 'Test Token',
@@ -120,7 +121,12 @@ describe('Custom Salt V4', () => {
       BigInt(chainId),
     ] as const;
 
-    const addressWithCustom = predictTokenAddressV4(args, config, customSalt, tokenConfig.tokenAdmin);
+    const addressWithCustom = predictTokenAddressV4(
+      args,
+      config,
+      customSalt,
+      tokenConfig.tokenAdmin
+    );
     const addressWithZero = predictTokenAddressV4(args, config, zeroHash, tokenConfig.tokenAdmin);
 
     expect(addressWithCustom).not.toBe(addressWithZero);
@@ -236,4 +242,3 @@ describe('Custom Salt V4', () => {
     expect(address1).not.toBe(address2);
   });
 });
-

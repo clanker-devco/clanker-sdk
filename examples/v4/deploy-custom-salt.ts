@@ -1,23 +1,23 @@
 import {
   createPublicClient,
   createWalletClient,
+  type Hex,
   http,
   isHex,
   keccak256,
-  toHex,
   type PublicClient,
-  type Hex,
   stringify,
+  toHex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import {
+  clankerConfigFor,
+  DEFAULT_SUPPLY,
   FEE_CONFIGS,
   POOL_POSITIONS,
-  WETH_ADDRESSES,
-  DEFAULT_SUPPLY,
-  clankerConfigFor,
   predictTokenAddressV4,
+  WETH_ADDRESSES,
 } from '../../src/index.js';
 import { Clanker } from '../../src/v4/index.js';
 
@@ -82,7 +82,8 @@ if (!clankerConfig) throw new Error(`No config for chain ${CHAIN.id}`);
 const tokenName = 'Custom Salt Token';
 const tokenSymbol = 'CST';
 const tokenImage = 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi';
-const metadata = stringify({ description: 'Token with custom salt for predictable addressing' }) || '';
+const metadata =
+  stringify({ description: 'Token with custom salt for predictable addressing' }) || '';
 const socialContext = stringify({ interface: 'Clanker SDK' });
 
 // Constructor args must match exactly what will be used in deployment
