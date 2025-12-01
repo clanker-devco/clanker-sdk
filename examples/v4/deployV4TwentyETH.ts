@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrum, base, mainnet, unichain } from 'viem/chains';
-import { FEE_CONFIGS, PoolPositions, POOL_POSITIONS, WETH_ADDRESSES } from '../../src/constants.js';
+import { FEE_CONFIGS, POOL_POSITIONS, PoolPositions, WETH_ADDRESSES } from '../../src/constants.js';
 import { getTickFromMarketCap } from '../../src/utils/market-cap.js';
 import { Clanker } from '../../src/v4/index.js';
 
