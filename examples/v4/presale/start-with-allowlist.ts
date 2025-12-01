@@ -2,18 +2,22 @@ import { createPublicClient, createWalletClient, http, isHex, type PublicClient 
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import {
-  type ClankerDeployment,
-  clankerConfigFor,
-  type RelatedV4,
-} from '../../../src/utils/clankers.js';
+  type AllowlistEntry,
+  createAllowlistMerkleTree,
+  encodeAllowlistInitializationData,
+  getAllowlistAddress,
+} from '../../../src/index.js';
 import { type PresaleConfig, startPresale } from '../../../src/v4/extensions/presale.js';
 import { Clanker } from '../../../src/v4/index.js';
 
 /**
  * Start Presale with Allowlist Example
  *
- * This example demonstrates how to start a presale with an allowlist/whitelist.
- * Only addresses on the allowlist will be able to buy into the presale.
+ * This example demonstrates how to start a presale with an allowlist/whitelist
+ * using a Merkle tree. Only addresses on the allowlist will be able to buy into
+ * the presale up to their specified allowed amount.
+ *
+ * The allowlist uses a Merkle tree for efficient on-chain verification of allowed addresses.
  */
 
 const CHAIN = base;
@@ -31,13 +35,29 @@ const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
 const clanker = new Clanker({ publicClient, wallet });
 
 // Get the allowlist contract address for the chain
-const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(CHAIN.id, 'clanker_v4');
-if (!config?.related?.presaleAllowlist) {
+const ALLOWLIST_ADDRESS = getAllowlistAddress(CHAIN.id);
+if (!ALLOWLIST_ADDRESS) {
   throw new Error('Allowlist contract not available on this chain');
 }
-const ALLOWLIST_ADDRESS = config.related.presaleAllowlist;
 
 console.log(`Using allowlist contract: ${ALLOWLIST_ADDRESS}`);
+
+// Define your allowlist entries
+// Each entry specifies an address and the maximum ETH they can contribute
+const allowlistEntries: AllowlistEntry[] = [
+  { address: '0x1234567890123456789012345678901234567890', allowedAmount: 1.0 }, // 1 ETH max
+  { address: '0x2345678901234567890123456789012345678901', allowedAmount: 0.5 }, // 0.5 ETH max
+  { address: '0x3456789012345678901234567890123456789012', allowedAmount: 2.0 }, // 2 ETH max
+  // Add more addresses as needed
+];
+
+// Create Merkle tree from allowlist entries
+const { root: merkleRoot, tree } = createAllowlistMerkleTree(allowlistEntries);
+console.log(`\nGenerated Merkle Root: ${merkleRoot}`);
+console.log(`Allowlist contains ${allowlistEntries.length} addresses\n`);
+
+// Encode the merkle root as initialization data for the allowlist contract
+const allowlistInitializationData = encodeAllowlistInitializationData(merkleRoot);
 
 // Presale configuration with allowlist
 const presaleConfig: PresaleConfig = {
@@ -51,9 +71,7 @@ const presaleConfig: PresaleConfig = {
 
   // Allowlist configuration
   allowlist: ALLOWLIST_ADDRESS,
-  // Note: You'll need to set up the allowlist separately using the allowlist contract
-  // The allowlistInitializationData can contain merkle root or other initialization data
-  allowlistInitializationData: '0x', // Replace with actual initialization data if needed
+  allowlistInitializationData, // Contains the merkle root
 };
 
 async function startAllowlistedPresaleExample() {
@@ -62,6 +80,7 @@ async function startAllowlistedPresaleExample() {
   try {
     console.log('📝 Initializing presale with allowlist...');
     console.log(`Allowlist Contract: ${presaleConfig.allowlist}`);
+    console.log(`Merkle Root: ${merkleRoot}\n`);
 
     const { txHash, error } = await startPresale({
       clanker,
@@ -81,16 +100,24 @@ async function startAllowlistedPresaleExample() {
 
     console.log(`✅ Allowlisted presale started successfully!`);
     console.log(`Transaction: ${CHAIN.blockExplorers.default.url}/tx/${txHash}`);
-    console.log('\nPresale Configuration:');
+    console.log('\n📋 Presale Configuration:');
     console.log(`- Min Goal: ${presaleConfig.minEthGoal} ETH`);
     console.log(`- Max Goal: ${presaleConfig.maxEthGoal} ETH`);
     console.log(`- Duration: ${presaleConfig.presaleDuration / 3600} hours`);
     console.log(`- Lockup: ${(presaleConfig.lockupDuration ?? 604800) / 86400} days`);
     console.log(`- Vesting: ${(presaleConfig.vestingDuration ?? 0) / 86400} days`);
     console.log(`- Allowlist: ${presaleConfig.allowlist}`);
-    console.log('\n⚠️  Important: Only addresses on the allowlist can buy into this presale');
+    console.log('\n⚠️  Important Notes:');
+    console.log('   - Only addresses on the allowlist can buy into this presale');
+    console.log('   - Each address has a maximum contribution limit');
+    console.log('   - Buyers must provide a Merkle proof when purchasing');
+    console.log('\n💡 Next Steps:');
+    console.log('   1. Extract the presaleId from the transaction logs');
+    console.log('   2. Share the presale ID and Merkle tree with allowlisted buyers');
+    console.log('   3. Buyers can use buy-with-allowlist.ts example to participate');
+    console.log('\n📝 Save the Merkle tree for buyers to generate proofs!');
     console.log(
-      '💡 Note: Extract the presaleId from the transaction logs to use in other operations'
+      '   You can export it using: fs.writeFileSync("merkle-tree.json", tree.dump())'
     );
   } catch (error) {
     console.error('❌ Error starting allowlisted presale:', error);

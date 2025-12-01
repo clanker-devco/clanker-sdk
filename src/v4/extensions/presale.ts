@@ -580,3 +580,85 @@ export function getAllowlistAddress(chainId: ClankerChain): `0x${string}` | unde
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
   return config?.related?.presaleAllowlist;
 }
+
+/**
+ * Get a transaction to buy into a presale with allowlist proof
+ *
+ * Use this when buying into a presale that has an allowlist enabled.
+ * The proof must contain your allowlist proof data (merkle proof + allowed amount).
+ *
+ * @param presaleId The ID of the presale
+ * @param chainId The chain ID
+ * @param value The ETH amount to send (in wei)
+ * @param proof The encoded proof data from encodeAllowlistProofData
+ * @returns Transaction configuration for buying into a presale with proof
+ */
+export function getBuyIntoPresaleWithProofTransaction({
+  presaleId,
+  chainId,
+  value,
+  proof,
+}: {
+  presaleId: bigint;
+  chainId: ClankerChain;
+  value: bigint;
+  proof: `0x${string}`;
+}): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'buyIntoPresaleWithProof'> {
+  const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
+  if (!config?.related?.presale) {
+    throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);
+  }
+
+  return {
+    chainId,
+    address: config.related.presale,
+    abi: Clanker_PresaleEthToCreator_v4_1_abi,
+    functionName: 'buyIntoPresaleWithProof',
+    args: [presaleId, proof],
+    value,
+  };
+}
+
+/**
+ * Buy into a presale with allowlist proof
+ *
+ * Use this when buying into a presale that has an allowlist enabled.
+ * You must provide proof that your address is on the allowlist.
+ *
+ * @param clanker Clanker object used for buying into presale
+ * @param presaleId The ID of the presale
+ * @param ethAmount The ETH amount to send (in ETH, will be converted to wei)
+ * @param proof The encoded proof data from encodeAllowlistProofData
+ * @returns Outcome of the transaction
+ *
+ * @example
+ * ```typescript
+ * import { createAllowlistMerkleTree, getAllowlistMerkleProof, encodeAllowlistProofData } from '../utils/presale-allowlist';
+ *
+ * // Get your proof from the allowlist
+ * const { tree, entries } = createAllowlistMerkleTree(allowlistEntries);
+ * const proof = getAllowlistMerkleProof(tree, entries, buyerAddress, 1.0);
+ * const proofData = encodeAllowlistProofData(1.0, proof);
+ *
+ * // Buy with proof
+ * await buyIntoPresaleWithProof({ clanker, presaleId: 1n, ethAmount: 0.5, proof: proofData });
+ * ```
+ */
+export function buyIntoPresaleWithProof(data: {
+  clanker: Clanker;
+  presaleId: bigint;
+  ethAmount: number;
+  proof: `0x${string}`;
+}) {
+  if (!data.clanker.publicClient) throw new Error('Public client required on clanker');
+  if (!data.clanker.wallet) throw new Error('Wallet client required on clanker');
+
+  const tx = getBuyIntoPresaleWithProofTransaction({
+    presaleId: data.presaleId,
+    chainId: data.clanker.wallet.chain.id as ClankerChain,
+    value: BigInt(data.ethAmount * 1e18), // Convert ETH to wei
+    proof: data.proof,
+  });
+
+  return writeClankerContract(data.clanker.publicClient, data.clanker.wallet, tx);
+}
