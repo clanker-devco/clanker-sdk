@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http, isHex, type PublicClient 
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrum, base, mainnet, unichain } from 'viem/chains';
 import { FEE_CONFIGS, PoolPositions, POOL_POSITIONS, WETH_ADDRESSES } from '../../src/constants.js';
+import { getTickFromMarketCap } from '../../src/utils/market-cap.js';
 import { Clanker } from '../../src/v4/index.js';
 
 /**
@@ -17,7 +18,7 @@ import { Clanker } from '../../src/v4/index.js';
  * - P4: 20% from $50M-$1.5B (high market cap range)
  * - P5: 5% from $200M-$1.5B (top range)
  *
- * The pool initializes at tick -223400 for a 20 ETH starting market cap.
+ * The starting tick is calculated using getTickFromMarketCap(20) which returns -223400.
  *
  * This example demonstrates:
  * - Token deployment with TwentyETH pool position configuration
@@ -75,6 +76,10 @@ console.log(`Chain: ${CHAIN.name} (${CHAIN.id})`);
 console.log(`Account: ${account.address}`);
 console.log(`Starting Market Cap: 20 ETH\n`);
 
+// Calculate the starting tick for 20 ETH market cap
+const { tickIfToken0IsClanker } = getTickFromMarketCap(20);
+console.log(`Calculated Starting Tick: ${tickIfToken0IsClanker}\n`);
+
 const { txHash, waitForTransaction, error } = await clanker.deploy({
   chainId: CHAIN.id,
   name: 'TEST',
@@ -93,7 +98,7 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   pool: {
     pairedToken: WETH_ADDRESSES[CHAIN.id],
     positions: POOL_POSITIONS[PoolPositions.TwentyETH], // Using the TwentyETH configuration
-    tickIfToken0IsClanker: -223400, // 20 ETH starting market cap
+    tickIfToken0IsClanker, // 20 ETH starting market cap (calculated above)
   },
   fees: FEE_CONFIGS.StaticBasic, // Static fees recommended for mainnet (dynamic not supported on mainnet)
   vanity: true,
@@ -112,7 +117,7 @@ console.log('\n✅ Token deployed successfully!');
 console.log('Token address:', tokenAddress);
 console.log('View on Explorer:', `${EXPLORER_URLS[CHAIN.id]}/token/${tokenAddress}`);
 console.log('\nPool Configuration: TwentyETH');
-console.log('- Initial Tick: -223400 (20 ETH starting market cap)');
+console.log(`- Initial Tick: ${tickIfToken0IsClanker} (20 ETH starting market cap)`);
 console.log('- P1: 10% from 20 ETH-$180K');
 console.log('- P2: 50% from $180K-$50M');
 console.log('- P3: 15% from $500K-$50M');
