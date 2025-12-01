@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
+import { createPublicClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import {
@@ -6,12 +6,6 @@ import {
   createAllowlistMerkleTree,
   getAllowlistInfo,
 } from '../../../src/index.js';
-import {
-  setAddressOverride,
-  setAllowlistEnabled,
-  setMerkleRoot,
-} from '../../../src/v4/extensions/index.js';
-import { Clanker } from '../../../src/v4/index.js';
 
 /**
  * Manage Presale Allowlist Example
@@ -35,9 +29,10 @@ const publicClient = createPublicClient({
   chain: CHAIN,
   transport: http(),
 }) as PublicClient;
-const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
 
-const clanker = new Clanker({ publicClient, wallet });
+// Note: Uncomment these when you're ready to execute transactions
+// const wallet = createWalletClient({ account, chain: CHAIN, transport: http() });
+// const clanker = new Clanker({ publicClient, wallet });
 
 // Configuration
 const PRESALE_ID = 1n; // Replace with your actual presale ID
@@ -154,4 +149,3 @@ async function manageAllowlistExample() {
 
 // Run the example
 manageAllowlistExample().catch(console.error);
-

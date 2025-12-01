@@ -1,5 +1,5 @@
-import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { describe, expect, it } from 'bun:test';
+import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { decodeAbiParameters } from 'viem';
 import {
   type AllowlistEntry,
@@ -66,7 +66,7 @@ describe('Presale Allowlist Utilities', () => {
     });
 
     it('should verify proof is valid', () => {
-      const { tree, entries, root } = createAllowlistMerkleTree(testEntries);
+      const { tree, entries } = createAllowlistMerkleTree(testEntries);
       const testAddress = testEntries[0].address;
       const testAmount = testEntries[0].allowedAmount;
 
@@ -195,7 +195,7 @@ describe('Presale Allowlist Utilities', () => {
         { address: testEntries[0].address, allowedAmount: 2.0 },
       ];
 
-      const { tree, entries } = createAllowlistMerkleTree(entriesWithDupe);
+      const { entries } = createAllowlistMerkleTree(entriesWithDupe);
 
       // Both entries should be in the tree (as separate leaves)
       expect(entries).toHaveLength(2);

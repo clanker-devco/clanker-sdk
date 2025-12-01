@@ -55,6 +55,8 @@ const allowlistEntries: AllowlistEntry[] = [
 const { root: merkleRoot, tree } = createAllowlistMerkleTree(allowlistEntries);
 console.log(`\nGenerated Merkle Root: ${merkleRoot}`);
 console.log(`Allowlist contains ${allowlistEntries.length} addresses\n`);
+console.log('💾 Save the tree for later: tree.dump()');
+console.log(`Tree format: ${JSON.stringify(tree.dump()).slice(0, 50)}...\n`);
 
 // Encode the merkle root as initialization data for the allowlist contract
 const allowlistInitializationData = encodeAllowlistInitializationData(merkleRoot);
@@ -116,9 +118,7 @@ async function startAllowlistedPresaleExample() {
     console.log('   2. Share the presale ID and Merkle tree with allowlisted buyers');
     console.log('   3. Buyers can use buy-with-allowlist.ts example to participate');
     console.log('\n📝 Save the Merkle tree for buyers to generate proofs!');
-    console.log(
-      '   You can export it using: fs.writeFileSync("merkle-tree.json", tree.dump())'
-    );
+    console.log('   You can export it using: fs.writeFileSync("merkle-tree.json", tree.dump())');
   } catch (error) {
     console.error('❌ Error starting allowlisted presale:', error);
     throw error;

@@ -234,4 +234,3 @@ export function setAllowlistEnabled(data: {
 
   return writeClankerContract(data.clanker.publicClient, data.clanker.wallet, tx);
 }
-

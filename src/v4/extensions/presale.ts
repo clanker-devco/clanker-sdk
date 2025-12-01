@@ -603,7 +603,10 @@ export function getBuyIntoPresaleWithProofTransaction({
   chainId: ClankerChain;
   value: bigint;
   proof: `0x${string}`;
-}): ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'buyIntoPresaleWithProof'> {
+}): ClankerTransactionConfig<
+  typeof Clanker_PresaleEthToCreator_v4_1_abi,
+  'buyIntoPresaleWithProof'
+> {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
   if (!config?.related?.presale) {
     throw new Error(`PresaleEthToCreator is not available on chain ${chainId}`);

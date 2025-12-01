@@ -99,9 +99,7 @@ async function buyIntoAllowlistedPresaleExample() {
       CHAIN.id
     );
 
-    console.log(
-      `\n✅ Verification: ${verification.isAllowed ? 'ALLOWED' : 'NOT ALLOWED'}`
-    );
+    console.log(`\n✅ Verification: ${verification.isAllowed ? 'ALLOWED' : 'NOT ALLOWED'}`);
     console.log(`   Allowed Amount: ${verification.allowedAmountEth} ETH`);
 
     if (!verification.isAllowed) {
@@ -124,9 +122,7 @@ async function buyIntoAllowlistedPresaleExample() {
     console.log('\n✅ Successfully bought into allowlisted presale!');
     console.log(`Transaction: ${CHAIN.blockExplorers.default.url}/tx/${txHash}`);
     console.log(`\n💡 You contributed ${ETH_AMOUNT} ETH to presale ${PRESALE_ID}`);
-    console.log(
-      `💡 Remaining allowance: ${myEntry.allowedAmount - ETH_AMOUNT} ETH`
-    );
+    console.log(`💡 Remaining allowance: ${myEntry.allowedAmount - ETH_AMOUNT} ETH`);
     console.log('💡 Use the status.ts example to check your contribution');
   } catch (error) {
     console.error('❌ Error buying into presale:', error);
