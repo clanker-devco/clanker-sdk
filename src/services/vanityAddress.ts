@@ -1,4 +1,11 @@
-import { type ContractConstructorArgs, encodeDeployData, keccak256 } from 'viem';
+import {
+  type ContractConstructorArgs,
+  encodeDeployData,
+  keccak256,
+  getContractAddress,
+  type Hex,
+  encodeAbiParameters,
+} from 'viem';
 import { abstract, monadTestnet } from 'viem/chains';
 import {
   ClankerToken_v3_1_abi,
@@ -78,4 +85,50 @@ export const findVanityAddressV4 = async (
   };
 
   return { token: address, salt };
+};
+
+/**
+ * Predict the token address for a V4 deployment with a custom salt using CREATE2.
+ *
+ * The Clanker contract uses: keccak256(abi.encode(tokenAdmin, salt))
+ * as the actual CREATE2 salt.
+ *
+ * @param args Constructor arguments for the token
+ * @param config Clanker deployment configuration
+ * @param salt Custom salt for CREATE2 deployment
+ * @param tokenAdmin Token admin address (used to derive the actual CREATE2 salt)
+ * @returns The predicted token address
+ */
+export const predictTokenAddressV4 = (
+  args: ContractConstructorArgs<typeof ClankerToken_v4_abi>,
+  config: ClankerDeployment,
+  salt: Hex,
+  tokenAdmin: `0x${string}`
+): `0x${string}` => {
+  const deployData = encodeDeployData({
+    abi: config.token.abi,
+    bytecode: config.token.bytecode,
+    args,
+  });
+
+  // The ClankerDeployer library derives the actual salt as:
+  // keccak256(abi.encode(tokenAdmin, salt))
+  const actualSalt = keccak256(
+    encodeAbiParameters(
+      [
+        { type: 'address', name: 'tokenAdmin' },
+        { type: 'bytes32', name: 'salt' },
+      ],
+      [tokenAdmin, salt]
+    )
+  );
+
+  const predictedAddress = getContractAddress({
+    from: config.address, // deployer (Clanker contract)
+    salt: actualSalt,
+    bytecode: deployData,
+    opcode: 'CREATE2',
+  });
+
+  return predictedAddress;
 };
