@@ -75,7 +75,8 @@ test('basic', async () => {
     },
   ]);
   expect(tx.value).toEqual(0n);
-  expect(tx.expectedAddress).toBeUndefined();
+  // Address is now always predicted using CREATE2
+  expect(tx.expectedAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
   expect(tx.chainId).toEqual(8453);
 });
 

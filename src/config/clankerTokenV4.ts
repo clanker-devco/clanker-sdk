@@ -17,7 +17,7 @@ import { ClankerVault_Instantiation_v4_abi } from '../abi/v4/ClankerVault.js';
 import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../abi/v4.1/ClankerMevSniperAuction.js';
 import { Clanker_PoolInitializationData_v4_1_abi } from '../abi/v4.1/ClankerPool.js';
 import { DEFAULT_SUPPLY, POOL_POSITIONS, WETH_ADDRESSES } from '../constants.js';
-import { findVanityAddressV4 } from '../services/vanityAddress.js';
+import { findVanityAddressV4, predictTokenAddressV4 } from '../services/vanityAddress.js';
 import {
   Chains,
   type ClankerDeployment,
@@ -307,31 +307,29 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
     throw new Error(`Presales are not available on chain ${cfg.chainId}`);
   }
 
+  const tokenArgs = [
+    cfg.name,
+    cfg.symbol,
+    DEFAULT_SUPPLY,
+    cfg.tokenAdmin,
+    cfg.image,
+    metadata,
+    socialContext,
+    BigInt(cfg.chainId),
+  ] as const;
+
   const { salt, token: expectedAddress } = cfg.salt
     ? {
-        // Use custom salt if provided
+        // Use custom salt if provided, predict the address using CREATE2
         salt: cfg.salt,
-        token: undefined,
+        token: predictTokenAddressV4(tokenArgs, clankerConfig, cfg.salt, cfg.tokenAdmin),
       }
     : cfg.vanity
-      ? await findVanityAddressV4(
-          [
-            cfg.name,
-            cfg.symbol,
-            DEFAULT_SUPPLY,
-            cfg.tokenAdmin,
-            cfg.image,
-            metadata,
-            socialContext,
-            BigInt(cfg.chainId),
-          ],
-          cfg.tokenAdmin,
-          '0x4b07',
-          clankerConfig
-        )
+      ? await findVanityAddressV4(tokenArgs, cfg.tokenAdmin, '0x4b07', clankerConfig)
       : {
+          // Default case: use zeroHash and predict address
           salt: zeroHash,
-          token: undefined,
+          token: predictTokenAddressV4(tokenArgs, clankerConfig, zeroHash, cfg.tokenAdmin),
         };
 
   const airdropAmount = BigInt(cfg.airdrop?.amount || 0) * BigInt(1e18);
