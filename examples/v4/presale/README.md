@@ -27,8 +27,9 @@ Presales allow token creators to raise ETH before deploying their token. Key fea
 
 ### Allowlist (Whitelist) Presales
 
-9. **`start-with-allowlist.ts`** - Start a presale with an allowlist
-10. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale
+9. **`start-with-allowlist.ts`** - Start a presale with a Merkle tree allowlist
+10. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale with proof
+11. **`manage-allowlist.ts`** - Manage allowlist (update merkle root, set overrides, enable/disable)
 
 ## Allowlist Addresses
 
@@ -64,16 +65,112 @@ const { txHash } = await startPresale({
 
 ### Starting an Allowlisted Presale
 
-```typescript
-import { getAllowlistAddress } from 'clanker-sdk/v4/extensions';
+Allowlists use Merkle trees for efficient on-chain verification. You provide a merkle root during presale creation, and buyers provide proofs when purchasing.
 
+```typescript
+import { 
+  getAllowlistAddress, 
+  createAllowlistMerkleTree, 
+  encodeAllowlistInitializationData 
+} from 'clanker-sdk';
+
+// Define who can participate and how much ETH they can contribute
+const allowlistEntries = [
+  { address: '0x123...', allowedAmount: 1.0 }, // 1 ETH max
+  { address: '0x456...', allowedAmount: 0.5 }, // 0.5 ETH max
+  { address: '0x789...', allowedAmount: 2.0 }, // 2 ETH max
+];
+
+// Create Merkle tree and get root
+const { root, tree } = createAllowlistMerkleTree(allowlistEntries);
+
+// Encode initialization data
+const allowlistInitData = encodeAllowlistInitializationData(root);
+
+// Get allowlist contract address for your chain
 const allowlistAddress = getAllowlistAddress(chainId);
 
 const presaleConfig = {
   // ... basic config ...
   allowlist: allowlistAddress,
-  allowlistInitializationData: '0x' // Optional initialization data
+  allowlistInitializationData: allowlistInitData
 };
+
+// Save the tree for buyers to generate proofs
+// fs.writeFileSync('merkle-tree.json', tree.dump());
+```
+
+### Buying Into an Allowlisted Presale
+
+Buyers need to provide a Merkle proof to purchase from an allowlisted presale:
+
+```typescript
+import { 
+  getAllowlistMerkleProof,
+  encodeAllowlistProofData,
+  verifyBuyerAllowance
+} from 'clanker-sdk';
+import { buyIntoPresaleWithProof } from 'clanker-sdk/v4/extensions';
+
+// Load or recreate the Merkle tree
+const tree = StandardMerkleTree.load(JSON.parse(fs.readFileSync('merkle-tree.json')));
+
+// Get your proof
+const myAllowedAmount = 1.0; // Your allowed amount from the allowlist
+const proof = getAllowlistMerkleProof(tree, entries, buyerAddress, myAllowedAmount);
+
+// Encode the proof
+const proofData = encodeAllowlistProofData(myAllowedAmount, proof);
+
+// Optionally verify before buying
+const verification = await verifyBuyerAllowance(
+  publicClient,
+  presaleId,
+  buyerAddress,
+  0.5, // Amount you want to buy
+  proofData,
+  chainId
+);
+
+if (verification.isAllowed) {
+  // Buy with proof
+  const { txHash } = await buyIntoPresaleWithProof({
+    clanker,
+    presaleId: 1n,
+    ethAmount: 0.5,
+    proof: proofData
+  });
+}
+```
+
+### Managing an Allowlist
+
+Presale owners can manage the allowlist after creation:
+
+```typescript
+import { 
+  setMerkleRoot,
+  setAddressOverride,
+  setAllowlistEnabled
+} from 'clanker-sdk/v4/extensions';
+
+// 1. Update the Merkle root (to modify the allowlist)
+const { root: newRoot } = createAllowlistMerkleTree(newEntries);
+await setMerkleRoot({ clanker, presaleId: 1n, merkleRoot: newRoot });
+
+// 2. Set an address override (manual allowlist without regenerating tree)
+await setAddressOverride({
+  clanker,
+  presaleId: 1n,
+  buyer: '0x999...',
+  allowedAmountEth: 2.0 // Allow 2 ETH
+});
+
+// 3. Disable the allowlist (let anyone participate)
+await setAllowlistEnabled({ clanker, presaleId: 1n, enabled: false });
+
+// 4. Re-enable the allowlist
+await setAllowlistEnabled({ clanker, presaleId: 1n, enabled: true });
 ```
 
 ### Buying Into a Presale
@@ -247,6 +344,15 @@ bun run examples/v4/presale/claim.ts
 
 # Presale owner claims ETH
 bun run examples/v4/presale/claimEth.ts
+
+# Start presale with allowlist
+bun run examples/v4/presale/start-with-allowlist.ts
+
+# Buy with allowlist proof
+bun run examples/v4/presale/buy-with-allowlist.ts
+
+# Manage allowlist
+bun run examples/v4/presale/manage-allowlist.ts
 ```
 
 ## Important Notes
@@ -266,7 +372,12 @@ bun run examples/v4/presale/claimEth.ts
 7. **Early Withdrawal**: Users can withdraw their ETH contributions at any time while the presale is still ACTIVE (before it ends)
 8. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
 9. **Vesting**: Tokens vest linearly over the vesting duration after lockup
-10. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate
+10. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate. Allowlists use Merkle trees for efficient verification:
+    - Each address has a maximum contribution limit
+    - Buyers must provide a Merkle proof when purchasing
+    - Presale owners can update the allowlist at any time
+    - Address overrides take precedence over the Merkle tree
+    - Allowlists can be disabled/re-enabled by the presale owner
 11. **Other Extensions**: If you need to use other extensions along with presale, add them to `extensionConfigs` - the presale will automatically be added as the last extension
 
 ## Additional Resources

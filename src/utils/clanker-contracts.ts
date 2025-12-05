@@ -10,6 +10,7 @@ import type { ClankerHook_DynamicFee_v4_abi } from '../abi/v4/ClankerHookDynamic
 import type { ClankerHook_StaticFee_v4_abi } from '../abi/v4/ClankerHookStaticFee.js';
 import type { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import type { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
+import type { Clanker_PresaleAllowlist_v4_1_abi } from '../abi/v4.1/ClankerPresaleAllowlist.js';
 import type { Clanker_PresaleEthToCreator_v4_1_abi } from '../abi/v4.1/ClankerPresaleEthToCreator.js';
 
 export type ClankerToken = typeof ClankerToken_v3_1_abi | typeof ClankerToken_v4_abi;
@@ -29,5 +30,6 @@ export type ClankerContract =
   | typeof ClankerAirdropv2_v4_abi
   | typeof LpLockerv2_abi
   | typeof ClankerLocker_v4_abi
+  | typeof Clanker_PresaleAllowlist_v4_1_abi
   | typeof Clanker_PresaleEthToCreator_v4_1_abi
   | typeof Clanker_v0_abi;

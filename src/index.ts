@@ -10,6 +10,18 @@ export {
   encodeAirdropData,
   getMerkleProof,
 } from './utils/merkleTree.js';
+export {
+  type AllowlistEntry,
+  type AllowlistProof,
+  createAllowlistMerkleTree,
+  encodeAllowlistInitializationData,
+  encodeAllowlistProofData,
+  getAllowedAmountForBuyer,
+  getAllowlistAddress,
+  getAllowlistInfo,
+  getAllowlistMerkleProof,
+  verifyBuyerAllowance,
+} from './utils/presale-allowlist.js';
 
 // Legacy Fee Claims is exported as a separate subpath to avoid bundling large CSV data
 // Import with: import { ... } from 'clanker-sdk/legacyFeeClaims'
