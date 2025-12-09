@@ -184,6 +184,8 @@ export const clankerTokenV4 = z.strictObject({
         .default(NULL_DEVBUY_POOL_CONFIG),
       /** Amount out min for the ETH -> PAIR swap. Used if the clanker is not paired with ETH. */
       amountOutMin: z.number().default(0),
+      /** Recipient address for the purchased tokens. Defaults to tokenAdmin if not specified. */
+      recipient: addressSchema.optional(),
     })
     .optional(),
   /** Fee structure for the token. */
@@ -455,7 +457,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
                   extensionData: encodeAbiParameters(ClankerUniV4EthDevBuy_Instantiation_v4_abi, [
                     cfg.devBuy.poolKey,
                     BigInt(cfg.devBuy.amountOutMin * 1e18),
-                    cfg.tokenAdmin,
+                    cfg.devBuy.recipient ?? cfg.tokenAdmin,
                   ]),
                 },
               ]

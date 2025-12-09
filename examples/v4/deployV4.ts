@@ -91,6 +91,7 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   },
   devBuy: {
     ethAmount: 0,
+    recipient: account.address, // optional, defaults to tokenAdmin if not set
   },
   rewards: {
     recipients: [
