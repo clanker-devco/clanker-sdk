@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http, isHex, type PublicClient 
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrum, base, mainnet, unichain } from 'viem/chains';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../src/constants.js';
+import { monad } from '../../src/utils/chains/monad.js';
 import { Clanker } from '../../src/v4/index.js';
 
 /**
@@ -27,6 +28,7 @@ const CHAIN = mainnet;
 // const CHAIN = arbitrum;
 // const CHAIN = sepolia;
 // const CHAIN = unichain;
+// const CHAIN = monad; // Note: Monad only supports static fee hooks (FEE_CONFIGS.StaticBasic)
 
 // Chain-specific RPC URLs (using env vars for better rate limits)
 const RPC_URLS: Record<number, string | undefined> = {
@@ -34,6 +36,7 @@ const RPC_URLS: Record<number, string | undefined> = {
   [base.id]: process.env.TESTS_RPC_URL_BASE,
   [arbitrum.id]: process.env.TESTS_RPC_URL_ARBITRUM,
   [unichain.id]: process.env.TESTS_RPC_URL_UNICHAIN,
+  [monad.id]: process.env.TESTS_RPC_URL_MONAD,
 };
 
 // Chain-specific explorer URLs
@@ -42,6 +45,7 @@ const EXPLORER_URLS: Record<number, string> = {
   [base.id]: 'https://basescan.org',
   [arbitrum.id]: 'https://arbiscan.io',
   [unichain.id]: 'https://unichain-sepolia.blockscout.com',
+  [monad.id]: 'https://monadvision.com',
 };
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
