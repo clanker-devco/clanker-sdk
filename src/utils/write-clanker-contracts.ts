@@ -40,6 +40,7 @@ export type ClankerTransactionConfig<
   gasPrice?: bigint;
   value?: bigint;
   chainId?: number;
+  dataSuffix?: `0x${string}`;
 };
 
 /**
@@ -131,8 +132,11 @@ export const writeClankerContract = async <
   }
 
   try {
-    // biome-ignore lint: It's difficult to type tx correctly
-    const txHash = await writeContract(wallet, tx as any);
+    const txHash = await writeContract(wallet, {
+      ...tx,
+      dataSuffix: tx.dataSuffix,
+      // biome-ignore lint/suspicious/noExplicitAny: It's difficult to type tx correctly with viem's generic constraints
+    } as any);
     return { txHash };
   } catch (e) {
     return { error: understandError(e) };

@@ -5,7 +5,7 @@ import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
 import { ClankerVault_v4_abi } from '../abi/v4/ClankerVault.js';
 import { type ClankerTokenV4, clankerTokenV4Converter } from '../config/clankerTokenV4.js';
-import { deployToken, simulateDeployToken } from '../deployment/deploy.js';
+import { type DeployTokenOptions, deployToken, simulateDeployToken } from '../deployment/deploy.js';
 import {
   type Chain as ClankerChain,
   type ClankerDeployment,
@@ -197,15 +197,17 @@ export class Clanker {
    * Deploy a token
    *
    * @param token The token to deploy
+   * @param options Optional deployment options
+   * @param options.dataSuffix Data to append to transaction calldata (e.g., Base builder codes)
    * @returns Transaction hash and awaitable function for full deployment
    */
-  async deploy(token: ClankerTokenV4) {
+  async deploy(token: ClankerTokenV4, options?: DeployTokenOptions) {
     if (!this.wallet) throw new Error('Wallet client required for deployment');
     if (!this.publicClient) throw new Error('Public client required for deployment');
 
     const input = await this.getDeployTransaction(token);
 
-    return deployToken(input, this.wallet, this.publicClient);
+    return deployToken(input, this.wallet, this.publicClient, options);
   }
 
   /**
