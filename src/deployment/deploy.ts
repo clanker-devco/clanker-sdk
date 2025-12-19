@@ -43,10 +43,16 @@ export async function simulateDeployToken(
   return simulateClankerContract(publicClient, account, tx);
 }
 
+export type DeployTokenOptions = {
+  /** Data to append to the end of the transaction calldata (e.g., Base builder codes) */
+  dataSuffix?: `0x${string}`;
+};
+
 export async function deployToken(
   tx: ClankerDeployConfig<ClankerFactory, 'deployToken'>,
   wallet: WalletClient<Transport, Chain, Account>,
-  publicClient: PublicClient
+  publicClient: PublicClient,
+  options?: DeployTokenOptions
 ): ClankerResult<{
   txHash: `0x${string}`;
   waitForTransaction: () => ClankerResult<{ address: `0x${string}` }>;
@@ -68,8 +74,11 @@ export async function deployToken(
     );
   }
 
-  // Estimate gas for the transaction
-  const { gas, error: gasError } = await estimateGasClankerContract(publicClient, account, tx);
+  // Estimate gas for the transaction (include dataSuffix since it affects calldata size)
+  const { gas, error: gasError } = await estimateGasClankerContract(publicClient, account, {
+    ...tx,
+    dataSuffix: options?.dataSuffix,
+  });
   if (gasError) return { error: gasError };
 
   const { txHash, error: txError } = await writeClankerContract(
@@ -78,6 +87,7 @@ export async function deployToken(
     {
       ...tx,
       gas: (gas * 12n) / 10n,
+      dataSuffix: options?.dataSuffix,
     },
     {
       simulate: true,
