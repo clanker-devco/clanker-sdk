@@ -77,7 +77,8 @@ type LegacyFeeClaimsConfig = {
 };
 
 /**
- * Transaction config for legacy fee claiming
+ * Transaction config for legacy fee claiming.
+ * Compatible with walletClient.writeContract()
  */
 export type LegacyClaimTransactionConfig = {
   address: `0x${string}`;
@@ -162,6 +163,9 @@ export class LegacyCreatorFees {
 
   /**
    * Get a transaction config for claiming legacy creator fees.
+   *
+   * @param input Token address, version, and locker params (for v0/v1)
+   * @returns Transaction config
    */
   getClaimLegacyCreatorFeesTransaction(
     input: ClaimLegacyCreatorFeesInput
@@ -172,6 +176,10 @@ export class LegacyCreatorFees {
 
   /**
    * Get a transaction config for claiming via meta-locker (some v0 tokens).
+   *
+   * @param locker The locker contract address
+   * @param positionId The Uniswap V3 position NFT ID
+   * @returns Transaction config
    */
   getMetaLockerClaimTransaction(
     locker: `0x${string}`,
@@ -189,6 +197,10 @@ export class LegacyCreatorFees {
 
   /**
    * Simulate claiming legacy creator fees.
+   *
+   * @param input Token address, version, and locker params (for v0/v1)
+   * @param account Optional account to simulate from
+   * @returns Simulation result or error
    */
   async claimLegacyCreatorFeesSimulate(input: ClaimLegacyCreatorFeesInput, account?: Account) {
     const acc = account ?? this.wallet?.account;
@@ -217,7 +229,7 @@ export class LegacyCreatorFees {
   async claimLegacyCreatorFees(
     input: ClaimLegacyCreatorFeesInput
   ): Promise<
-    { txHash: `0x${string}`; error?: undefined } | { txHash?: undefined; error: ClankerError }
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
   > {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
@@ -229,9 +241,9 @@ export class LegacyCreatorFees {
         ...tx,
         // biome-ignore lint/suspicious/noExplicitAny: viem generics are complex
       } as any);
-      return { txHash };
+      return { txHash, error: undefined };
     } catch (e) {
-      return { error: understandError(e) };
+      return { txHash: undefined, error: understandError(e) };
     }
   }
 }
