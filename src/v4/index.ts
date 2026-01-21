@@ -697,6 +697,56 @@ export class Clanker {
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
+
+  /**
+   * Get the transaction config for reading token rewards information from the locker contract.
+   *
+   * @param token The token address to get rewards info for
+   * @param options Optional chain configuration
+   * @returns Abi transaction config for reading token rewards
+   */
+  async getTokenRewardsTransaction(
+    { token }: { token: `0x${string}` },
+    options?: { chain?: Chain }
+  ) {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    return {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'tokenRewards',
+      args: [token],
+    } as const;
+  }
+
+  /**
+   * Get the token rewards information from the locker contract.
+   * This is useful for obtaining the rewardIndex needed for updateRewardRecipient and updateRewardAdmin.
+   *
+   * The returned object contains:
+   * - token: The token address
+   * - poolKey: The Uniswap V4 pool key
+   * - positionId: The LP position ID
+   * - numPositions: Number of LP positions
+   * - rewardBps: Array of reward basis points for each recipient
+   * - rewardAdmins: Array of admin addresses (index = rewardIndex)
+   * - rewardRecipients: Array of recipient addresses (index = rewardIndex)
+   *
+   * @param token The token address to get rewards info for
+   * @returns Token rewards information including rewardAdmins and rewardRecipients arrays
+   */
+  async getTokenRewards({ token }: { token: `0x${string}` }) {
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const tx = await this.getTokenRewardsTransaction({ token });
+
+    return this.publicClient.readContract(tx);
+  }
 }
 
 export { encodeFeeConfig } from '../config/clankerTokenV4.js';
