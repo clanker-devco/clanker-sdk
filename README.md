@@ -210,3 +210,17 @@ bun publish-package
 ## License
 
 MIT
+## My Test Addition by shazu
+Hello! I added this line as a test from @d_zc7e on X.
+## My Clanker Experiments by shazu (@d_zc7e)
+
+Hi! I'm learning Clanker on Base.  
+This fork has my test scripts and notes for deploying tokens.  
+Goal: Make easy examples for beginners like me.
+
+Check clanker.world for the real tool!
+## Beginner Examples by shazu (@d_zc7e)
+
+Simple note for new users:
+- Use `bun run create-clanker` for quick CLI deploy.
+- My test: console.log("Deploying from UK with love! 🚀");
