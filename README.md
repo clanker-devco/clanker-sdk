@@ -219,3 +219,8 @@ This fork has my test scripts and notes for deploying tokens.
 Goal: Make easy examples for beginners like me.
 
 Check clanker.world for the real tool!
+## Beginner Examples by shazu (@d_zc7e)
+
+Simple note for new users:
+- Use `bun run create-clanker` for quick CLI deploy.
+- My test: console.log("Deploying from UK with love! 🚀");
