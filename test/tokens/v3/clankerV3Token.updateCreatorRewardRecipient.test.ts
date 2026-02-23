@@ -32,7 +32,7 @@ describe('v3 updateCreatorRewardRecipient', () => {
     expect(tx.args).toEqual([tokenId, newRecipient]);
   });
 
-  test('updateCreatorRewardRecipientSimulate', async () => {
+  test.skipIf(!process.env.TESTS_RPC_URL)('updateCreatorRewardRecipientSimulate', async () => {
     const tokenId = 123n;
     const newRecipient = '0x0000000000000000000000000000000000000005' as `0x${string}`;
 
@@ -43,27 +43,30 @@ describe('v3 updateCreatorRewardRecipient', () => {
     expect(result).toBeDefined();
   });
 
-  test('updateCreatorRewardRecipientSimulate with wallet account', async () => {
-    const tokenId = 456n;
-    const newRecipient = '0x0000000000000000000000000000000000000006' as `0x${string}`;
+  test.skipIf(!process.env.TESTS_RPC_URL)(
+    'updateCreatorRewardRecipientSimulate with wallet account',
+    async () => {
+      const tokenId = 456n;
+      const newRecipient = '0x0000000000000000000000000000000000000006' as `0x${string}`;
 
-    // Create a mock wallet client for testing
-    const mockWallet = {
-      account: admin,
-    } as WalletClient<Transport, Chain, Account>;
+      // Create a mock wallet client for testing
+      const mockWallet = {
+        account: admin,
+      } as WalletClient<Transport, Chain, Account>;
 
-    const clankerWithWallet = new Clanker({
-      publicClient,
-      wallet: mockWallet,
-    });
+      const clankerWithWallet = new Clanker({
+        publicClient,
+        wallet: mockWallet,
+      });
 
-    const result = await clankerWithWallet.updateCreatorRewardRecipientSimulate(
-      tokenId,
-      newRecipient
-    );
+      const result = await clankerWithWallet.updateCreatorRewardRecipientSimulate(
+        tokenId,
+        newRecipient
+      );
 
-    expect(result).toBeDefined();
-  });
+      expect(result).toBeDefined();
+    }
+  );
 
   test('updateCreatorRewardRecipient transaction structure', async () => {
     const tokenId = 789n;

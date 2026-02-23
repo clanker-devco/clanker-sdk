@@ -18,7 +18,7 @@ import {
   getClaimAirdropTransaction,
 } from '../../src/v4/extensions/index.js';
 
-describe('airdrop', () => {
+describe.skipIf(!process.env.TESTS_RPC_URL)('airdrop', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: base,
