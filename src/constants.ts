@@ -23,8 +23,8 @@ export const A0X_ADDRESS: `0x${string}` = '0x820C5F0fB255a1D18fd0eBB0F1CCefbC4D5
 /** WBNB (Wrapped BNB) on BSC - use for BNB/BNB token pairs */
 export const WBNB_ADDRESS: `0x${string}` = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 
-/** USDC (Binance-Peg USD Coin) on BSC */
-export const BSC_USDC_ADDRESS: `0x${string}` = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
+/** USDT (Binance-Peg BSC-USD) on BSC – 18 decimals */
+export const BSC_USDT_ADDRESS: `0x${string}` = '0x55d398326f99059fF775485246999027B3197955';
 
 export const WETH_ADDRESSES: Record<Chain, `0x${string}`> = {
   [mainnet.id]: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
