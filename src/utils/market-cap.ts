@@ -20,7 +20,7 @@ export const getTickFromMarketCap = (marketCap: number) => {
 };
 
 /**
- * Calculate the tick for a desired market cap in USDC
+ * Calculate the tick for a desired market cap in USDC (6 decimals)
  *
  * @param marketCapUSDC - Desired market cap in USDC (e.g., 10 for $10)
  * @param tickSpacing - Tick spacing (must be multiple of this, default 200)
@@ -33,14 +33,29 @@ export const getTickFromMarketCap = (marketCap: number) => {
  * - tick = log(price) / log(1.0001)
  */
 export function getTickFromMarketCapUSDC(marketCapUSDC: number, tickSpacing: number = 200): number {
-  // Price = (marketCap in USDC with decimals) / (total supply with decimals)
-  // = (marketCap * 10^6) / (100B * 10^18)
-  // = marketCap / 10^23
-  const price = marketCapUSDC / 1e23;
+  return getTickFromMarketCapStable(marketCapUSDC, 6, tickSpacing);
+}
 
-  // tick = log(price) / log(1.0001)
+/**
+ * Calculate the tick for a desired market cap priced in a stablecoin with
+ * an arbitrary number of decimals.
+ *
+ * @param marketCap - Desired market cap in USD terms (e.g., 10_000 for $10k)
+ * @param stableDecimals - Decimals of the paired stablecoin (6 for USDC, 18 for BSC-USDT)
+ * @param tickSpacing - Tick spacing (must be multiple of this, default 200)
+ * @returns The tick value rounded down to the nearest tickSpacing
+ *
+ * Formula:
+ * - Total supply: 100B tokens (10^11 * 10^18 = 10^29)
+ * - Price per token = (marketCap * 10^stableDecimals) / 10^29
+ * - tick = log(price) / log(1.0001)
+ */
+export function getTickFromMarketCapStable(
+  marketCap: number,
+  stableDecimals: number,
+  tickSpacing: number = 200
+): number {
+  const price = marketCap / 10 ** (29 - stableDecimals);
   const rawTick = Math.log(price) / Math.log(1.0001);
-
-  // Round to nearest tickSpacing
   return Math.floor(rawTick / tickSpacing) * tickSpacing;
 }

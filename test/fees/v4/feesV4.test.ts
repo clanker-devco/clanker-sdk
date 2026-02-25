@@ -5,7 +5,7 @@ import { base } from 'viem/chains';
 import { ClankerFeeLocker_abi } from '../../../src/abi/v4/ClankerFeeLocker.js';
 import { Clanker } from '../../../src/v4/index.js';
 
-describe('v4 fees', () => {
+describe.skipIf(!process.env.TESTS_RPC_URL)('v4 fees', () => {
   const publicClient = createPublicClient({
     chain: base,
     transport: http(process.env.TESTS_RPC_URL),

@@ -9,7 +9,7 @@ import {
 } from '../../../src/config/clankerTokenV4.js';
 import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
 
-describe('v4 end to end', () => {
+describe.skipIf(!process.env.TESTS_RPC_URL_ARBITRUM)('v4 end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: arbitrum,

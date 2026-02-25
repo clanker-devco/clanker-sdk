@@ -3,6 +3,7 @@ import {
   arbitrum,
   base,
   baseSepolia,
+  bsc,
   mainnet,
   monadTestnet,
   unichain,
@@ -19,9 +20,16 @@ export const HIGHER_ADDRESS: `0x${string}` = '0x0578d8A44db98B23BF096A382e016e29
 export const CB_BTC_ADDRESS: `0x${string}` = '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf';
 export const A0X_ADDRESS: `0x${string}` = '0x820C5F0fB255a1D18fd0eBB0F1CCefbC4D546dA7';
 
+/** WBNB (Wrapped BNB) on BSC - use for BNB/BNB token pairs */
+export const WBNB_ADDRESS: `0x${string}` = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+
+/** USDT (Binance-Peg BSC-USD) on BSC – 18 decimals */
+export const BSC_USDT_ADDRESS: `0x${string}` = '0x55d398326f99059fF775485246999027B3197955';
+
 export const WETH_ADDRESSES: Record<Chain, `0x${string}`> = {
   [mainnet.id]: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
   [arbitrum.id]: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+  [bsc.id]: WBNB_ADDRESS,
   [base.id]: '0x4200000000000000000000000000000000000006',
   [baseSepolia.id]: '0x4200000000000000000000000000000000000006',
   [unichain.id]: '0x4200000000000000000000000000000000000006',

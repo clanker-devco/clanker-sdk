@@ -37,7 +37,7 @@ describe('v4 updateRewardAdmin', () => {
     expect(tx.args).toEqual([token, rewardIndex, newAdmin]);
   });
 
-  test('updateRewardAdminSimulate', async () => {
+  test.skipIf(!process.env.TESTS_RPC_URL)('updateRewardAdminSimulate', async () => {
     const token = '0x0000000000000000000000000000000000000001' as `0x${string}`;
     const rewardIndex = 0n;
     const newAdmin = '0x0000000000000000000000000000000000000005' as `0x${string}`;
@@ -49,29 +49,32 @@ describe('v4 updateRewardAdmin', () => {
     expect(result).toBeDefined();
   });
 
-  test('updateRewardAdminSimulate with wallet account', async () => {
-    const token = '0x0000000000000000000000000000000000000002' as `0x${string}`;
-    const rewardIndex = 1n;
-    const newAdmin = '0x0000000000000000000000000000000000000006' as `0x${string}`;
+  test.skipIf(!process.env.TESTS_RPC_URL)(
+    'updateRewardAdminSimulate with wallet account',
+    async () => {
+      const token = '0x0000000000000000000000000000000000000002' as `0x${string}`;
+      const rewardIndex = 1n;
+      const newAdmin = '0x0000000000000000000000000000000000000006' as `0x${string}`;
 
-    // Create a mock wallet client for testing
-    const mockWallet = {
-      account: admin,
-    } as WalletClient<Transport, Chain, Account>;
+      // Create a mock wallet client for testing
+      const mockWallet = {
+        account: admin,
+      } as WalletClient<Transport, Chain, Account>;
 
-    const clankerWithWallet = new Clanker({
-      publicClient,
-      wallet: mockWallet,
-    });
+      const clankerWithWallet = new Clanker({
+        publicClient,
+        wallet: mockWallet,
+      });
 
-    const result = await clankerWithWallet.updateRewardAdminSimulate({
-      token,
-      rewardIndex,
-      newAdmin,
-    });
+      const result = await clankerWithWallet.updateRewardAdminSimulate({
+        token,
+        rewardIndex,
+        newAdmin,
+      });
 
-    expect(result).toBeDefined();
-  });
+      expect(result).toBeDefined();
+    }
+  );
 
   test('updateRewardAdmin transaction structure', async () => {
     const token = '0x0000000000000000000000000000000000000003' as `0x${string}`;

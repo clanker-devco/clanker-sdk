@@ -4,7 +4,7 @@ import { simulateCalls } from 'viem/actions';
 import { base } from 'viem/chains';
 import { Clanker } from '../../../src/v3/index.js';
 
-describe('v3 fees', () => {
+describe.skipIf(!process.env.TESTS_RPC_URL)('v3 fees', () => {
   const publicClient = createPublicClient({
     chain: base,
     transport: http(process.env.TESTS_RPC_URL),

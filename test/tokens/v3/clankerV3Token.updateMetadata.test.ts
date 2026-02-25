@@ -36,7 +36,7 @@ describe('v3 updateImage and updateMetadata', () => {
       expect(tx.args).toEqual([newImage]);
     });
 
-    test('updateImageSimulate', async () => {
+    test.skipIf(!process.env.TESTS_RPC_URL)('updateImageSimulate', async () => {
       const token = '0x0000000000000000000000000000000000000001' as `0x${string}`;
       const newImage = 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi';
 
@@ -47,7 +47,7 @@ describe('v3 updateImage and updateMetadata', () => {
       expect(result).toBeDefined();
     });
 
-    test('updateImageSimulate with wallet account', async () => {
+    test.skipIf(!process.env.TESTS_RPC_URL)('updateImageSimulate with wallet account', async () => {
       const token = '0x0000000000000000000000000000000000000002' as `0x${string}`;
       const newImage = 'https://example.com/new-image.png';
 
@@ -211,7 +211,7 @@ describe('v3 updateImage and updateMetadata', () => {
       expect(tx.args).toEqual([metadata]);
     });
 
-    test('updateMetadataSimulate', async () => {
+    test.skipIf(!process.env.TESTS_RPC_URL)('updateMetadataSimulate', async () => {
       const token = '0x0000000000000000000000000000000000000001' as `0x${string}`;
       const metadata = JSON.stringify({
         description: 'Updated description for my really cool token!',
@@ -225,30 +225,33 @@ describe('v3 updateImage and updateMetadata', () => {
       expect(result).toBeDefined();
     });
 
-    test('updateMetadataSimulate with wallet account', async () => {
-      const token = '0x0000000000000000000000000000000000000002' as `0x${string}`;
-      const metadata = JSON.stringify({
-        description: 'Another updated description for my really cool token!',
-        socialMediaUrls: [{ platform: 'discord', url: 'https://discord.gg/mytoken' }],
-      });
+    test.skipIf(!process.env.TESTS_RPC_URL)(
+      'updateMetadataSimulate with wallet account',
+      async () => {
+        const token = '0x0000000000000000000000000000000000000002' as `0x${string}`;
+        const metadata = JSON.stringify({
+          description: 'Another updated description for my really cool token!',
+          socialMediaUrls: [{ platform: 'discord', url: 'https://discord.gg/mytoken' }],
+        });
 
-      // Create a mock wallet client for testing
-      const mockWallet = {
-        account: admin,
-      } as WalletClient<Transport, Chain, Account>;
+        // Create a mock wallet client for testing
+        const mockWallet = {
+          account: admin,
+        } as WalletClient<Transport, Chain, Account>;
 
-      const clankerWithWallet = new Clanker({
-        publicClient,
-        wallet: mockWallet,
-      });
+        const clankerWithWallet = new Clanker({
+          publicClient,
+          wallet: mockWallet,
+        });
 
-      const result = await clankerWithWallet.updateMetadataSimulate({
-        token,
-        metadata,
-      });
+        const result = await clankerWithWallet.updateMetadataSimulate({
+          token,
+          metadata,
+        });
 
-      expect(result).toBeDefined();
-    });
+        expect(result).toBeDefined();
+      }
+    );
 
     test('error handling - missing wallet client', async () => {
       const token = '0x0000000000000000000000000000000000000001' as `0x${string}`;
