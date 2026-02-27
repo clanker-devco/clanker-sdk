@@ -2,17 +2,14 @@ import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import type { MerkleTree } from '@openzeppelin/merkle-tree/dist/merkletree.js';
 import { isAddressEqual, stringify } from 'viem';
 import * as z from 'zod/v4';
-import { ClankerAirdrop_v4_abi } from '../../abi/v4/ClankerAirdrop.js';
+import { ClankerAirdropv2_v4_abi } from '../../abi/v4/ClankerAirdropV2.js';
 import {
   type Chain as ClankerChain,
   type ClankerDeployment,
   clankerConfigFor,
   type RelatedV4,
 } from '../../utils/clankers.js';
-import {
-  type ClankerTransactionConfig,
-  writeClankerContract,
-} from '../../utils/write-clanker-contracts.js';
+import { writeClankerContract } from '../../utils/write-clanker-contracts.js';
 import { addressSchema } from '../../utils/zod-onchain.js';
 import type { Clanker } from '../index.js';
 
@@ -26,6 +23,14 @@ const AirdropEntrySchema = z.array(
 export type AirdropRecipient = z.input<typeof AirdropEntrySchema>[0];
 type MerkleEntry = [account: `0x${string}`, amount: string];
 
+export type AirdropVerificationResult = {
+  recipient: `0x${string}`;
+  allocatedAmount: bigint;
+  availableToClaim: bigint;
+  hasClaimed: boolean;
+  claimedAmount: bigint;
+};
+
 /**
  * Create an airdrop for the recipients.
  *
@@ -36,7 +41,10 @@ type MerkleEntry = [account: `0x${string}`, amount: string];
 export function createAirdrop(
   recipients: AirdropRecipient[],
   options: { tokenDecimals: bigint } = { tokenDecimals: 18n }
-): { tree: MerkleTree<MerkleEntry>; airdrop: { merkleRoot: `0x${string}`; amount: number } } {
+): {
+  tree: MerkleTree<MerkleEntry>;
+  airdrop: { merkleRoot: `0x${string}`; amount: number };
+} {
   const parsedEntries = AirdropEntrySchema.parse(recipients);
 
   const values: MerkleEntry[] = parsedEntries.map(({ account, amount }) => [
@@ -92,7 +100,12 @@ export async function registerAirdrop(token: `0x${string}`, tree: MerkleTree<Mer
 export function getAirdropProofs(
   tree: MerkleTree<MerkleEntry>,
   account: `0x${string}`
-): { proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[] } {
+): {
+  proofs: {
+    proof: `0x${string}`[];
+    entry: { account: `0x${string}`; amount: bigint };
+  }[];
+} {
   const indices = [];
   for (const [i, entry] of tree.entries()) {
     if (!isAddressEqual(entry[0], account)) continue;
@@ -123,14 +136,20 @@ export async function fetchAirdropProofs(
   token: `0x${string}`,
   account: `0x${string}`
 ): Promise<{
-  proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: bigint } }[];
+  proofs: {
+    proof: `0x${string}`[];
+    entry: { account: `0x${string}`; amount: bigint };
+  }[];
 }> {
   const { proofs } = await fetch(
     `https://www.clanker.world/api/airdrops/claim?tokenAddress=${token}&claimerAddress=${account}`
   ).then(
     (r) =>
       r.json() as Promise<{
-        proofs: { proof: `0x${string}`[]; entry: { account: `0x${string}`; amount: string } }[];
+        proofs: {
+          proof: `0x${string}`[];
+          entry: { account: `0x${string}`; amount: string };
+        }[];
       }>
   );
 
@@ -143,6 +162,72 @@ export async function fetchAirdropProofs(
       },
     })),
   };
+}
+
+/**
+ * Verify airdrop recipients by checking their onchain claim status.
+ *
+ * @param clanker Clanker object used for verification
+ * @param token The token that did the airdrop
+ * @param recipients List of recipients to verify
+ * @param options.tokenDecimals Custom token decimals (default: 18)
+ * @returns Array of verification results for each recipient
+ */
+export async function verifyAirdropReceivers({
+  clanker,
+  token,
+  recipients,
+  options = { tokenDecimals: 18n },
+}: {
+  clanker: Clanker;
+  token: `0x${string}`;
+  recipients: AirdropRecipient[];
+  options?: { tokenDecimals: bigint };
+}): Promise<AirdropVerificationResult[]> {
+  if (!clanker.publicClient) throw new Error('Public client required on clanker');
+
+  const parsedEntries = AirdropEntrySchema.parse(recipients);
+  const chainId = clanker.publicClient.chain?.id as ClankerChain;
+
+  const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
+  if (!config) throw new Error(`Clanker is not ready on ${chainId}`);
+
+  const verificationResults: AirdropVerificationResult[] = [];
+
+  for (const { account, amount } of parsedEntries) {
+    const allocatedAmount = BigInt(amount) * 10n ** options.tokenDecimals;
+
+    try {
+      const availableToClaim = await clanker.publicClient.readContract({
+        address: config.related.airdrop,
+        abi: ClankerAirdropv2_v4_abi,
+        functionName: 'amountAvailableToClaim',
+        args: [token, account, allocatedAmount],
+      });
+
+      const claimedAmount = allocatedAmount - availableToClaim;
+      const hasClaimed = claimedAmount > 0n;
+
+      verificationResults.push({
+        recipient: account,
+        allocatedAmount,
+        availableToClaim,
+        hasClaimed,
+        claimedAmount,
+      });
+    } catch (_error) {
+      // If the contract call fails, assume the recipient hasn't claimed
+      verificationResults.push({
+        recipient: account,
+        allocatedAmount,
+        availableToClaim: allocatedAmount,
+        hasClaimed: false,
+        claimedAmount: 0n,
+      });
+    }
+  }
+
+  return verificationResults;
 }
 
 /**
@@ -166,17 +251,17 @@ export function getClaimAirdropTransaction({
   recipient: `0x${string}`;
   amount: bigint;
   proof: `0x${string}`[];
-}): ClankerTransactionConfig<typeof ClankerAirdrop_v4_abi, 'claim'> {
+}) {
   const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(chainId, 'clanker_v4');
   if (!config) throw new Error(`Clanker is not ready on ${chainId}`);
 
   return {
     chainId,
     address: config.related.airdrop,
-    abi: ClankerAirdrop_v4_abi,
+    abi: ClankerAirdropv2_v4_abi,
     functionName: 'claim',
     args: [token, recipient, amount, proof],
-  };
+  } as const;
 }
 
 /**
