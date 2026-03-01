@@ -19,7 +19,7 @@ export function registerRewardsCommand(program: Command) {
     .requiredOption('--token <address>', 'token address')
     .option('--recipient <address>', 'reward recipient address (defaults to wallet)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; recipient?: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -54,7 +54,7 @@ export function registerRewardsCommand(program: Command) {
     .requiredOption('--token <address>', 'token address')
     .option('--recipient <address>', 'reward recipient address (defaults to wallet)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; recipient?: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -94,7 +94,7 @@ export function registerRewardsCommand(program: Command) {
     .description('Show reward admins and recipients for a token')
     .requiredOption('--token <address>', 'token address')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -122,7 +122,7 @@ export function registerRewardsCommand(program: Command) {
     .requiredOption('--index <n>', 'reward index')
     .requiredOption('--new-recipient <address>', 'new recipient address')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; index: string; newRecipient: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -169,7 +169,7 @@ export function registerRewardsCommand(program: Command) {
     .requiredOption('--index <n>', 'reward index')
     .requiredOption('--new-admin <address>', 'new admin address')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; index: string; newAdmin: string };
       const jsonMode = globalOpts.json ?? false;
 

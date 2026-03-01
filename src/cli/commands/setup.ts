@@ -63,9 +63,7 @@ async function runSetup(jsonMode: boolean) {
       choices: [
         { name: 'Create a new wallet', value: 'create' },
         { name: 'Import existing private key', value: 'import' },
-        ...(existing.privateKey
-          ? [{ name: 'Keep current wallet', value: 'keep' }]
-          : []),
+        ...(existing.privateKey ? [{ name: 'Keep current wallet', value: 'keep' }] : []),
         { name: 'Skip (use --private-key or PRIVATE_KEY env)', value: 'skip' },
       ],
     },
@@ -78,14 +76,10 @@ async function runSetup(jsonMode: boolean) {
     const account = privateKeyToAccount(privateKey as `0x${string}`);
 
     console.log('');
-    console.log(
-      `  ${green(bold('New wallet created'))}`
-    );
+    console.log(`  ${green(bold('New wallet created'))}`);
     console.log(`  ${cyan('Address:')} ${account.address}`);
     console.log('');
-    console.log(
-      `  ${red(bold('IMPORTANT:'))} Fund this address with ETH before deploying.`
-    );
+    console.log(`  ${red(bold('IMPORTANT:'))} Fund this address with ETH before deploying.`);
     console.log(
       `  ${yellow('Your private key is saved locally.')} Back up ${dim(getConfigPath())} securely.`
     );

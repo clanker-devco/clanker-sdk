@@ -2,18 +2,18 @@ import * as fs from 'node:fs';
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
 import type { ClankerTokenV3 } from '../../config/clankerTokenV3.js';
-import { type ClankerTokenV4, FeeIn } from '../../config/clankerTokenV4.js';
+import type { ClankerTokenV4, FeeIn } from '../../config/clankerTokenV4.js';
 import { BSC_USDT_ADDRESS, FEE_CONFIGS, POOL_POSITIONS } from '../../constants.js';
-import { createAirdrop } from '../../v4/extensions/airdrop.js';
+import { ClankerError } from '../../utils/errors.js';
 import {
   getTickFromMarketCap,
   getTickFromMarketCapStable,
   getTickFromMarketCapUSDC,
 } from '../../utils/market-cap.js';
 import { Clanker as ClankerV3 } from '../../v3/index.js';
+import { createAirdrop } from '../../v4/extensions/airdrop.js';
 import { Clanker as ClankerV4 } from '../../v4/index.js';
 import { CHAIN_NAMES } from '../utils/chains.js';
-import { ClankerError } from '../../utils/errors.js';
 import {
   blockExplorerUrl,
   printError,
@@ -438,7 +438,10 @@ export function registerDeployCommand(program: Command) {
     .option('--image <url>', 'token image URL')
     .option('--token-admin <address>', 'token admin address')
     .option('--paired-token <address>', 'paired token address (default: WETH)')
-    .option('--starting-market-cap <amount>', 'starting market cap in paired token units (ETH/USDC/USDT)')
+    .option(
+      '--starting-market-cap <amount>',
+      'starting market cap in paired token units (ETH/USDC/USDT)'
+    )
     .option('--fee-config <type>', 'fee config: StaticBasic, DynamicBasic, Dynamic3')
     .option('--pool-positions <type>', 'pool positions: Standard, Project, TwentyETH')
     .option('--vault-percentage <n>', 'vault percentage (0-90)')
@@ -453,12 +456,15 @@ export function registerDeployCommand(program: Command) {
     .option('--airdrop-csv <path>', 'CSV file for airdrop (address,amount)')
     .option('--airdrop-lockup-days <n>', 'airdrop lockup in days (min 1)', '1')
     .option('--airdrop-vesting-days <n>', 'airdrop vesting in days', '0')
-    .option('--reward-recipients <json>', 'JSON array of reward recipients [{admin,recipient,bps,token}]')
+    .option(
+      '--reward-recipients <json>',
+      'JSON array of reward recipients [{admin,recipient,bps,token}]'
+    )
     .option('--sniper-starting-fee <n>', 'sniper starting fee in unibps (default 666777)')
     .option('--sniper-ending-fee <n>', 'sniper ending fee in unibps (default 41673)')
     .option('--sniper-decay-seconds <n>', 'sniper fee decay duration in seconds (default 15)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as DeployFlags;
       const opts = { ...globalOpts, ...localOpts };
       const jsonMode = opts.json ?? false;
@@ -483,8 +489,7 @@ function formatDeployError(error: ClankerError): string {
   if (!underlying || underlying === error.message) {
     return error.message;
   }
-  const short =
-    underlying.length > 300 ? `${underlying.slice(0, 300)}...` : underlying;
+  const short = underlying.length > 300 ? `${underlying.slice(0, 300)}...` : underlying;
   return `${error.message}\n\n  Cause: ${short}`;
 }
 
@@ -495,9 +500,7 @@ async function deployV4(opts: DeployFlags, jsonMode: boolean) {
     tokenConfig = buildV4Config(opts as unknown as Record<string, unknown>);
   } else {
     if (jsonMode) {
-      throw new Error(
-        '--name and --symbol are required in JSON/non-interactive mode'
-      );
+      throw new Error('--name and --symbol are required in JSON/non-interactive mode');
     }
     tokenConfig = await interactiveDeployV4(opts);
   }
@@ -529,9 +532,15 @@ async function deployV4(opts: DeployFlags, jsonMode: boolean) {
         ...(tokenConfig.vault ? { vault: `${tokenConfig.vault.percentage}%` } : {}),
         ...(tokenConfig.devBuy ? { devBuy: `${tokenConfig.devBuy.ethAmount} ETH` } : {}),
         ...(tokenConfig.airdrop ? { airdrop: `${tokenConfig.airdrop.amount} tokens` } : {}),
-        ...(tokenConfig.rewards ? { rewards: `${tokenConfig.rewards.recipients.length} recipient(s)` } : {}),
+        ...(tokenConfig.rewards
+          ? { rewards: `${tokenConfig.rewards.recipients.length} recipient(s)` }
+          : {}),
         ...(tokenConfig.salt ? { salt: tokenConfig.salt } : {}),
-        ...(tokenConfig.sniperFees ? { sniperFees: `${tokenConfig.sniperFees.startingFee} → ${tokenConfig.sniperFees.endingFee}` } : {}),
+        ...(tokenConfig.sniperFees
+          ? {
+              sniperFees: `${tokenConfig.sniperFees.startingFee} → ${tokenConfig.sniperFees.endingFee}`,
+            }
+          : {}),
       },
       false,
       'Deploy configuration'

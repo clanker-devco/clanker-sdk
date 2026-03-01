@@ -3,9 +3,9 @@ import type { Command } from 'commander';
 import { type AirdropEntry, createMerkleTree, getMerkleProof } from '../../utils/merkleTree.js';
 import {
   claimAirdrop,
+  createAirdrop,
   fetchAirdropProofs,
   registerAirdrop,
-  createAirdrop,
 } from '../../v4/extensions/airdrop.js';
 import { Clanker } from '../../v4/index.js';
 import {
@@ -64,7 +64,7 @@ export function registerAirdropCommand(program: Command) {
     .requiredOption('--csv <path>', 'path to CSV file (columns: address, amount)')
     .option('--output <path>', 'path to write the tree JSON output')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { csv: string; output?: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -102,7 +102,7 @@ export function registerAirdropCommand(program: Command) {
     .requiredOption('--address <address>', 'address to get proof for')
     .requiredOption('--amount <n>', 'airdrop amount for this address (must match CSV)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { csv: string; address: string; amount: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -137,7 +137,7 @@ export function registerAirdropCommand(program: Command) {
     .requiredOption('--token <address>', 'deployed token address')
     .requiredOption('--csv <path>', 'path to CSV file used to generate the tree')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; csv: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -173,7 +173,7 @@ export function registerAirdropCommand(program: Command) {
     .requiredOption('--token <address>', 'token address')
     .option('--recipient <address>', 'recipient address (defaults to wallet)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; recipient?: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -194,7 +194,10 @@ export function registerAirdropCommand(program: Command) {
 
         for (let i = 0; i < proofs.length; i++) {
           const { proof, entry } = proofs[i];
-          printStep(`Claiming airdrop ${i + 1}/${proofs.length} (${entry.amount} tokens)...`, jsonMode);
+          printStep(
+            `Claiming airdrop ${i + 1}/${proofs.length} (${entry.amount} tokens)...`,
+            jsonMode
+          );
 
           if (globalOpts.dryRun) {
             printSuccess(`Dry run: airdrop claim ${i + 1} would be submitted`, jsonMode, {

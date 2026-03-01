@@ -13,7 +13,7 @@ export function registerTokenCommand(program: Command) {
     .requiredOption('--token <address>', 'token address')
     .requiredOption('--image <url>', 'new image URL')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; image: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -59,7 +59,7 @@ export function registerTokenCommand(program: Command) {
     .option('--telegram <url>', 'telegram URL')
     .option('--farcaster <url>', 'farcaster URL')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as {
         token: string;
         description?: string;

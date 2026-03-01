@@ -1,8 +1,14 @@
 import type { Command } from 'commander';
 import { formatUnits } from 'viem';
-import { Clanker } from '../../v4/index.js';
 import { simulateClankerContract } from '../../utils/write-clanker-contracts.js';
-import { blockExplorerUrl, printError, printResult, printStep, printSuccess } from '../utils/output.js';
+import { Clanker } from '../../v4/index.js';
+import {
+  blockExplorerUrl,
+  printError,
+  printResult,
+  printStep,
+  printSuccess,
+} from '../utils/output.js';
 import type { GlobalOpts } from '../utils/wallet.js';
 import { resolveClients, resolvePublicClient } from '../utils/wallet.js';
 
@@ -14,7 +20,7 @@ export function registerVaultCommand(program: Command) {
     .description('Claim vaulted tokens')
     .requiredOption('--token <address>', 'token address')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -26,7 +32,11 @@ export function registerVaultCommand(program: Command) {
         if (globalOpts.dryRun) {
           printStep('Simulating vault claim...', jsonMode);
           const tx = await clanker.getVaultClaimTransaction({ token });
-          const simResult: { error?: unknown } = await (simulateClankerContract as Function)(publicClient, walletClient.account, tx);
+          const simResult: { error?: unknown } = await (simulateClankerContract as Function)(
+            publicClient,
+            walletClient.account,
+            tx
+          );
           if (simResult.error) {
             throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
           }
@@ -52,7 +62,7 @@ export function registerVaultCommand(program: Command) {
     .description('Check claimable vault amount')
     .requiredOption('--token <address>', 'token address')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string };
       const jsonMode = globalOpts.json ?? false;
 

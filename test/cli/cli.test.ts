@@ -1,29 +1,29 @@
-import { existsSync, mkdirSync, writeFileSync, unlinkSync, rmdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { mkdirSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { describe, expect, test, beforeAll, afterAll } from 'bun:test';
-import { base, baseSepolia, arbitrum, mainnet, bsc, unichain } from 'viem/chains';
+import { join } from 'node:path';
+import { arbitrum, base, baseSepolia, bsc, mainnet, unichain } from 'viem/chains';
+import {
+  buildV4Config,
+  computeTicksFromMarketCap,
+  resolveChainId,
+} from '../../src/cli/commands/deploy.js';
+import { CHAIN_NAMES, resolveChain } from '../../src/cli/utils/chains.js';
+import { blockExplorerUrl } from '../../src/cli/utils/output.js';
+import { stripAnsi } from '../../src/cli/utils/style.js';
+import { clankerTokenV4 } from '../../src/config/clankerTokenV4.js';
 import {
   BSC_USDT_ADDRESS,
   FEE_CONFIGS,
   POOL_POSITIONS,
   WETH_ADDRESSES,
 } from '../../src/constants.js';
-import { resolveChain, CHAIN_NAMES } from '../../src/cli/utils/chains.js';
-import { blockExplorerUrl } from '../../src/cli/utils/output.js';
-import { stripAnsi } from '../../src/cli/utils/style.js';
-import {
-  buildV4Config,
-  computeTicksFromMarketCap,
-  resolveChainId,
-} from '../../src/cli/commands/deploy.js';
 import {
   getTickFromMarketCap,
-  getTickFromMarketCapUSDC,
   getTickFromMarketCapStable,
+  getTickFromMarketCapUSDC,
 } from '../../src/utils/market-cap.js';
 import { createMerkleTree, getMerkleProof } from '../../src/utils/merkleTree.js';
-import { clankerTokenV4 } from '../../src/config/clankerTokenV4.js';
 
 // ---------------------------------------------------------------------------
 // Chain resolution
@@ -200,8 +200,8 @@ describe('buildV4Config', () => {
     const sdkTicks = getTickFromMarketCap(10);
     const pool = config.pool!;
     expect(pool.tickIfToken0IsClanker).toBe(sdkTicks.tickIfToken0IsClanker);
-    expect(pool.positions![0].tickLower).toBe(sdkTicks.tickIfToken0IsClanker);
-    expect(pool.positions![0].positionBps).toBe(10_000);
+    expect(pool.positions?.[0].tickLower).toBe(sdkTicks.tickIfToken0IsClanker);
+    expect(pool.positions?.[0].positionBps).toBe(10_000);
   });
 
   test('Standard pool positions use correct starting tick', () => {
@@ -241,7 +241,9 @@ describe('buildV4Config', () => {
 
     const parsed = clankerTokenV4.parse(config);
     expect(parsed.pool.tickIfToken0IsClanker).toBe(-223400);
-    expect(parsed.pool.positions.some((p) => p.tickLower === parsed.pool.tickIfToken0IsClanker)).toBe(true);
+    expect(
+      parsed.pool.positions.some((p) => p.tickLower === parsed.pool.tickIfToken0IsClanker)
+    ).toBe(true);
   });
 
   test('Project pool positions use correct starting tick', () => {
@@ -267,8 +269,8 @@ describe('buildV4Config', () => {
     });
 
     expect(config.vault).toBeDefined();
-    expect(config.vault!.percentage).toBe(10);
-    expect(config.vault!.lockupDuration).toBe(7 * 24 * 60 * 60);
+    expect(config.vault?.percentage).toBe(10);
+    expect(config.vault?.lockupDuration).toBe(7 * 24 * 60 * 60);
   });
 
   test('devBuy config is included when specified', () => {
@@ -280,7 +282,7 @@ describe('buildV4Config', () => {
     });
 
     expect(config.devBuy).toBeDefined();
-    expect(config.devBuy!.ethAmount).toBe(0.5);
+    expect(config.devBuy?.ethAmount).toBe(0.5);
   });
 
   test('metadata and social links are included', () => {
@@ -294,9 +296,15 @@ describe('buildV4Config', () => {
     });
 
     expect(config.metadata).toBeDefined();
-    expect(config.metadata!.description).toBe('A test token');
-    expect(config.metadata!.socialMediaUrls).toContainEqual({ platform: 'website', url: 'https://example.com' });
-    expect(config.metadata!.socialMediaUrls).toContainEqual({ platform: 'twitter', url: 'https://twitter.com/test' });
+    expect(config.metadata?.description).toBe('A test token');
+    expect(config.metadata?.socialMediaUrls).toContainEqual({
+      platform: 'website',
+      url: 'https://example.com',
+    });
+    expect(config.metadata?.socialMediaUrls).toContainEqual({
+      platform: 'twitter',
+      url: 'https://twitter.com/test',
+    });
   });
 
   test('USDC paired token is preserved', () => {
@@ -367,12 +375,7 @@ describe('merkle tree utilities', () => {
 
   test('getMerkleProof returns valid proof for existing entry', () => {
     const { tree, entries } = createMerkleTree(ENTRIES);
-    const proof = getMerkleProof(
-      tree,
-      entries,
-      '0x1111111111111111111111111111111111111111',
-      100
-    );
+    const proof = getMerkleProof(tree, entries, '0x1111111111111111111111111111111111111111', 100);
     expect(proof.length).toBeGreaterThan(0);
     expect(proof[0]).toMatch(/^0x/);
   });
@@ -387,12 +390,7 @@ describe('merkle tree utilities', () => {
   test('getMerkleProof throws for wrong amount', () => {
     const { tree, entries } = createMerkleTree(ENTRIES);
     expect(() =>
-      getMerkleProof(
-        tree,
-        entries,
-        '0x1111111111111111111111111111111111111111',
-        999
-      )
+      getMerkleProof(tree, entries, '0x1111111111111111111111111111111111111111', 999)
     ).toThrow('Entry not found');
   });
 
@@ -425,7 +423,7 @@ describe('pool positions consistency', () => {
   });
 
   test('all positions have ticks that are multiples of 200', () => {
-    for (const [name, positions] of Object.entries(POOL_POSITIONS)) {
+    for (const [_name, positions] of Object.entries(POOL_POSITIONS)) {
       for (const p of positions) {
         expect(Math.abs(p.tickLower % 200)).toBe(0);
         expect(Math.abs(p.tickUpper % 200)).toBe(0);
@@ -442,7 +440,7 @@ describe('pool positions consistency', () => {
   });
 
   test('every preset has a position touching its starting tick', () => {
-    for (const [name, positions] of Object.entries(POOL_POSITIONS)) {
+    for (const [_name, positions] of Object.entries(POOL_POSITIONS)) {
       const startingTick = positions[0].tickLower;
       expect(positions.some((p) => p.tickLower === startingTick)).toBe(true);
     }
@@ -454,19 +452,19 @@ describe('pool positions consistency', () => {
 // ---------------------------------------------------------------------------
 describe('fee configs', () => {
   test('StaticBasic has correct type', () => {
-    expect(FEE_CONFIGS.StaticBasic!.type).toBe('static');
+    expect(FEE_CONFIGS.StaticBasic?.type).toBe('static');
   });
 
   test('DynamicBasic has correct type', () => {
-    expect(FEE_CONFIGS.DynamicBasic!.type).toBe('dynamic');
+    expect(FEE_CONFIGS.DynamicBasic?.type).toBe('dynamic');
   });
 
   test('Dynamic3 has correct type', () => {
-    expect(FEE_CONFIGS.Dynamic3!.type).toBe('dynamic');
+    expect(FEE_CONFIGS.Dynamic3?.type).toBe('dynamic');
   });
 
   test('all fee configs are valid in Zod schema', () => {
-    for (const [name, config] of Object.entries(FEE_CONFIGS)) {
+    for (const [_name, config] of Object.entries(FEE_CONFIGS)) {
       const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
       const result = clankerTokenV4.safeParse({
         name: 'Test',
@@ -724,9 +722,9 @@ describe('buildV4Config reward recipients', () => {
     });
 
     expect(config.rewards).toBeDefined();
-    expect(config.rewards!.recipients).toHaveLength(2);
-    expect(config.rewards!.recipients[0].bps).toBe(5000);
-    expect(config.rewards!.recipients[1].token).toBe('Paired');
+    expect(config.rewards?.recipients).toHaveLength(2);
+    expect(config.rewards?.recipients[0].bps).toBe(5000);
+    expect(config.rewards?.recipients[1].token).toBe('Paired');
   });
 
   test('reward recipients config passes Zod validation', () => {
@@ -773,9 +771,9 @@ describe('buildV4Config sniper fees', () => {
     });
 
     expect(config.sniperFees).toBeDefined();
-    expect(config.sniperFees!.startingFee).toBe(500000);
-    expect(config.sniperFees!.endingFee).toBe(50000);
-    expect(config.sniperFees!.secondsToDecay).toBe(30);
+    expect(config.sniperFees?.startingFee).toBe(500000);
+    expect(config.sniperFees?.endingFee).toBe(50000);
+    expect(config.sniperFees?.secondsToDecay).toBe(30);
   });
 
   test('sniper fees config passes Zod validation', () => {
@@ -801,9 +799,9 @@ describe('buildV4Config sniper fees', () => {
     });
 
     expect(config.sniperFees).toBeDefined();
-    expect(config.sniperFees!.startingFee).toBe(400000);
-    expect(config.sniperFees!.endingFee).toBe(41_673);
-    expect(config.sniperFees!.secondsToDecay).toBe(15);
+    expect(config.sniperFees?.startingFee).toBe(400000);
+    expect(config.sniperFees?.endingFee).toBe(41_673);
+    expect(config.sniperFees?.secondsToDecay).toBe(15);
   });
 
   test('without sniper flags, sniperFees is undefined', () => {
@@ -822,7 +820,7 @@ describe('buildV4Config sniper fees', () => {
 // ---------------------------------------------------------------------------
 describe('buildV4Config airdrop CSV', () => {
   const ADMIN = '0x746d5412345883b0a4310181DCca3002110967B3';
-  const tmpDir = join(tmpdir(), 'clanker-test-' + Date.now());
+  const tmpDir = join(tmpdir(), `clanker-test-${Date.now()}`);
   const csvPath = join(tmpDir, 'airdrop.csv');
 
   beforeAll(() => {
@@ -851,10 +849,10 @@ describe('buildV4Config airdrop CSV', () => {
     });
 
     expect(config.airdrop).toBeDefined();
-    expect(config.airdrop!.merkleRoot).toMatch(/^0x[a-fA-F0-9]{64}$/);
-    expect(config.airdrop!.amount).toBe(2000000000);
-    expect(config.airdrop!.lockupDuration).toBe(7 * 24 * 60 * 60);
-    expect(config.airdrop!.vestingDuration).toBe(30 * 24 * 60 * 60);
+    expect(config.airdrop?.merkleRoot).toMatch(/^0x[a-fA-F0-9]{64}$/);
+    expect(config.airdrop?.amount).toBe(2000000000);
+    expect(config.airdrop?.lockupDuration).toBe(7 * 24 * 60 * 60);
+    expect(config.airdrop?.vestingDuration).toBe(30 * 24 * 60 * 60);
   });
 
   test('airdrop config passes Zod validation', () => {

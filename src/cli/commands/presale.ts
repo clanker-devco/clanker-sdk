@@ -33,7 +33,7 @@ export function registerPresaleCommand(program: Command) {
     .description('Check presale status')
     .requiredOption('--presale-id <id>', 'presale ID')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { presaleId: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -60,7 +60,7 @@ export function registerPresaleCommand(program: Command) {
     .requiredOption('--presale-id <id>', 'presale ID')
     .requiredOption('--amount <eth>', 'ETH amount to contribute')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { presaleId: string; amount: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -78,7 +78,8 @@ export function registerPresaleCommand(program: Command) {
             value: BigInt(ethAmount * 1e18),
           });
           const simResult = await simulateClankerContract(publicClient, walletClient.account, tx);
-          if (simResult.error) throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
+          if (simResult.error)
+            throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
           printSuccess('Presale buy simulation successful', jsonMode, {
             presaleId: presaleId.toString(),
             ethAmount: localOpts.amount,
@@ -106,7 +107,7 @@ export function registerPresaleCommand(program: Command) {
     .requiredOption('--amount <eth>', 'ETH amount to withdraw')
     .option('--recipient <address>', 'recipient address (defaults to wallet)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { presaleId: string; amount: string; recipient?: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -126,7 +127,8 @@ export function registerPresaleCommand(program: Command) {
             chainId: chain.id as ClankerChain,
           });
           const simResult = await simulateClankerContract(publicClient, walletClient.account, tx);
-          if (simResult.error) throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
+          if (simResult.error)
+            throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
           printSuccess('Presale withdraw simulation successful', jsonMode, {
             presaleId: presaleId.toString(),
             ethAmount: localOpts.amount,
@@ -153,7 +155,7 @@ export function registerPresaleCommand(program: Command) {
     .requiredOption('--presale-id <id>', 'presale ID')
     .requiredOption('--salt <hex>', 'deployment salt (0x-prefixed)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { presaleId: string; salt: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -171,7 +173,8 @@ export function registerPresaleCommand(program: Command) {
             chainId: chain.id as ClankerChain,
           });
           const simResult = await simulateClankerContract(publicClient, walletClient.account, tx);
-          if (simResult.error) throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
+          if (simResult.error)
+            throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
           printSuccess('Presale end simulation successful', jsonMode, {
             presaleId: presaleId.toString(),
           });
@@ -196,7 +199,7 @@ export function registerPresaleCommand(program: Command) {
     .description('Claim tokens from a completed presale')
     .requiredOption('--presale-id <id>', 'presale ID')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { presaleId: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -212,7 +215,8 @@ export function registerPresaleCommand(program: Command) {
             chainId: chain.id as ClankerChain,
           });
           const simResult = await simulateClankerContract(publicClient, walletClient.account, tx);
-          if (simResult.error) throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
+          if (simResult.error)
+            throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
           printSuccess('Presale claim simulation successful', jsonMode, {
             presaleId: presaleId.toString(),
           });
@@ -238,7 +242,7 @@ export function registerPresaleCommand(program: Command) {
     .requiredOption('--presale-id <id>', 'presale ID')
     .option('--recipient <address>', 'ETH recipient address (defaults to wallet)')
     .action(async (_opts, command) => {
-      const globalOpts = command.parent!.parent!.opts() as GlobalOpts;
+      const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { presaleId: string; recipient?: string };
       const jsonMode = globalOpts.json ?? false;
 
@@ -256,7 +260,8 @@ export function registerPresaleCommand(program: Command) {
             chainId: chain.id as ClankerChain,
           });
           const simResult = await simulateClankerContract(publicClient, walletClient.account, tx);
-          if (simResult.error) throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
+          if (simResult.error)
+            throw new Error(`Simulation failed: ${JSON.stringify(simResult.error)}`);
           printSuccess('Presale ETH claim simulation successful', jsonMode, {
             presaleId: presaleId.toString(),
           });
