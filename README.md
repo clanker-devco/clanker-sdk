@@ -11,23 +11,56 @@ yarn add clanker-sdk viem
 # or
 pnpm add clanker-sdk viem
 ```
-npm run create-clanker
-node --loader ts-node/esm examples/deploy.ts
 
-## Quick Start
+## CLI
 
-There are two ways to deploy tokens using the Clanker SDK:
+The Clanker SDK ships a CLI for deploying and managing tokens directly from your terminal.
 
-### 1. Using the CLI
+### Install globally
 
-Run the following command to use our interactive CLI tool:
 ```bash
-npm run create-clanker
+npm install -g clanker-sdk
 ```
 
-This will guide you through the token deployment process step by step.
+Then run commands with:
 
-### 2. Using the TypeScript SDK
+```bash
+clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
+clanker-sdk rewards claim --token 0x...
+clanker-sdk vault claim --token 0x...
+```
+
+### Or use npx (no install)
+
+```bash
+npx clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
+```
+
+### Available commands
+
+| Command | Description |
+|---------|-------------|
+| `setup` | Save default wallet & chain config |
+| `deploy` | Deploy a new token (V3 or V4) |
+| `rewards` | Claim rewards, update recipients/admins |
+| `vault` | Claim vaulted tokens |
+| `presale` | Buy, withdraw, end, claim presales |
+| `airdrop` | Generate Merkle trees, register & claim airdrops |
+| `token` | Update token image & metadata |
+
+### Global options
+
+```
+--chain <name>        Target chain (base, base-sepolia, bsc, etc.)
+--rpc <url>           Custom RPC URL
+--private-key <key>   Wallet private key (or set PRIVATE_KEY env)
+--json                Output machine-readable JSON
+--dry-run             Simulate transaction without sending
+```
+
+Run `clanker-sdk <command> --help` for details on any command.
+
+## TypeScript SDK
 
 1. Create a `.env` file with your configuration:
 ```env
