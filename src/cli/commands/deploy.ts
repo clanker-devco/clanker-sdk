@@ -453,7 +453,10 @@ export function registerDeployCommand(program: Command) {
       '--starting-market-cap <amount>',
       'starting market cap in paired token units (ETH/USDC/USDT)'
     )
-    .option('--fee-config <type>', 'fee config: Static, Dynamic3 (or legacy StaticBasic, DynamicBasic)')
+    .option(
+      '--fee-config <type>',
+      'fee config: Static, Dynamic3 (or legacy StaticBasic, DynamicBasic)'
+    )
     .option('--static-fee-percent <n>', 'static fee percentage (0-10, default 1)')
     .option('--pool-positions <type>', 'pool positions: Standard, Project, TwentyETH')
     .option('--vault-percentage <n>', 'vault percentage (0-90)')
