@@ -747,6 +747,151 @@ export class Clanker {
 
     return this.publicClient.readContract(tx);
   }
+
+  /**
+   * Get the transaction config for collecting rewards from Uniswap V4 and distributing
+   * them to the FeeLocker according to the token's reward bps configuration.
+   *
+   * This must be called before `claimRewards` — it triggers the locker to collect
+   * accrued Uniswap fees and split them among reward recipients in the FeeLocker.
+   * Without calling this, `availableRewards` may return 0 even when fees have accrued.
+   *
+   * @param token The token to collect rewards for
+   * @param options Optional chain configuration
+   * @returns Abi transaction config
+   */
+  async getCollectRewardsTransaction(
+    { token }: { token: `0x${string}` },
+    options?: { chain?: Chain }
+  ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
+    const chain = this.publicClient?.chain || options?.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    return {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'collectRewards',
+      args: [token],
+    };
+  }
+
+  /**
+   * Collect rewards from Uniswap V4 and distribute them to the FeeLocker.
+   *
+   * This triggers the locker contract to collect accrued trading fees from the
+   * Uniswap V4 pool and distribute them to each reward recipient's balance
+   * in the FeeLocker, according to the token's reward bps configuration.
+   *
+   * @param token The token to collect rewards for
+   * @returns Transaction hash or error
+   */
+  async collectRewards({ token }: { token: `0x${string}` }): Promise<
+    { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const input = await this.getCollectRewardsTransaction({ token });
+
+    return writeClankerContract(this.publicClient, this.wallet, input);
+  }
+
+  /**
+   * Collect accrued Uniswap fees and then claim the reward recipient's share
+   * in a single call sequence.
+   *
+   * This is the recommended way to claim rewards — it ensures fees are first
+   * collected from Uniswap and distributed to the FeeLocker before attempting
+   * to claim. Fixes the common issue where `availableRewards` returns 0
+   * because `collectRewards` was never called.
+   *
+   * @param token The token to collect and claim for
+   * @param rewardRecipient The recipient to claim for
+   * @returns Object with collectTxHash, claimTxHash, or error
+   */
+  async collectAndClaimRewards({
+    token,
+    rewardRecipient,
+  }: {
+    token: `0x${string}`;
+    rewardRecipient: `0x${string}`;
+  }): Promise<
+    | { collectTxHash: `0x${string}`; claimTxHash: `0x${string}`; error: undefined }
+    | { collectTxHash: undefined; claimTxHash: undefined; error: ClankerError }
+  > {
+    if (!this.wallet) throw new Error('Wallet client required');
+    if (!this.publicClient) throw new Error('Public client required');
+
+    // Step 1: Collect fees from Uniswap into the FeeLocker
+    const collectResult = await this.collectRewards({ token });
+    if (collectResult.error) {
+      return { collectTxHash: undefined, claimTxHash: undefined, error: collectResult.error };
+    }
+
+    // Step 2: Claim the recipient's share from the FeeLocker
+    const claimResult = await this.claimRewards({ token, rewardRecipient });
+    if (claimResult.error) {
+      return { collectTxHash: undefined, claimTxHash: undefined, error: claimResult.error };
+    }
+
+    return {
+      collectTxHash: collectResult.txHash,
+      claimTxHash: claimResult.txHash,
+      error: undefined,
+    };
+  }
+
+  /**
+   * Diagnose the reward configuration and claimable state for a token.
+   *
+   * Returns the on-chain reward recipients, their bps allocations, and the
+   * currently claimable balance for each recipient. Useful for debugging
+   * issues where creators cannot claim their share.
+   *
+   * @param token The token to diagnose
+   * @param feeToken The fee token to check balances for (e.g., WETH address)
+   * @returns Detailed reward state for each recipient
+   */
+  async diagnoseRewards({
+    token,
+    feeToken,
+  }: {
+    token: `0x${string}`;
+    feeToken: `0x${string}`;
+  }) {
+    if (!this.publicClient) throw new Error('Public client required');
+
+    const rewards = await this.getTokenRewards({ token });
+
+    const recipients = await Promise.all(
+      rewards.rewardRecipients.map(async (recipient, i) => {
+        const available = await this.availableRewards({
+          token: feeToken,
+          rewardRecipient: recipient,
+        });
+
+        return {
+          index: i,
+          admin: rewards.rewardAdmins[i],
+          recipient,
+          bps: rewards.rewardBps[i],
+          availableToClaim: available,
+        };
+      })
+    );
+
+    return {
+      token: rewards.token,
+      poolKey: rewards.poolKey,
+      positionId: rewards.positionId,
+      numPositions: rewards.numPositions,
+      recipients,
+    };
+  }
 }
 
 export { encodeFeeConfig } from '../config/clankerTokenV4.js';
