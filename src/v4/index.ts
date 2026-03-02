@@ -789,7 +789,11 @@ export class Clanker {
    * @param token The token to collect rewards for
    * @returns Transaction hash or error
    */
-  async collectRewards({ token }: { token: `0x${string}` }): Promise<
+  async collectRewards({
+    token,
+  }: {
+    token: `0x${string}`;
+  }): Promise<
     { txHash: `0x${string}`; error: undefined } | { txHash: undefined; error: ClankerError }
   > {
     if (!this.wallet) throw new Error('Wallet client required');
@@ -856,13 +860,7 @@ export class Clanker {
    * @param feeToken The fee token to check balances for (e.g., WETH address)
    * @returns Detailed reward state for each recipient
    */
-  async diagnoseRewards({
-    token,
-    feeToken,
-  }: {
-    token: `0x${string}`;
-    feeToken: `0x${string}`;
-  }) {
+  async diagnoseRewards({ token, feeToken }: { token: `0x${string}`; feeToken: `0x${string}` }) {
     if (!this.publicClient) throw new Error('Public client required');
 
     const rewards = await this.getTokenRewards({ token });
