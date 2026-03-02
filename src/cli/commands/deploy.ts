@@ -116,6 +116,7 @@ interface DeployFlags extends GlobalOpts {
   vaultPercentage?: string;
   vaultLockupDays?: string;
   devBuyEth?: string;
+  feePreference?: string;
   description?: string;
   website?: string;
   twitter?: string;
@@ -230,6 +231,17 @@ async function interactiveDeployV4(flags: DeployFlags): Promise<ClankerTokenV4> 
         const n = Number(v);
         return (!Number.isNaN(n) && n >= 0 && n <= 10) || 'Must be 0-10';
       },
+    },
+    {
+      type: 'list',
+      name: 'feePreference',
+      message: 'Fee preference (which token to receive fees in):',
+      choices: [
+        { name: 'Both tokens', value: 'Both' },
+        { name: 'Paired token only', value: 'Paired' },
+        { name: 'New token only', value: 'Clanker' },
+      ],
+      default: 'Both',
     },
   ]);
 
@@ -375,6 +387,13 @@ export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
     };
   }
 
+  const feePreference = (f.feePreference as string) || 'Both';
+  const validFeePreference = (['Both', 'Paired', 'Clanker'] as const).includes(
+    feePreference as (typeof FeeIn)[number]
+  )
+    ? (feePreference as (typeof FeeIn)[number])
+    : 'Both';
+
   let rewardsConfig: ClankerTokenV4['rewards'] | undefined;
   if (f.rewardRecipients && typeof f.rewardRecipients === 'string') {
     const parsed = JSON.parse(f.rewardRecipients) as {
@@ -390,6 +409,18 @@ export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
         bps: r.bps,
         token: r.token as (typeof FeeIn)[number],
       })),
+    };
+  } else if (validFeePreference !== 'Both') {
+    rewardsConfig = {
+      recipients: [
+        {
+          admin: (f.tokenAdmin || '0x0000000000000000000000000000000000000000') as `0x${string}`,
+          recipient: (f.tokenAdmin ||
+            '0x0000000000000000000000000000000000000000') as `0x${string}`,
+          bps: 10_000,
+          token: validFeePreference,
+        },
+      ],
     };
   }
 
@@ -487,6 +518,7 @@ export function registerDeployCommand(program: Command) {
     .option('--vault-percentage <n>', 'vault percentage (0-90)')
     .option('--vault-lockup-days <n>', 'vault lockup in days (min 7)')
     .option('--dev-buy-eth <amount>', 'dev buy amount in ETH')
+    .option('--fee-preference <type>', 'fee preference: Both, Paired, Clanker (default: Both)')
     .option('--description <text>', 'token description')
     .option('--website <url>', 'website URL')
     .option('--twitter <url>', 'twitter URL')
@@ -552,6 +584,14 @@ async function deployV4(opts: DeployFlags, jsonMode: boolean) {
     tokenConfig.tokenAdmin = walletClient.account.address;
   }
 
+  if (tokenConfig.rewards?.recipients) {
+    const zero = '0x0000000000000000000000000000000000000000';
+    for (const r of tokenConfig.rewards.recipients) {
+      if (r.admin === zero) r.admin = tokenConfig.tokenAdmin;
+      if (r.recipient === zero) r.recipient = tokenConfig.tokenAdmin;
+    }
+  }
+
   const pool = tokenConfig.pool;
   const positions = pool && 'positions' in pool ? pool.positions : undefined;
 
@@ -573,6 +613,7 @@ async function deployV4(opts: DeployFlags, jsonMode: boolean) {
           tokenConfig.fees?.type === 'static'
             ? `static ${(tokenConfig.fees as { clankerFee?: number }).clankerFee ? ((tokenConfig.fees as { clankerFee: number }).clankerFee / 100).toFixed(1) : '1'}%`
             : `dynamic (up to ${(tokenConfig.fees as { maxFee?: number }).maxFee ? ((tokenConfig.fees as { maxFee: number }).maxFee / 100).toFixed(0) : '?'}%)`,
+        feePreference: tokenConfig.rewards?.recipients?.[0]?.token ?? 'Both',
         ...(tokenConfig.vault ? { vault: `${tokenConfig.vault.percentage}%` } : {}),
         ...(tokenConfig.devBuy ? { devBuy: `${tokenConfig.devBuy.ethAmount} ETH` } : {}),
         ...(tokenConfig.airdrop ? { airdrop: `${tokenConfig.airdrop.amount} tokens` } : {}),
