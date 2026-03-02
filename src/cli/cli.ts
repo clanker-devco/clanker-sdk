@@ -1,28 +1,55 @@
 #!/usr/bin/env node
 
-import { dirname } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Command } from 'commander';
+import { registerAirdropCommand } from './commands/airdrop.js';
+import { registerDeployCommand } from './commands/deploy.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { registerRewardsCommand } from './commands/rewards.js';
+import { registerSetupCommand } from './commands/setup.js';
+import { registerTokenCommand } from './commands/token.js';
+import { registerVaultCommand } from './commands/vault.js';
+import { CHAIN_NAMES } from './utils/chains.js';
+import { getBanner, printBanner } from './utils/output.js';
+import { cyan, dim, gray } from './utils/style.js';
 
-async function main() {
-  const args = process.argv.slice(2);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8'));
+const VERSION: string = pkg.version;
 
-  if (args.includes('--create')) {
-    const createClanker = await import('./create-clanker.js');
-    await createClanker.default();
-  } else {
-    console.log('\n🚀 Clanker SDK CLI\n');
-    console.log('Available commands:');
-    console.log('  --create    Create a new token');
-    console.log('\nExample:');
-    console.log('  npx clanker-sdk --create\n');
-    process.exit(0);
+const program = new Command();
+
+program
+  .name('clanker')
+  .description('Deploy and manage tokens on the Superchain')
+  .version(VERSION)
+  .option('--chain <name>', `target chain (${CHAIN_NAMES.join(', ')})`, 'base')
+  .option('--rpc <url>', 'custom RPC URL')
+  .option('--private-key <key>', 'wallet private key (or set PRIVATE_KEY env)')
+  .option('--json', 'output machine-readable JSON', false)
+  .option('--dry-run', 'simulate transaction without sending', false);
+
+program.addHelpText('beforeAll', () => getBanner(VERSION));
+program.addHelpText(
+  'after',
+  () =>
+    `\n  Run ${cyan('clanker <command> --help')} for details on a command.\n  ${dim(gray('https://github.com/clanker-devco/clanker-sdk'))}\n`
+);
+
+program.hook('preAction', (thisCommand) => {
+  if (!thisCommand.optsWithGlobals().json) {
+    printBanner(VERSION);
   }
-}
-
-main().catch((error) => {
-  console.error('Error:', error);
-  process.exit(1);
 });
+
+registerSetupCommand(program);
+registerDeployCommand(program);
+registerRewardsCommand(program);
+registerVaultCommand(program);
+
+registerAirdropCommand(program);
+registerTokenCommand(program);
+
+program.parse();

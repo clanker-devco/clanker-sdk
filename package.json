@@ -1,6 +1,6 @@
 {
   "name": "clanker-sdk",
-  "version": "4.2.11",
+  "version": "4.2.12",
   "description": "SDK for deploying tokens using Clanker",
   "type": "module",
   "main": "./dist/index.js",
@@ -38,6 +38,7 @@
   "dependencies": {
     "@openzeppelin/merkle-tree": "^1.0.8",
     "abitype": "^1.0.8",
+    "commander": "^14.0.3",
     "inquirer": "^8.2.6",
     "viem": "^2.38.3",
     "zod": "^4.1.12"
