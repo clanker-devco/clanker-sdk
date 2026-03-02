@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { registerAirdropCommand } from './commands/airdrop.js';
 import { registerDeployCommand } from './commands/deploy.js';
@@ -12,7 +15,9 @@ import { CHAIN_NAMES } from './utils/chains.js';
 import { getBanner, printBanner } from './utils/output.js';
 import { cyan, dim, gray } from './utils/style.js';
 
-const VERSION = '4.2.11';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+const VERSION: string = pkg.version;
 
 const program = new Command();
 
