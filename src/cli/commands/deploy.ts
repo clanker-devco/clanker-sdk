@@ -25,6 +25,7 @@ import { resolveClients } from '../utils/wallet.js';
 import { parseCsv } from './airdrop.js';
 
 const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
+const WMON_ADDRESS = '0x3bd359c1119da7da1d913d1c4d2b7c461115433a' as const;
 
 type PairedTokenChoice = { name: string; value: string };
 
@@ -33,10 +34,8 @@ const PAIRED_TOKEN_CHOICES: Record<string, PairedTokenChoice[]> = {
     { name: 'WETH', value: 'WETH' },
     { name: 'USDC', value: BASE_USDC },
   ],
-  bsc: [
-    { name: 'WBNB (WETH)', value: 'WETH' },
-    { name: 'USDT', value: BSC_USDT_ADDRESS },
-  ],
+  bsc: [{ name: 'USDT', value: BSC_USDT_ADDRESS }],
+  monad: [{ name: 'WMON', value: WMON_ADDRESS }],
 };
 
 const DEFAULT_PAIRED_CHOICES: PairedTokenChoice[] = [{ name: 'WETH', value: 'WETH' }];
@@ -51,6 +50,7 @@ const PAIRED_TOKEN_MCAP: Record<string, PairedTokenMcapConfig> = {
   WETH: { unit: 'ETH', defaultStarting: '10', endingMcap: 615_000 },
   [BASE_USDC]: { unit: 'USDC', defaultStarting: '10000', endingMcap: 1_000_000_000 },
   [BSC_USDT_ADDRESS]: { unit: 'USDT', defaultStarting: '10000', endingMcap: 1_000_000_000 },
+  [WMON_ADDRESS]: { unit: 'MON', defaultStarting: '100000', endingMcap: 100_000_000 },
 };
 
 const DEFAULT_MCAP_CONFIG: PairedTokenMcapConfig = {
@@ -63,12 +63,28 @@ function mcapConfigFor(pairedToken: string): PairedTokenMcapConfig {
   return PAIRED_TOKEN_MCAP[pairedToken] || DEFAULT_MCAP_CONFIG;
 }
 
+const STATIC_FEE_ONLY_CHAINS = new Set(['monad']);
+
+function getMonadTick(marketCap: number): number {
+  const desiredPrice = marketCap * 0.00000000001;
+  const logBase = 1.0001;
+  const tickSpacing = 200;
+  const rawTick = Math.log(desiredPrice) / Math.log(logBase);
+  return Math.floor(rawTick / tickSpacing) * tickSpacing;
+}
+
 export function computeTicksFromMarketCap(
   startingMcap: number,
   pairedTokenValue: string
 ): { tickLower: number; tickUpper: number } {
   const { endingMcap } = mcapConfigFor(pairedTokenValue);
 
+  if (pairedTokenValue === WMON_ADDRESS) {
+    return {
+      tickLower: getMonadTick(startingMcap),
+      tickUpper: getMonadTick(endingMcap),
+    };
+  }
   if (pairedTokenValue === BASE_USDC) {
     return {
       tickLower: getTickFromMarketCapUSDC(startingMcap),
@@ -196,10 +212,12 @@ async function interactiveDeployV4(flags: DeployFlags): Promise<ClankerTokenV4> 
       type: 'list',
       name: 'feeConfig',
       message: 'Fee configuration:',
-      choices: [
-        { name: 'Static (flat fee)', value: 'Static' },
-        { name: 'Dynamic (up to 3%)', value: 'Dynamic3' },
-      ],
+      choices: STATIC_FEE_ONLY_CHAINS.has(core.chain)
+        ? [{ name: 'Static (flat fee)', value: 'Static' }]
+        : [
+            { name: 'Static (flat fee)', value: 'Static' },
+            { name: 'Dynamic (up to 3%)', value: 'Dynamic3' },
+          ],
       default: 'Static',
     },
     {
@@ -425,18 +443,25 @@ export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
   return token;
 }
 
+const CHAIN_ID_MAP: Record<string, number> = {
+  base: 8453,
+  'base-sepolia': 84532,
+  arbitrum: 42161,
+  ethereum: 1,
+  bsc: 56,
+  unichain: 130,
+  monad: 143,
+};
+
 export function resolveChainId(name: string): number {
-  const map: Record<string, number> = {
-    base: 8453,
-    'base-sepolia': 84532,
-    arbitrum: 42161,
-    ethereum: 1,
-    bsc: 56,
-    unichain: 130,
-    monad: 10143,
-    abstract: 11124,
-  };
-  return map[name] || 8453;
+  return CHAIN_ID_MAP[name] || 8453;
+}
+
+function resolveChainName(chainId: number): string {
+  for (const [name, id] of Object.entries(CHAIN_ID_MAP)) {
+    if (id === chainId) return name;
+  }
+  return 'base';
 }
 
 export function registerDeployCommand(program: Command) {
@@ -520,7 +545,8 @@ async function deployV4(opts: DeployFlags, jsonMode: boolean) {
     tokenConfig = await interactiveDeployV4(opts);
   }
 
-  const { walletClient, publicClient, chain } = resolveClients(opts);
+  const chainName = resolveChainName(tokenConfig.chainId ?? 8453);
+  const { walletClient, publicClient, chain } = resolveClients({ ...opts, chain: chainName });
 
   if (!tokenConfig.tokenAdmin) {
     tokenConfig.tokenAdmin = walletClient.account.address;

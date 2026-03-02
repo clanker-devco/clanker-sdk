@@ -37,7 +37,7 @@ describe('CLI chain utilities', () => {
     expect(CHAIN_NAMES).toContain('bsc');
     expect(CHAIN_NAMES).toContain('unichain');
     expect(CHAIN_NAMES).toContain('monad');
-    expect(CHAIN_NAMES).toContain('abstract');
+    expect(CHAIN_NAMES).not.toContain('abstract');
   });
 
   test('resolveChain returns correct chain objects', () => {
@@ -60,8 +60,8 @@ describe('CLI chain utilities', () => {
     expect(resolveChainId('ethereum')).toBe(1);
     expect(resolveChainId('bsc')).toBe(56);
     expect(resolveChainId('unichain')).toBe(130);
-    expect(resolveChainId('monad')).toBe(10143);
-    expect(resolveChainId('abstract')).toBe(11124);
+    expect(resolveChainId('monad')).toBe(143);
+    expect(resolveChainId('abstract')).toBe(8453);
   });
 
   test('resolveChainId defaults to base for unknown chains', () => {

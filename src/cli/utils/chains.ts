@@ -1,5 +1,5 @@
 import type { Chain } from 'viem';
-import { abstract, arbitrum, base, baseSepolia, bsc, mainnet, unichain } from 'viem/chains';
+import { arbitrum, base, baseSepolia, bsc, mainnet, unichain } from 'viem/chains';
 import { monad } from '../../utils/chains/monad.js';
 
 const CHAIN_MAP: Record<string, Chain> = {
@@ -10,7 +10,6 @@ const CHAIN_MAP: Record<string, Chain> = {
   bsc,
   unichain,
   monad,
-  abstract,
 };
 
 export const CHAIN_NAMES = Object.keys(CHAIN_MAP);

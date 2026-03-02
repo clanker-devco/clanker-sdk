@@ -12,7 +12,7 @@ export const monad = /*#__PURE__*/ defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['TODO'],
+      http: ['https://rpc.monad.xyz'],
     },
   },
   blockExplorers: {
