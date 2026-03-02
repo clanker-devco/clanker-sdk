@@ -44,7 +44,7 @@ npx clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
 | `deploy` | Deploy a new token (V3 or V4) |
 | `rewards` | Claim rewards, update recipients/admins |
 | `vault` | Claim vaulted tokens |
-| `presale` | Buy, withdraw, end, claim presales |
+
 | `airdrop` | Generate Merkle trees, register & claim airdrops |
 | `token` | Update token image & metadata |
 

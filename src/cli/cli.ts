@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { registerAirdropCommand } from './commands/airdrop.js';
 import { registerDeployCommand } from './commands/deploy.js';
-import { registerPresaleCommand } from './commands/presale.js';
+
 import { registerRewardsCommand } from './commands/rewards.js';
 import { registerSetupCommand } from './commands/setup.js';
 import { registerTokenCommand } from './commands/token.js';
@@ -48,7 +48,7 @@ registerSetupCommand(program);
 registerDeployCommand(program);
 registerRewardsCommand(program);
 registerVaultCommand(program);
-registerPresaleCommand(program);
+
 registerAirdropCommand(program);
 registerTokenCommand(program);
 
