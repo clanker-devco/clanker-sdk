@@ -1,4 +1,3 @@
-import * as fs from 'node:fs';
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
 import type { ClankerTokenV3 } from '../../config/clankerTokenV3.js';
@@ -23,6 +22,7 @@ import {
 } from '../utils/output.js';
 import type { GlobalOpts } from '../utils/wallet.js';
 import { resolveClients } from '../utils/wallet.js';
+import { parseCsv } from './airdrop.js';
 
 const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
 
@@ -110,6 +110,7 @@ interface DeployFlags extends GlobalOpts {
   airdropLockupDays?: string;
   airdropVestingDays?: string;
   rewardRecipients?: string;
+  staticFeePercent?: string;
   sniperStartingFee?: string;
   sniperEndingFee?: string;
   sniperDecaySeconds?: string;
@@ -195,8 +196,22 @@ async function interactiveDeployV4(flags: DeployFlags): Promise<ClankerTokenV4> 
       type: 'list',
       name: 'feeConfig',
       message: 'Fee configuration:',
-      choices: ['StaticBasic', 'DynamicBasic', 'Dynamic3'],
-      default: 'StaticBasic',
+      choices: [
+        { name: 'Static (flat fee)', value: 'Static' },
+        { name: 'Dynamic (up to 3%)', value: 'Dynamic3' },
+      ],
+      default: 'Static',
+    },
+    {
+      type: 'input',
+      name: 'staticFeePercent',
+      message: 'Static fee percentage (0-10):',
+      default: '1',
+      when: (a: { feeConfig: string }) => a.feeConfig === 'Static',
+      validate: (v: string) => {
+        const n = Number(v);
+        return (!Number.isNaN(n) && n >= 0 && n <= 10) || 'Must be 0-10';
+      },
     },
   ]);
 
@@ -283,7 +298,17 @@ async function interactiveDeployV4(flags: DeployFlags): Promise<ClankerTokenV4> 
 
 export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
   const chainId = f.chain ? resolveChainId(f.chain as string) : 8453;
-  const feeKey = ((f.feeConfig as string) || 'StaticBasic') as keyof typeof FEE_CONFIGS;
+
+  let fees: ClankerTokenV4['fees'];
+  const feeChoice = (f.feeConfig as string) || 'StaticBasic';
+  if (feeChoice === 'Static' || feeChoice === 'StaticBasic') {
+    const pct = Number(f.staticFeePercent);
+    const bps = !Number.isNaN(pct) && pct > 0 ? Math.round(pct * 100) : 100;
+    fees = { type: 'static', clankerFee: bps, pairedFee: bps };
+  } else {
+    const feeKey = feeChoice as keyof typeof FEE_CONFIGS;
+    fees = FEE_CONFIGS[feeKey] || FEE_CONFIGS.Dynamic3;
+  }
 
   const rawPaired = f.pairedToken as string | undefined;
   const pairedToken: 'WETH' | `0x${string}` =
@@ -320,24 +345,10 @@ export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
 
   let airdropConfig: ClankerTokenV4['airdrop'] | undefined;
   if (f.airdropCsv && typeof f.airdropCsv === 'string') {
-    const csvContent = fs.readFileSync(f.airdropCsv, 'utf8');
-    const csvLines = csvContent.trim().split('\n');
-    const entries: { account: `0x${string}`; amount: number }[] = [];
-    for (let i = 0; i < csvLines.length; i++) {
-      const line = csvLines[i].trim();
-      if (!line) continue;
-      if (
-        i === 0 &&
-        (line.toLowerCase().includes('address') || line.toLowerCase().includes('account'))
-      ) {
-        continue;
-      }
-      const [account, amountStr] = line.split(',').map((s) => s.trim());
-      if (account && amountStr) {
-        entries.push({ account: account as `0x${string}`, amount: Number(amountStr) });
-      }
-    }
-    const { airdrop: airdropData } = createAirdrop(entries);
+    const entries = parseCsv(f.airdropCsv);
+    const { airdrop: airdropData } = createAirdrop(
+      entries.map((e) => ({ account: e.account, amount: e.amount }))
+    );
     airdropConfig = {
       merkleRoot: airdropData.merkleRoot,
       amount: airdropData.amount,
@@ -382,7 +393,7 @@ export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
     chainId: chainId as ClankerTokenV4['chainId'],
     tokenAdmin: (f.tokenAdmin || undefined) as `0x${string}`,
     ...(hasSalt ? { salt: f.salt as `0x${string}`, vanity: false } : { vanity: true }),
-    fees: FEE_CONFIGS[feeKey],
+    fees,
     pool: poolConfig,
     context: {
       interface: 'Clanker CLI',
@@ -442,7 +453,8 @@ export function registerDeployCommand(program: Command) {
       '--starting-market-cap <amount>',
       'starting market cap in paired token units (ETH/USDC/USDT)'
     )
-    .option('--fee-config <type>', 'fee config: StaticBasic, DynamicBasic, Dynamic3')
+    .option('--fee-config <type>', 'fee config: Static, Dynamic3 (or legacy StaticBasic, DynamicBasic)')
+    .option('--static-fee-percent <n>', 'static fee percentage (0-10, default 1)')
     .option('--pool-positions <type>', 'pool positions: Standard, Project, TwentyETH')
     .option('--vault-percentage <n>', 'vault percentage (0-90)')
     .option('--vault-lockup-days <n>', 'vault lockup in days (min 7)')
@@ -528,7 +540,10 @@ async function deployV4(opts: DeployFlags, jsonMode: boolean) {
               tickUpper: positions[positions.length - 1].tickUpper,
             }
           : {}),
-        fees: tokenConfig.fees?.type ?? 'static',
+        fees:
+          tokenConfig.fees?.type === 'static'
+            ? `static ${(tokenConfig.fees as { clankerFee?: number }).clankerFee ? ((tokenConfig.fees as { clankerFee: number }).clankerFee / 100).toFixed(1) : '1'}%`
+            : `dynamic (up to ${(tokenConfig.fees as { maxFee?: number }).maxFee ? ((tokenConfig.fees as { maxFee: number }).maxFee / 100).toFixed(0) : '?'}%)`,
         ...(tokenConfig.vault ? { vault: `${tokenConfig.vault.percentage}%` } : {}),
         ...(tokenConfig.devBuy ? { devBuy: `${tokenConfig.devBuy.ethAmount} ETH` } : {}),
         ...(tokenConfig.airdrop ? { airdrop: `${tokenConfig.airdrop.amount} tokens` } : {}),

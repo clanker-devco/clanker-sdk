@@ -16,7 +16,7 @@ import { getBanner, printBanner } from './utils/output.js';
 import { cyan, dim, gray } from './utils/style.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8'));
 const VERSION: string = pkg.version;
 
 const program = new Command();
@@ -39,7 +39,7 @@ program.addHelpText(
 );
 
 program.hook('preAction', (thisCommand) => {
-  if (!thisCommand.opts().json) {
+  if (!thisCommand.optsWithGlobals().json) {
     printBanner(VERSION);
   }
 });

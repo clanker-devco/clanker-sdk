@@ -18,19 +18,21 @@ import {
 import type { GlobalOpts } from '../utils/wallet.js';
 import { resolveClients } from '../utils/wallet.js';
 
-function parseCsv(filePath: string): AirdropEntry[] {
+export function parseCsv(filePath: string): AirdropEntry[] {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.trim().split('\n');
   const entries: AirdropEntry[] = [];
+  let headerSkipped = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
 
     if (
-      i === 0 &&
+      !headerSkipped &&
       (line.toLowerCase().includes('address') || line.toLowerCase().includes('account'))
     ) {
+      headerSkipped = true;
       continue;
     }
 
