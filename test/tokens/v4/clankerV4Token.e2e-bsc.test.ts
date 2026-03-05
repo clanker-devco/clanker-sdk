@@ -89,6 +89,6 @@ describe('v4 - binance smart chain - end to end', () => {
     });
     const address = result as unknown as `0x${string}`;
     expect(address).toEqual(tx.expectedAddress);
-    expect(address.toLowerCase()).toEndWith("b07");
+    expect(address.toLowerCase()).toEndWith('b07');
   });
 });
