@@ -24,6 +24,7 @@ import {
 } from '../abi/v3.1/ClankerToken.js';
 import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerToken_v4_abi, ClankerToken_v4_bytecode } from '../abi/v4/ClankerToken.js';
+import { ClankerToken_v4_bsc_bytecode } from '../abi/v4.1.bsc/ClankerToken.js';
 import {
   ClankerToken_v4_mainnet_abi,
   ClankerToken_v4_mainnet_bytecode,
@@ -309,7 +310,7 @@ export const CLANKERS = {
     abi: Clanker_v4_abi,
     token: {
       abi: ClankerToken_v4_abi,
-      bytecode: ClankerToken_v4_bytecode,
+      bytecode: ClankerToken_v4_bsc_bytecode,
     },
     chainId: bsc.id,
     type: 'clanker_v4',
