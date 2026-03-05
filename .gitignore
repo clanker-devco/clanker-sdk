@@ -34,6 +34,9 @@ standup.txt
 # GitBook documentation
 gitbookDocs.md
 
+# Generated docs (output of typedoc)
+docs/generated/
+
 # Development files
 examples/updated-sdk.ts
 llm.txt

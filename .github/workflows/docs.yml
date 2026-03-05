@@ -1,0 +1,60 @@
+name: Generate SDK Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "typedoc.json"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout clanker-sdk
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun i
+
+      - name: Generate SDK docs
+        run: bun typedoc
+
+      - name: Checkout DOCS repo
+        uses: actions/checkout@v4
+        with:
+          repository: clanker-devco/DOCS
+          token: ${{ secrets.DOCS_PAT }}
+          path: DOCS
+
+      - name: Copy generated docs
+        run: |
+          rm -rf DOCS/sdk-reference/index.md DOCS/sdk-reference/v3.md DOCS/sdk-reference/v4.md DOCS/sdk-reference/v4/ DOCS/sdk-reference/legacyFeeClaims.md
+          cp docs/generated/index.md DOCS/sdk-reference/index.md
+          cp docs/generated/v3.md DOCS/sdk-reference/v3.md
+          cp docs/generated/v4.md DOCS/sdk-reference/v4.md
+          cp -r docs/generated/v4 DOCS/sdk-reference/v4
+          cp docs/generated/legacyFeeClaims.md DOCS/sdk-reference/legacyFeeClaims.md
+
+      - name: Commit and push to DOCS
+        working-directory: DOCS
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update SDK reference docs from clanker-sdk@${GITHUB_SHA::7}"
+            git push
+          fi
