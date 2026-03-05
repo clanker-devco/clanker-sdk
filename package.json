@@ -29,6 +29,7 @@
     "lint:fix": "biome check --write && tsc --noEmit",
     "format": "biome check --write --unsafe",
     "create-clanker": "bun src/cli/create-clanker",
+    "generate-docs": "typedoc",
     "publish-package-production": "bun tsup && bun publish",
     "publish-package-canary": "bun tsup && bun publish --tag canary"
   },
@@ -53,6 +54,8 @@
     "ethers": "^6.15.0",
     "merkletreejs": "^0.6.0",
     "tsup": "^8.4.0",
+    "typedoc": "^0.28.17",
+    "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
