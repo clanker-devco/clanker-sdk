@@ -1,5 +1,8 @@
 # Clanker SDK - Changelog
 
+4.2.14
+- (QoL) Vanity address on BSC
+
 4.1.27
 - (Chain) Monad
 
