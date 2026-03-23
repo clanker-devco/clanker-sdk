@@ -23,7 +23,7 @@ const program = new Command();
 
 program
   .name('clanker')
-  .description('Deploy and manage tokens on the Superchain')
+  .description('Deploy and manage tokens on EVM chains')
   .version(VERSION)
   .option('--chain <name>', `target chain (${CHAIN_NAMES.join(', ')})`, 'base')
   .option('--rpc <url>', 'custom RPC URL')

@@ -31,7 +31,7 @@ export function getBanner(version: string): string {
     lines.push(`  ${gradient(line, BRAND_FROM, BRAND_TO)}`);
   }
   lines.push('');
-  lines.push(`    ${dim(gray('Deploy tokens on the Superchain'))}  ${dim(cyan(`v${version}`))}`);
+  lines.push(`    ${dim(gray('Deploy tokens on EVM chains'))}  ${dim(cyan(`v${version}`))}`);
   lines.push(`  ${separator(48)}`);
   lines.push('');
   return lines.join('\n');
