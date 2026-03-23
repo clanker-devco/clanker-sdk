@@ -11,13 +11,27 @@ import type { GlobalOpts } from '../utils/wallet.js';
 import { resolveClients, resolvePublicClient } from '../utils/wallet.js';
 
 export function registerRewardsCommand(program: Command) {
-  const rewards = program.command('rewards').description('Manage LP rewards for a token');
+  const rewards = program
+    .command('rewards')
+    .description('Check and claim creator rewards (LP fees) for a token');
 
   rewards
     .command('claim')
-    .description('Claim LP rewards')
-    .requiredOption('--token <address>', 'token address')
+    .description('Claim accumulated fees for a specific reward token (e.g. WETH, USDT)')
+    .requiredOption(
+      '--token <address>',
+      'reward token to claim (the fee token address, e.g. WETH — not the clanker token)'
+    )
     .option('--recipient <address>', 'reward recipient address (defaults to wallet)')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ clanker rewards claim --token 0x4200000000000000000000000000000000000006
+  $ clanker rewards claim --token 0x4200000000000000000000000000000000000006 --chain bsc
+  $ clanker rewards claim --token <WETH_ADDRESS> --recipient 0xYourAddr --dry-run
+`
+    )
     .action(async (_opts, command) => {
       const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; recipient?: string };
@@ -50,9 +64,21 @@ export function registerRewardsCommand(program: Command) {
 
   rewards
     .command('available')
-    .description('Check available (claimable) rewards')
-    .requiredOption('--token <address>', 'token address')
+    .description('Check claimable fee balance for a specific reward token')
+    .requiredOption(
+      '--token <address>',
+      'reward token to check (the fee token address, e.g. WETH — not the clanker token)'
+    )
     .option('--recipient <address>', 'reward recipient address (defaults to wallet)')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ clanker rewards available --token 0x4200000000000000000000000000000000000006
+  $ clanker rewards available --token 0x4200000000000000000000000000000000000006 --chain bsc
+  $ clanker rewards available --token <WETH_ADDRESS> --recipient 0xSomeAddr
+`
+    )
     .action(async (_opts, command) => {
       const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; recipient?: string };
@@ -91,8 +117,15 @@ export function registerRewardsCommand(program: Command) {
 
   rewards
     .command('info')
-    .description('Show reward admins and recipients for a token')
-    .requiredOption('--token <address>', 'token address')
+    .description('Show reward admins and recipients for a clanker token')
+    .requiredOption('--token <address>', 'clanker token address')
+    .addHelpText(
+      'after',
+      `
+Example:
+  $ clanker rewards info --token 0xe75785C92cc93938160e0BE449073A1C35521010
+`
+    )
     .action(async (_opts, command) => {
       const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string };
@@ -117,10 +150,17 @@ export function registerRewardsCommand(program: Command) {
 
   rewards
     .command('update-recipient')
-    .description('Update a reward recipient')
-    .requiredOption('--token <address>', 'token address')
-    .requiredOption('--index <n>', 'reward index')
+    .description('Update who receives rewards for a clanker token')
+    .requiredOption('--token <address>', 'clanker token address')
+    .requiredOption('--index <n>', 'reward position index (0-based)')
     .requiredOption('--new-recipient <address>', 'new recipient address')
+    .addHelpText(
+      'after',
+      `
+Example:
+  $ clanker rewards update-recipient --token 0xClankerToken --index 0 --new-recipient 0xNewAddr
+`
+    )
     .action(async (_opts, command) => {
       const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; index: string; newRecipient: string };
@@ -164,10 +204,17 @@ export function registerRewardsCommand(program: Command) {
 
   rewards
     .command('update-admin')
-    .description('Update a reward admin')
-    .requiredOption('--token <address>', 'token address')
-    .requiredOption('--index <n>', 'reward index')
+    .description('Update who can manage rewards for a clanker token')
+    .requiredOption('--token <address>', 'clanker token address')
+    .requiredOption('--index <n>', 'reward position index (0-based)')
     .requiredOption('--new-admin <address>', 'new admin address')
+    .addHelpText(
+      'after',
+      `
+Example:
+  $ clanker rewards update-admin --token 0xClankerToken --index 0 --new-admin 0xNewAdmin
+`
+    )
     .action(async (_opts, command) => {
       const globalOpts = command.parent?.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as { token: string; index: string; newAdmin: string };
