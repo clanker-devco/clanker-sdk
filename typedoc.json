@@ -1,0 +1,28 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/index.ts",
+    "src/v3/index.ts",
+    "src/v4/index.ts",
+    "src/v4/extensions/index.ts",
+    "src/legacyFeeClaims/index.ts"
+  ],
+  "plugin": ["typedoc-plugin-markdown"],
+  "out": "docs/generated",
+  "readme": "none",
+  "entryPointStrategy": "expand",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "hideGenerator": true,
+  "gitRevision": "main",
+  "outputFileStrategy": "modules",
+  "flattenOutputFiles": false,
+  "mergeReadme": false,
+  "useCodeBlocks": true,
+  "expandObjects": true,
+  "parametersFormat": "table",
+  "propertiesFormat": "table",
+  "enumMembersFormat": "table",
+  "typeDeclarationFormat": "table"
+}
