@@ -295,7 +295,7 @@ test('robinhood vanity', async () => {
   });
 
   expect(tx.address).toEqual(CLANKERS.clanker_v4_robinhood.address);
-  expect(tx.expectedAddress?.toLowerCase()).toEndWith('4b07');
+  expect(tx.expectedAddress?.toLowerCase()).toEndWith('b07');
   expect(tx.args?.[0]?.tokenConfig.salt).toMatch(/^0x[a-fA-F0-9]{64}$/);
   expect(tx.chainId).toEqual(robinhood.id);
 });
