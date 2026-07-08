@@ -14,7 +14,6 @@ const PUBLIC_RPCS: Record<string, string> = {
   bsc: 'https://bsc-dataseed.binance.org',
   unichain: 'https://mainnet.unichain.org',
   robinhood: 'https://rpc.mainnet.chain.robinhood.com',
-  'robinhood-chain': 'https://rpc.mainnet.chain.robinhood.com',
 };
 
 export function registerSetupCommand(program: Command) {

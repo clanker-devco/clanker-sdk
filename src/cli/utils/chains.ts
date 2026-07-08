@@ -12,7 +12,6 @@ const CHAIN_MAP: Record<string, Chain> = {
   unichain,
   monad,
   robinhood,
-  'robinhood-chain': robinhood,
 };
 
 export const CHAIN_NAMES = Object.keys(CHAIN_MAP);
