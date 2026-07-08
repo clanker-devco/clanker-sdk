@@ -1,5 +1,8 @@
 # Clanker SDK - Changelog
 
+4.2.18
+- (Bug) Fix Robinhood v4 CREATE2 address prediction by using the correct ClankerToken creation bytecode (shared with BSC v4.1)
+
 4.2.17
 - (Chain) Robinhood Chain (chain ID 4663) with official v4 deployment addresses
 - (Bug) Fix CLI deploy chain resolution for Robinhood (`--chain robinhood` no longer defaults to Base)
