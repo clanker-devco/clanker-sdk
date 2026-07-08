@@ -336,8 +336,7 @@ export const CLANKERS = {
     abi: Clanker_v4_abi,
     token: {
       abi: ClankerToken_v4_abi,
-      // Robinhood mainnet deploys the same ClankerToken creation bytecode as BSC v4.1.
-      bytecode: ClankerToken_v4_bsc_bytecode,
+      bytecode: ClankerToken_v4_bytecode,
     },
     chainId: robinhood.id,
     type: 'clanker_v4',
