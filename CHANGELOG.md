@@ -2,6 +2,7 @@
 
 4.2.17
 - (Chain) Robinhood Chain (chain ID 4663) with official v4 deployment addresses
+- (Bug) Encode ClankerMevDescendingFees init data for Robinhood deploys
 
 4.2.14
 - (QoL) Vanity address on BSC

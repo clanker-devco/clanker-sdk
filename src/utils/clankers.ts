@@ -64,6 +64,8 @@ export type RelatedV4 = {
   presaleAllowlist?: `0x${string}`;
 
   mevModuleV2?: `0x${string}`;
+  /** Uses ClankerMevDescendingFees (requires encoded FeeConfig in mevModuleData). */
+  mevDescendingFees?: boolean;
   feeStaticHookV2?: `0x${string}`;
   feeDynamicHookV2?: `0x${string}`;
 };
@@ -345,6 +347,7 @@ export const CLANKERS = {
       airdrop: '0x6f27372FF493A3855E6746b9a4fe6Ed2Cc3034B5',
       devbuy: '0xa27b1986e5c7e5371Cb6507f87918fBD0302fF5a',
       mevModule: '0xEA1Fe197dF140e5d88fC6B49f2d21Ea05092299e',
+      mevDescendingFees: true,
       feeLocker: '0x88db2340bE5991B2b5Fca2Baee39B5CE048Cd70c',
       feeStaticHook: '0x0000000000000000000000000000000000000000',
       feeStaticHookV2: '0x48B8F6AD3A1b4aA477314c9a23035b8F84dDe8cc',

@@ -280,5 +280,6 @@ test('robinhood', async () => {
   expect(tx.args?.[0]?.mevModuleConfig?.mevModule).toEqual(
     CLANKERS.clanker_v4_robinhood.related.mevModule
   );
+  expect(tx.args?.[0]?.mevModuleConfig?.mevModuleData).not.toEqual('0x');
   expect(tx.chainId).toEqual(robinhood.id);
 });
