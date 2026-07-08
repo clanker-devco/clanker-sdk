@@ -1,7 +1,7 @@
 # Clanker SDK - Changelog
 
 4.2.17
-- (Chain) Robinhood Chain network definition (chain ID 4663, RPC, WETH). Clanker deployment pending official contract addresses.
+- (Chain) Robinhood Chain (chain ID 4663) with official v4 deployment addresses
 
 4.2.14
 - (QoL) Vanity address on BSC

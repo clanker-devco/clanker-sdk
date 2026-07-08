@@ -31,6 +31,7 @@ import {
 } from '../abi/v4.1.mainnet/ClankerToken.js';
 import { ClankerToken_v4_monad_bytecode } from '../abi/v4.1.monad/ClankerToken.js';
 import { monad } from './chains/monad.js';
+import { robinhood } from './chains/robinhood.js';
 
 type RelatedV0 = undefined;
 
@@ -327,6 +328,28 @@ export const CLANKERS = {
       feeStaticHookV2: '0xC5d309026BCAb6630888d51CE21154AD2f4828cC',
       feeDynamicHook: '0x0000000000000000000000000000000000000000',
       feeDynamicHookV2: '0x011a8ed40095F2D7E9c19125B8254b19678D68Cc',
+    } satisfies RelatedV4,
+  },
+  clanker_v4_robinhood: {
+    abi: Clanker_v4_abi,
+    token: {
+      abi: ClankerToken_v4_abi,
+      bytecode: ClankerToken_v4_bytecode,
+    },
+    chainId: robinhood.id,
+    type: 'clanker_v4',
+    address: '0xD3f2cC1731b7Fd17f28798835C2E02f0a1839A94',
+    related: {
+      locker: '0x290F735F63824BB5836cDe24a35F5103A5B5Bc99',
+      vault: '0x99B2a80ed21c7af1F5cc1A97383DADeEC7DD1427',
+      airdrop: '0x6f27372FF493A3855E6746b9a4fe6Ed2Cc3034B5',
+      devbuy: '0xa27b1986e5c7e5371Cb6507f87918fBD0302fF5a',
+      mevModule: '0xEA1Fe197dF140e5d88fC6B49f2d21Ea05092299e',
+      feeLocker: '0x88db2340bE5991B2b5Fca2Baee39B5CE048Cd70c',
+      feeStaticHook: '0x0000000000000000000000000000000000000000',
+      feeStaticHookV2: '0x48B8F6AD3A1b4aA477314c9a23035b8F84dDe8cc',
+      feeDynamicHook: '0x0000000000000000000000000000000000000000',
+      feeDynamicHookV2: '0x65efDF8Cce99b53C925DF878Df275Df21cB6E8Cc',
     } satisfies RelatedV4,
   },
 } as const satisfies Record<string, ClankerDeployment>;
