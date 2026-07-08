@@ -18,6 +18,7 @@ import {
   POOL_POSITIONS,
   WETH_ADDRESSES,
 } from '../../src/constants.js';
+import { robinhood } from '../../src/utils/chains/robinhood.js';
 import {
   getTickFromMarketCap,
   getTickFromMarketCapStable,
@@ -37,6 +38,7 @@ describe('CLI chain utilities', () => {
     expect(CHAIN_NAMES).toContain('bsc');
     expect(CHAIN_NAMES).toContain('unichain');
     expect(CHAIN_NAMES).toContain('monad');
+    expect(CHAIN_NAMES).toContain('robinhood');
     expect(CHAIN_NAMES).not.toContain('abstract');
   });
 
@@ -61,6 +63,7 @@ describe('CLI chain utilities', () => {
     expect(resolveChainId('bsc')).toBe(56);
     expect(resolveChainId('unichain')).toBe(130);
     expect(resolveChainId('monad')).toBe(143);
+    expect(resolveChainId('robinhood')).toBe(robinhood.id);
     expect(resolveChainId('abstract')).toBe(8453);
   });
 
@@ -69,7 +72,7 @@ describe('CLI chain utilities', () => {
   });
 
   test('resolveChain and resolveChainId are consistent', () => {
-    for (const name of ['base', 'arbitrum', 'ethereum', 'bsc', 'unichain']) {
+    for (const name of CHAIN_NAMES) {
       expect(resolveChain(name).id).toBe(resolveChainId(name));
     }
   });
@@ -175,6 +178,17 @@ describe('buildV4Config', () => {
     });
 
     expect(config.chainId).toBe(42161);
+  });
+
+  test('config with robinhood chain', () => {
+    const config = buildV4Config({
+      name: 'TestToken',
+      symbol: 'TST',
+      tokenAdmin: ADMIN,
+      chain: 'robinhood',
+    });
+
+    expect(config.chainId).toBe(robinhood.id);
   });
 
   test('config with DynamicBasic fees', () => {

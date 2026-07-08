@@ -12,7 +12,7 @@ import {
 import { Clanker as ClankerV3 } from '../../v3/index.js';
 import { createAirdrop } from '../../v4/extensions/airdrop.js';
 import { Clanker as ClankerV4 } from '../../v4/index.js';
-import { CHAIN_NAMES } from '../utils/chains.js';
+import { CHAIN_NAMES, resolveChain } from '../utils/chains.js';
 import {
   blockExplorerUrl,
   printError,
@@ -474,23 +474,17 @@ export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
   return token;
 }
 
-const CHAIN_ID_MAP: Record<string, number> = {
-  base: 8453,
-  'base-sepolia': 84532,
-  arbitrum: 42161,
-  ethereum: 1,
-  bsc: 56,
-  unichain: 130,
-  monad: 143,
-};
-
 export function resolveChainId(name: string): number {
-  return CHAIN_ID_MAP[name] || 8453;
+  try {
+    return resolveChain(name).id;
+  } catch {
+    return 8453;
+  }
 }
 
 function resolveChainName(chainId: number): string {
-  for (const [name, id] of Object.entries(CHAIN_ID_MAP)) {
-    if (id === chainId) return name;
+  for (const name of CHAIN_NAMES) {
+    if (resolveChain(name).id === chainId) return name;
   }
   return 'base';
 }

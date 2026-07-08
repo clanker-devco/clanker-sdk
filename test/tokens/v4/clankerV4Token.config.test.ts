@@ -10,6 +10,7 @@ import { Clanker_MevSniperAuction_InitData_v4_1_abi } from '../../../src/abi/v4.
 import { Clanker_PoolInitializationData_v4_1_abi } from '../../../src/abi/v4.1/ClankerPool.js';
 import { clankerTokenV4Converter } from '../../../src/config/clankerTokenV4.js';
 import { CLANKERS, FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from '../../../src/index.js';
+import { robinhood } from '../../../src/utils/chains/robinhood.js';
 
 test('basic', async () => {
   const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
@@ -259,4 +260,26 @@ test('vanity', async () => {
   expect(tx.value).toEqual(BigInt(3.2 * 1e18));
   expect(tx.expectedAddress?.toLowerCase()).toEndWith('b07');
   expect(tx.chainId).toEqual(8453);
+});
+
+test('robinhood', async () => {
+  const admin = '0x746d5412345883b0a4310181DCca3002110967B3';
+  const tx = await clankerTokenV4Converter({
+    name: 'TheName',
+    symbol: 'SYM',
+    tokenAdmin: admin,
+    chainId: robinhood.id,
+  });
+
+  expect(tx.address).toEqual(CLANKERS.clanker_v4_robinhood.address);
+  expect(tx.args?.[0]?.poolConfig?.pairedToken).toEqual(WETH_ADDRESSES[robinhood.id]);
+  expect(tx.args?.[0]?.lockerConfig?.locker).toEqual(CLANKERS.clanker_v4_robinhood.related.locker);
+  expect(tx.args?.[0]?.poolConfig?.hook).toEqual(
+    CLANKERS.clanker_v4_robinhood.related.feeStaticHookV2
+  );
+  expect(tx.args?.[0]?.mevModuleConfig?.mevModule).toEqual(
+    CLANKERS.clanker_v4_robinhood.related.mevModule
+  );
+  expect(tx.args?.[0]?.mevModuleConfig?.mevModuleData).not.toEqual('0x');
+  expect(tx.chainId).toEqual(robinhood.id);
 });

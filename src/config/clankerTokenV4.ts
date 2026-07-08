@@ -405,15 +405,16 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
         },
         mevModuleConfig: {
           mevModule: clankerConfig.related?.mevModuleV2 || clankerConfig.related?.mevModule,
-          mevModuleData: clankerConfig.related?.mevModuleV2
-            ? encodeAbiParameters(Clanker_MevSniperAuction_InitData_v4_1_abi, [
-                {
-                  startingFee: cfg.sniperFees.startingFee,
-                  endingFee: cfg.sniperFees.endingFee,
-                  secondsToDecay: BigInt(cfg.sniperFees.secondsToDecay),
-                },
-              ])
-            : '0x',
+          mevModuleData:
+            clankerConfig.related?.mevModuleV2 || clankerConfig.related?.mevDescendingFees
+              ? encodeAbiParameters(Clanker_MevSniperAuction_InitData_v4_1_abi, [
+                  {
+                    startingFee: cfg.sniperFees.startingFee,
+                    endingFee: cfg.sniperFees.endingFee,
+                    secondsToDecay: BigInt(cfg.sniperFees.secondsToDecay),
+                  },
+                ])
+              : '0x',
         },
         extensionConfigs: [
           // vaulting extension
