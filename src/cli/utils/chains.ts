@@ -1,6 +1,7 @@
 import type { Chain } from 'viem';
 import { arbitrum, base, baseSepolia, bsc, mainnet, unichain } from 'viem/chains';
 import { monad } from '../../utils/chains/monad.js';
+import { robinhood } from '../../utils/chains/robinhood.js';
 
 const CHAIN_MAP: Record<string, Chain> = {
   base,
@@ -10,6 +11,8 @@ const CHAIN_MAP: Record<string, Chain> = {
   bsc,
   unichain,
   monad,
+  robinhood,
+  'robinhood-chain': robinhood,
 };
 
 export const CHAIN_NAMES = Object.keys(CHAIN_MAP);

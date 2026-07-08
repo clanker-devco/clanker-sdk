@@ -3,6 +3,11 @@ export type { ClankerTokenV4 } from './config/clankerTokenV4.js';
 export * from './constants.js';
 export type { DeployTokenOptions } from './deployment/deploy.js';
 export * from './services/vanityAddress.js';
+export {
+  ROBINHOOD_BLOCK_GAS_LIMIT,
+  ROBINHOOD_WETH_ADDRESS,
+  robinhood,
+} from './utils/chains/robinhood.js';
 export * from './utils/clankers.js';
 export * from './utils/market-cap.js';
 export {
