@@ -185,7 +185,7 @@ export const CLANKERS = {
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
     related: {
-      locker: '0x63D2DfEA64b3433F4071A98665bcD7Ca14d93496',
+      locker: '0xffA37784D619F228D8B379d287a4D7282e500762',
       vault: '0x8E845EAd15737bF71904A30BdDD3aEE76d6ADF6C',
       airdrop: '0xf652B3610D75D81871bf96DB50825d9af28391E0',
       devbuy: '0x1331f0788F9c08C8F38D52c7a1152250A9dE00be',
@@ -232,7 +232,7 @@ export const CLANKERS = {
     type: 'clanker_v4',
     address: '0xEb9D2A726Edffc887a574dC7f46b3a3638E8E44f',
     related: {
-      locker: '0xF3622742b1E446D92e45E22923Ef11C2fcD55D68',
+      locker: '0xffA37784D619F228D8B379d287a4D7282e500762',
       vault: '0xa1da0600Eb4A9F3D4a892feAa2c2caf80A4A2f14',
       airdrop: '0x8Cb6e0216e98A7ACF622DC2dD6a39F1b4FF37014',
       devbuy: '0x70aDdc06fE89a5cF9E533aea8D025dB06795e492',
@@ -277,7 +277,7 @@ export const CLANKERS = {
     type: 'clanker_v4',
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
     related: {
-      locker: '0x691f97752E91feAcD7933F32a1FEdCeDae7bB59c',
+      locker: '0xffA37784D619F228D8B379d287a4D7282e500762',
       vault: '0xA9C0a423f0092176fC48d7B50a1fCae8cf5BB441',
       airdrop: '0xE143f9872A33c955F23cF442BB4B1EFB3A7402A2',
       devbuy: '0x267259e36914839Eb584e962558563760AE28862',
@@ -343,7 +343,7 @@ export const CLANKERS = {
     type: 'clanker_v4',
     address: '0xD3f2cC1731b7Fd17f28798835C2E02f0a1839A94',
     related: {
-      locker: '0x290F735F63824BB5836cDe24a35F5103A5B5Bc99',
+      locker: '0xE4910b09709423aFafD995dD76D8A81CF9134A09',
       vault: '0x99B2a80ed21c7af1F5cc1A97383DADeEC7DD1427',
       airdrop: '0x6f27372FF493A3855E6746b9a4fe6Ed2Cc3034B5',
       devbuy: '0xa27b1986e5c7e5371Cb6507f87918fBD0302fF5a',
