@@ -382,10 +382,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
           originatingChainId: BigInt(cfg.chainId),
         },
         lockerConfig: {
-          locker:
-            cfg.locker.locker === 'Locker'
-              ? (clankerConfig.related.deploymentLocker ?? clankerConfig.related.locker)
-              : cfg.locker.locker,
+          locker: cfg.locker.locker === 'Locker' ? clankerConfig.related.locker : cfg.locker.locker,
           lockerData: encodeAbiParameters(ClankerLpLocker_Instantiation_v4_abi, [
             {
               feePreference: cfg.rewards.recipients.map(({ token }) => FeeInToInt[token]),

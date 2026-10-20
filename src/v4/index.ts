@@ -1,7 +1,5 @@
 import type { Account, Chain, PublicClient, Transport, WalletClient } from 'viem';
-import { isAddress, isAddressEqual, zeroAddress } from 'viem';
 import { base } from 'viem/chains';
-import { Clanker_v4_abi } from '../abi/v4/Clanker.js';
 import { ClankerFeeLocker_abi } from '../abi/v4/ClankerFeeLocker.js';
 import { ClankerLocker_v4_abi } from '../abi/v4/ClankerLocker.js';
 import { ClankerToken_v4_abi } from '../abi/v4/ClankerToken.js';
@@ -36,36 +34,6 @@ export class Clanker {
   constructor(config?: ClankerConfig) {
     this.wallet = config?.wallet;
     this.publicClient = config?.publicClient;
-  }
-
-  private async tokenLocker(
-    token: `0x${string}`,
-    config: ClankerDeployment<RelatedV4>,
-    lockerAddress?: `0x${string}`
-  ): Promise<`0x${string}`> {
-    if (lockerAddress) {
-      if (!isAddress(lockerAddress) || isAddressEqual(lockerAddress, zeroAddress)) {
-        throw new Error('Invalid locker address');
-      }
-      return lockerAddress;
-    }
-    if (!config.related.deploymentLocker) return config.related.locker;
-    if (!this.publicClient) {
-      throw new Error('Public client or explicit lockerAddress required for this chain');
-    }
-    const deployment = await this.publicClient.readContract({
-      address: config.address,
-      abi: Clanker_v4_abi,
-      functionName: 'tokenDeploymentInfo',
-      args: [token],
-    });
-    if (
-      !isAddressEqual(deployment.token, token) ||
-      isAddressEqual(deployment.locker, zeroAddress)
-    ) {
-      throw new Error('Token deployment not found in the configured Clanker factory');
-    }
-    return deployment.locker;
   }
 
   /**
@@ -248,7 +216,7 @@ export class Clanker {
    * @param token The token to update the reward recipient for
    * @param rewardIndex The index of the reward to update
    * @param newRecipient The new recipient address
-   * @param options Chain and optional verified token locker. Offline Unichain calls require lockerAddress.
+   * @param options Optional chain configuration
    * @returns Abi transaction
    */
   async getUpdateRewardRecipientTransaction(
@@ -261,7 +229,7 @@ export class Clanker {
       rewardIndex: bigint;
       newRecipient: `0x${string}`;
     },
-    options?: { chain?: Chain; lockerAddress?: `0x${string}` }
+    options?: { chain?: Chain }
   ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
@@ -271,7 +239,7 @@ export class Clanker {
     if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
 
     return {
-      address: await this.tokenLocker(token, config, options?.lockerAddress),
+      address: config.related.locker,
       abi: ClankerLocker_v4_abi,
       functionName: 'updateRewardRecipient',
       args: [token, rewardIndex, newRecipient],
@@ -284,7 +252,7 @@ export class Clanker {
    * @param token The token to update the reward admin for
    * @param rewardIndex The index of the reward to update
    * @param newAdmin The new admin address
-   * @param options Chain and optional verified token locker. Offline Unichain calls require lockerAddress.
+   * @param options Optional chain configuration
    * @returns Abi transaction
    */
   async getUpdateRewardAdminTransaction(
@@ -297,7 +265,7 @@ export class Clanker {
       rewardIndex: bigint;
       newAdmin: `0x${string}`;
     },
-    options?: { chain?: Chain; lockerAddress?: `0x${string}` }
+    options?: { chain?: Chain }
   ): Promise<ClankerTransactionConfig<typeof ClankerLocker_v4_abi>> {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
@@ -307,7 +275,7 @@ export class Clanker {
     if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
 
     return {
-      address: await this.tokenLocker(token, config, options?.lockerAddress),
+      address: config.related.locker,
       abi: ClankerLocker_v4_abi,
       functionName: 'updateRewardAdmin',
       args: [token, rewardIndex, newAdmin],
@@ -340,11 +308,19 @@ export class Clanker {
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getUpdateRewardRecipientTransaction({
-      token,
-      rewardIndex,
-      newRecipient,
-    });
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardRecipient' as const,
+      args: [token, rewardIndex, newRecipient] as const,
+    };
 
     return simulateClankerContract(this.publicClient, acc, input);
   }
@@ -375,7 +351,19 @@ export class Clanker {
     if (!acc) throw new Error('Account or wallet client required for simulation');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getUpdateRewardAdminTransaction({ token, rewardIndex, newAdmin });
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardAdmin' as const,
+      args: [token, rewardIndex, newAdmin] as const,
+    };
 
     return simulateClankerContract(this.publicClient, acc, input);
   }
@@ -402,11 +390,19 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getUpdateRewardRecipientTransaction({
-      token,
-      rewardIndex,
-      newRecipient,
-    });
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardRecipient' as const,
+      args: [token, rewardIndex, newRecipient] as const,
+    };
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
@@ -433,7 +429,19 @@ export class Clanker {
     if (!this.wallet) throw new Error('Wallet client required');
     if (!this.publicClient) throw new Error('Public client required');
 
-    const input = await this.getUpdateRewardAdminTransaction({ token, rewardIndex, newAdmin });
+    const chain = this.publicClient.chain || base;
+    const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
+      chain.id as ClankerChain,
+      'clanker_v4'
+    );
+    if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
+
+    const input = {
+      address: config.related.locker,
+      abi: ClankerLocker_v4_abi,
+      functionName: 'updateRewardAdmin' as const,
+      args: [token, rewardIndex, newAdmin] as const,
+    };
 
     return writeClankerContract(this.publicClient, this.wallet, input);
   }
@@ -694,12 +702,12 @@ export class Clanker {
    * Get the transaction config for reading token rewards information from the locker contract.
    *
    * @param token The token address to get rewards info for
-   * @param options Chain and optional verified token locker. Offline Unichain calls require lockerAddress.
+   * @param options Optional chain configuration
    * @returns Abi transaction config for reading token rewards
    */
   async getTokenRewardsTransaction(
     { token }: { token: `0x${string}` },
-    options?: { chain?: Chain; lockerAddress?: `0x${string}` }
+    options?: { chain?: Chain }
   ) {
     const chain = this.publicClient?.chain || options?.chain || base;
     const config = clankerConfigFor<ClankerDeployment<RelatedV4>>(
@@ -709,7 +717,7 @@ export class Clanker {
     if (!config) throw new Error(`Clanker is not ready on ${chain.id}`);
 
     return {
-      address: await this.tokenLocker(token, config, options?.lockerAddress),
+      address: config.related.locker,
       abi: ClankerLocker_v4_abi,
       functionName: 'tokenRewards',
       args: [token],

@@ -52,8 +52,6 @@ export type RelatedV3_1 = {
 
 export type RelatedV4 = {
   locker: `0x${string}`;
-  /** Locker for new deployments when older tokens still use the original locker. */
-  deploymentLocker?: `0x${string}`;
   vault: `0x${string}`;
   airdrop: `0x${string}`;
   devbuy: `0x${string}`;
@@ -280,7 +278,6 @@ export const CLANKERS = {
     address: '0xE85A59c628F7d27878ACeB4bf3b35733630083a9',
     related: {
       locker: '0x691f97752E91feAcD7933F32a1FEdCeDae7bB59c',
-      deploymentLocker: '0xffA37784D619F228D8B379d287a4D7282e500762',
       vault: '0xA9C0a423f0092176fC48d7B50a1fCae8cf5BB441',
       airdrop: '0xE143f9872A33c955F23cF442BB4B1EFB3A7402A2',
       devbuy: '0x267259e36914839Eb584e962558563760AE28862',
