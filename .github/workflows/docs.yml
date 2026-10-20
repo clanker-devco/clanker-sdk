@@ -8,6 +8,11 @@ on:
       - "typedoc.json"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
+    inputs:
+      check_access_only:
+        description: Verify DOCS credentials without publishing documentation
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -31,21 +36,40 @@ jobs:
             exit 1
           fi
 
+      - name: Verify DOCS Git access without publishing
+        if: ${{ inputs.check_access_only }}
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_PAT }}
+        run: |
+          git check-ref-format --branch "$DOCS_BRANCH" > /dev/null
+          gh auth setup-git
+          verify_dir=$(mktemp -d)
+          git -C "$verify_dir" init --quiet
+          git -C "$verify_dir" remote add origin https://github.com/clanker-devco/DOCS.git
+          git -C "$verify_dir" fetch --quiet --depth=1 origin "refs/heads/$DOCS_BRANCH"
+          git -C "$verify_dir" push --dry-run origin "FETCH_HEAD:refs/heads/$DOCS_BRANCH"
+          echo "DOCS credential and Git access checks passed. No documentation was published."
+
       - name: Checkout clanker-sdk
+        if: ${{ inputs.check_access_only != true }}
         uses: actions/checkout@v4
 
       - name: Setup Bun
+        if: ${{ inputs.check_access_only != true }}
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Install dependencies
+        if: ${{ inputs.check_access_only != true }}
         run: bun i
 
       - name: Generate SDK docs
+        if: ${{ inputs.check_access_only != true }}
         run: bun typedoc
 
       - name: Checkout DOCS repo
+        if: ${{ inputs.check_access_only != true }}
         uses: actions/checkout@v4
         with:
           repository: clanker-devco/DOCS
@@ -54,12 +78,13 @@ jobs:
           path: DOCS
 
       - name: Setup Node for Mintlify conversion
-        if: hashFiles('DOCS/mintlify/scripts/import-generated.mjs') != ''
+        if: ${{ inputs.check_access_only != true && hashFiles('DOCS/mintlify/scripts/import-generated.mjs') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Update documentation
+        if: ${{ inputs.check_access_only != true }}
         run: |
           rm -rf DOCS/sdk-reference/index.md DOCS/sdk-reference/v3.md DOCS/sdk-reference/v4.md DOCS/sdk-reference/v4/ DOCS/sdk-reference/legacyFeeClaims.md
           cp docs/generated/index.md DOCS/sdk-reference/index.md
@@ -75,6 +100,7 @@ jobs:
           fi
 
       - name: Commit and push to DOCS
+        if: ${{ inputs.check_access_only != true }}
         working-directory: DOCS
         run: |
           git config user.name "github-actions[bot]"
