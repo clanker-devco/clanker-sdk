@@ -205,6 +205,14 @@ See the [examples](./examples) directory for more deployment scenarios:
 
 # SDK Development
 
+### Unichain liquidity lockers
+
+New Unichain launches use the replacement locker registered by the factory. Existing tokens keep their original locker. Reward-admin updates, reward-recipient updates and token reward lookups read `tokenDeploymentInfo` from the factory to select the token's locker.
+
+For offline Unichain transaction builders, pass both `chain: unichain` and the token's verified `lockerAddress` in the options. With a public client, the SDK resolves this automatically. Claiming accrued fees still uses the unchanged fee locker.
+
+The Unichain simulation tests use `TESTS_RPC_URL_UNICHAIN` when provided, otherwise the public Unichain RPC. They simulate calls without submitting transactions.
+
 ## Setup
 
 The SDK uses bun for development. Install bun following their instructions here: [https://bun.sh](https://bun.sh).
