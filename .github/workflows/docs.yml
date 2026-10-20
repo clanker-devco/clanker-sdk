@@ -15,7 +15,22 @@ permissions:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      DOCS_BRANCH: ${{ vars.DOCS_BRANCH || 'main' }}
     steps:
+      - name: Check DOCS publishing access
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_PAT }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Set DOCS_PAT to a credential with Contents read/write access to clanker-devco/DOCS."
+            exit 1
+          fi
+          if [ "$(gh api repos/clanker-devco/DOCS --jq '.permissions.push')" != "true" ]; then
+            echo "::error::DOCS_PAT must belong to an account allowed to push to clanker-devco/DOCS."
+            exit 1
+          fi
+
       - name: Checkout clanker-sdk
         uses: actions/checkout@v4
 
@@ -34,7 +49,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: clanker-devco/DOCS
-          ref: ${{ vars.DOCS_BRANCH || 'main' }}
+          ref: ${{ env.DOCS_BRANCH }}
           token: ${{ secrets.DOCS_PAT }}
           path: DOCS
 
