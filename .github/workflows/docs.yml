@@ -39,24 +39,24 @@ jobs:
           path: DOCS
 
       - name: Setup Node for Mintlify conversion
-        if: hashFiles('DOCS/scripts/import-generated.mjs') != ''
+        if: hashFiles('DOCS/mintlify/scripts/import-generated.mjs') != ''
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Update documentation
         run: |
-          if [ -f DOCS/scripts/import-generated.mjs ]; then
-            npm ci --prefix DOCS --ignore-scripts --no-audit --no-fund
-            node DOCS/scripts/import-generated.mjs sdk docs/generated
-            npm run check --prefix DOCS
-          else
-            rm -rf DOCS/sdk-reference/index.md DOCS/sdk-reference/v3.md DOCS/sdk-reference/v4.md DOCS/sdk-reference/v4/ DOCS/sdk-reference/legacyFeeClaims.md
-            cp docs/generated/index.md DOCS/sdk-reference/index.md
-            cp docs/generated/v3.md DOCS/sdk-reference/v3.md
-            cp docs/generated/v4.md DOCS/sdk-reference/v4.md
-            cp -r docs/generated/v4 DOCS/sdk-reference/v4
-            cp docs/generated/legacyFeeClaims.md DOCS/sdk-reference/legacyFeeClaims.md
+          rm -rf DOCS/sdk-reference/index.md DOCS/sdk-reference/v3.md DOCS/sdk-reference/v4.md DOCS/sdk-reference/v4/ DOCS/sdk-reference/legacyFeeClaims.md
+          cp docs/generated/index.md DOCS/sdk-reference/index.md
+          cp docs/generated/v3.md DOCS/sdk-reference/v3.md
+          cp docs/generated/v4.md DOCS/sdk-reference/v4.md
+          cp -r docs/generated/v4 DOCS/sdk-reference/v4
+          cp docs/generated/legacyFeeClaims.md DOCS/sdk-reference/legacyFeeClaims.md
+
+          if [ -f DOCS/mintlify/scripts/import-generated.mjs ]; then
+            npm ci --prefix DOCS/mintlify --ignore-scripts --no-audit --no-fund
+            node DOCS/mintlify/scripts/import-generated.mjs sdk docs/generated
+            npm run check --prefix DOCS/mintlify
           fi
 
       - name: Commit and push to DOCS
