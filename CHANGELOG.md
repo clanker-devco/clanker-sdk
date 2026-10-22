@@ -1,5 +1,12 @@
 # Clanker SDK - Changelog
 
+4.2.20
+- (Bug) Use the locker each factory has enabled: FeeConversion 1.1 on Base, Arbitrum, Unichain and Robinhood. Ethereum, Monad and BSC stay on their previous lockers
+- (Release) Published from GitHub Actions with npm provenance
+
+4.2.19
+- (Deprecated) Published outside the repository with FeeConversion 1.1 lockers on all chains, including chains not yet enabled. Use 4.2.20
+
 4.2.18
 - (Bug) Fix Robinhood v4 CREATE2 address prediction by using the correct ClankerToken creation bytecode (shared with BSC v4.1)
 
