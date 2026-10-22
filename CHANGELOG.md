@@ -1,7 +1,7 @@
 # Clanker SDK - Changelog
 
 4.2.20
-- (Bug) Use FeeConversion 1.1 lockers only where they are live: Base and Robinhood. Arbitrum, Unichain, Ethereum, Monad and BSC stay on their previous lockers
+- (Bug) Use the locker each factory has enabled: FeeConversion 1.1 on Base, Arbitrum, Unichain and Robinhood. Ethereum, Monad and BSC stay on their previous lockers
 - (Release) Published from GitHub Actions with npm provenance
 
 4.2.19
