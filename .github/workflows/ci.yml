@@ -1,4 +1,4 @@
-name: CI
+name: Checks
 
 on:
   pull_request:
@@ -33,7 +33,7 @@ jobs:
       - run: bun run lint
 
   typecheck:
-    name: Type-check
+    name: Types
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -42,7 +42,7 @@ jobs:
       - run: bun run typecheck
 
   test:
-    name: Unit tests
+    name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
