@@ -36,10 +36,11 @@ jobs:
           fi
 
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
       - run: bun install --frozen-lockfile
-      - run: bun lint
-      - run: bun test
-      - run: bun tsup
+      # Same gate as CI: format, lint, type-check, tests, build.
+      - run: bun run check
 
       - uses: actions/setup-node@v4
         with:

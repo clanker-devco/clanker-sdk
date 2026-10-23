@@ -1,0 +1,2 @@
+# Store text files with LF so Windows checkouts don't rewrite line endings.
+* text=auto eol=lf

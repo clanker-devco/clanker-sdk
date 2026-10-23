@@ -1,10 +1,17 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: ['**']
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   TESTS_RPC_URL: ${{ secrets.TESTS_RPC_URL }}
@@ -16,18 +23,38 @@ env:
   TESTS_RPC_URL_MONAD: ${{ secrets.TESTS_RPC_URL_MONAD }}
 
 jobs:
-  lint:
+  quality:
+    name: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun i
-      - run: bun lint
 
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      # Version comes from "packageManager" in package.json.
       - uses: oven-sh/setup-bun@v2
-      - run: bun i
-      - run: bun test
+        with:
+          bun-version-file: package.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format
+        run: bun run format:check
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Type-check
+        run: bun run typecheck
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Build
+        run: bun run build
