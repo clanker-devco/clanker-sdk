@@ -34,7 +34,8 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "create-clanker": "bun src/cli/create-clanker",
-    "generate-docs": "typedoc"
+    "generate-docs": "typedoc",
+    "prepare": "node -e \"try{require('child_process').execSync('git config core.hooksPath .githooks',{stdio:'ignore'})}catch{}\""
   },
   "packageManager": "bun@1.3.6",
   "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],

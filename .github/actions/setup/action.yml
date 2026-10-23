@@ -1,0 +1,20 @@
+name: Setup
+description: Install Bun from package.json and dependencies (cached)
+
+runs:
+  using: composite
+  steps:
+    # Version comes from "packageManager" in package.json.
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
+
+    - uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+        restore-keys: bun-${{ runner.os }}-
+
+    - name: Install dependencies
+      shell: bash
+      run: bun install --frozen-lockfile
