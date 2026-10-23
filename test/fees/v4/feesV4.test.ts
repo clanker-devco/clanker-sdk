@@ -33,4 +33,41 @@ describe.skipIf(!process.env.TESTS_RPC_URL)('v4 fees', () => {
     expect(claimLog.args.feeOwner).toEqual('0x46e2c233a4C5CcBD6f48073F8808E0e4b3296477');
     expect(claimLog.args.token).toEqual('0x4200000000000000000000000000000000000006');
   });
+
+  test('getCollectRewardsTransaction', async () => {
+    const tx = await clanker.getCollectRewardsTransaction({
+      token: '0x1A84F1eD13C733e689AACffFb12e0999907357F0',
+    });
+
+    expect(tx.functionName).toEqual('collectRewards');
+    expect(tx.args).toEqual(['0x1A84F1eD13C733e689AACffFb12e0999907357F0']);
+    expect(tx.address).toBeDefined();
+  });
+
+  test('getTokenRewards', async () => {
+    const rewards = await clanker.getTokenRewards({
+      token: '0x1A84F1eD13C733e689AACffFb12e0999907357F0',
+    });
+
+    expect(rewards.token).toEqual('0x1A84F1eD13C733e689AACffFb12e0999907357F0');
+    expect(rewards.rewardRecipients.length).toBeGreaterThan(0);
+    expect(rewards.rewardBps.length).toEqual(rewards.rewardRecipients.length);
+  });
+
+  test('diagnoseRewards', async () => {
+    const diagnosis = await clanker.diagnoseRewards({
+      token: '0x1A84F1eD13C733e689AACffFb12e0999907357F0',
+      feeToken: '0x4200000000000000000000000000000000000006', // WETH on Base
+    });
+
+    expect(diagnosis.token).toEqual('0x1A84F1eD13C733e689AACffFb12e0999907357F0');
+    expect(diagnosis.recipients.length).toBeGreaterThan(0);
+    for (const r of diagnosis.recipients) {
+      expect(r).toHaveProperty('index');
+      expect(r).toHaveProperty('admin');
+      expect(r).toHaveProperty('recipient');
+      expect(r).toHaveProperty('bps');
+      expect(r).toHaveProperty('availableToClaim');
+    }
+  });
 });
