@@ -1,9 +1,9 @@
 name: Checks
 
+# Runs on pull requests only: main and release only change through PRs, so a push
+# run would repeat checks that already passed on the PR.
 on:
   pull_request:
-    branches: [main, release]
-  push:
     branches: [main, release]
 
 permissions:
