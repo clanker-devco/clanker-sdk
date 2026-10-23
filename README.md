@@ -224,21 +224,19 @@ bun test
 # Check coverage
 bun test --coverage
 
-# Lint
-bun lint
+# Everything CI runs: format check, lint, type-check, tests, build
+bun run check
+
+# Fix formatting and lint
+bun run format
+bun run lint:fix
 ```
 
 Publishing the package
-```bash
-# Log into npm
-bunx npm login
 
-# Dry run publishing
-bun publish-package --dry-run
-
-# Publish
-bun publish-package
-```
+Releases are published by CI, not from a laptop. Bump `version` in `package.json` on `main`, then
+publish a GitHub Release tagged `v<version>`. The `Release` workflow runs `bun run check` and
+publishes to npm with provenance.
 
 ## License
 

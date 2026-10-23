@@ -1,0 +1,4 @@
+#!/bin/sh
+# Format and fix staged files with Biome and re-stage them. Bypass with --no-verify.
+bunx biome check --write --staged --no-errors-on-unmatched || exit 1
+git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 -r git add

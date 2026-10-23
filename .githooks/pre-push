@@ -1,0 +1,3 @@
+#!/bin/sh
+# Run the same checks as CI before pushing. Bypass with --no-verify.
+bun run check

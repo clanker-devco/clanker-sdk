@@ -1,33 +1,68 @@
-name: CI
+name: Checks
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: ['**']
+    branches: [main]
+  push:
+    branches: [main]
 
-env:
-  TESTS_RPC_URL: ${{ secrets.TESTS_RPC_URL }}
-  TESTS_RPC_URL_SEPOLIA: ${{ secrets.TESTS_RPC_URL_SEPOLIA }}
-  TESTS_RPC_URL_MAINNET: ${{ secrets.TESTS_RPC_URL_MAINNET }}
-  TESTS_RPC_URL_BASE: ${{ secrets.TESTS_RPC_URL_BASE }}
-  TESTS_RPC_URL_ARBITRUM: ${{ secrets.TESTS_RPC_URL_ARBITRUM }}
-  TESTS_RPC_URL_UNICHAIN: ${{ secrets.TESTS_RPC_URL_UNICHAIN }}
-  TESTS_RPC_URL_MONAD: ${{ secrets.TESTS_RPC_URL_MONAD }}
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint:
+  format:
+    name: Format
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun i
-      - run: bun lint
+      - uses: ./.github/actions/setup
+      - run: bun run format:check
 
-  tests:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun i
-      - run: bun test
+      - uses: ./.github/actions/setup
+      - run: bun run lint
+
+  typecheck:
+    name: Types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: bun run typecheck
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TESTS_RPC_URL: ${{ secrets.TESTS_RPC_URL }}
+      TESTS_RPC_URL_SEPOLIA: ${{ secrets.TESTS_RPC_URL_SEPOLIA }}
+      TESTS_RPC_URL_MAINNET: ${{ secrets.TESTS_RPC_URL_MAINNET }}
+      TESTS_RPC_URL_BASE: ${{ secrets.TESTS_RPC_URL_BASE }}
+      TESTS_RPC_URL_ARBITRUM: ${{ secrets.TESTS_RPC_URL_ARBITRUM }}
+      TESTS_RPC_URL_UNICHAIN: ${{ secrets.TESTS_RPC_URL_UNICHAIN }}
+      TESTS_RPC_URL_MONAD: ${{ secrets.TESTS_RPC_URL_MONAD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: bun run test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: bun run build

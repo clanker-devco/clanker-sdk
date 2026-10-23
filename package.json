@@ -25,14 +25,19 @@
     "url": "https://github.com/clanker-devco/clanker-sdk/issues"
   },
   "scripts": {
-    "lint": "biome check && tsc --noEmit",
-    "lint:fix": "biome check --write && tsc --noEmit",
-    "format": "biome check --write --unsafe",
+    "build": "tsup",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run build",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "lint": "biome check --formatter-enabled=false",
+    "lint:fix": "biome check --formatter-enabled=false --write",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "create-clanker": "bun src/cli/create-clanker",
     "generate-docs": "typedoc",
-    "publish-package-production": "bun tsup && bun publish",
-    "publish-package-canary": "bun tsup && bun publish --tag canary"
+    "prepare": "node -e \"try{require('child_process').execSync('git config core.hooksPath .githooks',{stdio:'ignore'})}catch{}\""
   },
+  "packageManager": "bun@1.3.6",
   "keywords": ["clanker", "token", "deployment", "ethereum", "superchain"],
   "author": "Clanker Team",
   "license": "MIT",
