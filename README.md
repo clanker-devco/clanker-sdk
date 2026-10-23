@@ -234,9 +234,14 @@ bun run lint:fix
 
 Publishing the package
 
-Releases are published by CI, not from a laptop. Bump `version` in `package.json` on `main`, then
-publish a GitHub Release tagged `v<version>`. The `Release` workflow runs `bun run check` and
-publishes to npm with provenance.
+Releases are published by CI, not from a laptop, using the same flow as clanker.world:
+
+1. Bump `version` in `package.json` and merge it into `main`.
+2. Open a `main` → `release` PR. It needs passing checks and one approval, and only admins can
+   merge it.
+3. When `release` updates, the `Release` workflow runs `bun run check`, publishes the new version
+   to npm with provenance, creates the `v<version>` tag and GitHub Release, and updates the docs.
+   If that version is already on npm, it skips publishing.
 
 ## License
 

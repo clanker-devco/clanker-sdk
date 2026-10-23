@@ -1,46 +1,30 @@
 name: Release
 
+# Merging main into release ships it: if package.json has a version that isn't on
+# npm yet, publish it, tag it and update the docs. Otherwise do nothing.
 on:
-  release:
-    types: [published]
+  push:
+    branches: [release]
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  npm:
+  publish:
+    name: Publish to npm
     runs-on: ubuntu-latest
     environment: npm
+    permissions:
+      contents: write # create the vX.Y.Z tag and GitHub Release
+      id-token: write # npm trusted publishing and provenance
+    outputs:
+      published: ${{ steps.publish.outputs.published }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Check tag matches package version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version v${VERSION}"
-            exit 1
-          fi
-
-      - name: Check tag is on main
-        run: |
-          git fetch --no-tags origin main
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::Releases must be cut from a commit on main"
-            exit 1
-          fi
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-      - run: bun install --frozen-lockfile
-      # Same gate as CI: format, lint, type-check, tests, build.
-      - run: bun run check
 
       - uses: actions/setup-node@v4
         with:
@@ -48,4 +32,43 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - run: npm publish --provenance --access public
+      - name: Check version
+        id: version
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$NAME@$VERSION is already on npm. Bump the version in package.json to publish a new release."
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.version.outputs.new == 'true'
+        uses: ./.github/actions/setup
+
+      # Same gate as CI: format, lint, types, tests, build.
+      - if: steps.version.outputs.new == 'true'
+        run: bun run check
+
+      - name: Publish
+        id: publish
+        if: steps.version.outputs.new == 'true'
+        run: |
+          npm publish --provenance --access public
+          echo "published=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag and GitHub Release
+        if: steps.publish.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes
+
+  docs:
+    name: Publish docs
+    needs: publish
+    if: needs.publish.outputs.published == 'true'
+    uses: ./.github/workflows/docs.yml
+    secrets: inherit
