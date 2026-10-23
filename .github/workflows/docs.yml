@@ -1,12 +1,9 @@
 name: Generate SDK Docs
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "typedoc.json"
-      - ".github/workflows/docs.yml"
+  # Publish reference docs for the version that ships to npm, not for every merge.
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       check_access_only:
@@ -109,6 +106,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update SDK reference docs from clanker-sdk@${GITHUB_SHA::7}"
+            git commit -m "Update SDK reference docs from clanker-sdk ${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
             git push
           fi
