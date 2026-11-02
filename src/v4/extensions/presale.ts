@@ -81,8 +81,8 @@ export async function getStartPresaleTransaction({
     functionName: 'startPresale',
     args: [
       tokenDeploymentConfig.args[0],
-      BigInt(parsedConfig.minEthGoal * 1e18), // Convert to wei
-      BigInt(parsedConfig.maxEthGoal * 1e18), // Convert to wei
+      BigInt(Math.round(parsedConfig.minEthGoal * 1e18)), // Convert to wei
+      BigInt(Math.round(parsedConfig.maxEthGoal * 1e18)), // Convert to wei
       BigInt(parsedConfig.presaleDuration),
       parsedConfig.recipient,
       BigInt(parsedConfig.lockupDuration),
@@ -164,7 +164,7 @@ export function buyIntoPresale(data: { clanker: Clanker; presaleId: bigint; ethA
   const tx = getBuyIntoPresaleTransaction({
     presaleId: data.presaleId,
     chainId: data.clanker.wallet.chain.id as ClankerChain,
-    value: BigInt(data.ethAmount * 1e18), // Convert ETH to wei
+    value: BigInt(Math.round(data.ethAmount * 1e18)), // Convert ETH to wei
   });
 
   return writeClankerContract(data.clanker.publicClient, data.clanker.wallet, tx);
@@ -562,7 +562,7 @@ export function withdrawFromPresale(data: {
 
   const tx = getWithdrawFromPresaleTransaction({
     presaleId: data.presaleId,
-    amount: BigInt(data.ethAmount * 1e18), // Convert ETH to wei
+    amount: BigInt(Math.round(data.ethAmount * 1e18)), // Convert ETH to wei
     recipient: data.recipient,
     chainId: data.clanker.wallet.chain.id as ClankerChain,
   });
@@ -659,7 +659,7 @@ export function buyIntoPresaleWithProof(data: {
   const tx = getBuyIntoPresaleWithProofTransaction({
     presaleId: data.presaleId,
     chainId: data.clanker.wallet.chain.id as ClankerChain,
-    value: BigInt(data.ethAmount * 1e18), // Convert ETH to wei
+    value: BigInt(Math.round(data.ethAmount * 1e18)), // Convert ETH to wei
     proof: data.proof,
   });
 

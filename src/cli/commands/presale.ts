@@ -75,7 +75,7 @@ export function registerPresaleCommand(program: Command) {
           const tx = getBuyIntoPresaleTransaction({
             presaleId,
             chainId: chain.id as ClankerChain,
-            value: BigInt(ethAmount * 1e18),
+            value: BigInt(Math.round(ethAmount * 1e18)),
           });
           const simResult = await simulateClankerContract(publicClient, walletClient.account, tx);
           if (simResult.error)
@@ -122,7 +122,7 @@ export function registerPresaleCommand(program: Command) {
           printStep('Simulating presale withdraw...', jsonMode);
           const tx = getWithdrawFromPresaleTransaction({
             presaleId,
-            amount: BigInt(ethAmount * 1e18),
+            amount: BigInt(Math.round(ethAmount * 1e18)),
             recipient,
             chainId: chain.id as ClankerChain,
           });

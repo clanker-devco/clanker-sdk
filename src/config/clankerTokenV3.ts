@@ -193,7 +193,7 @@ export const clankerTokenV3Converter: ClankerTokenConverter<
         },
       },
     ],
-    value: BigInt(cfg.devBuy.ethAmount * 1e18),
+    value: BigInt(Math.round(cfg.devBuy.ethAmount * 1e18)),
     expectedAddress,
     chainId: cfg.chainId,
   };

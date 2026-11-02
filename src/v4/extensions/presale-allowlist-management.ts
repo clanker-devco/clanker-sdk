@@ -155,7 +155,7 @@ export function setAddressOverride(data: {
   const tx = getSetAddressOverrideTransaction({
     presaleId: data.presaleId,
     buyer: data.buyer,
-    allowedAmount: BigInt(data.allowedAmountEth * 1e18), // Convert ETH to wei
+    allowedAmount: BigInt(Math.round(data.allowedAmountEth * 1e18)), // Convert ETH to wei
     chainId: data.clanker.wallet.chain.id as ClankerChain,
   });
 

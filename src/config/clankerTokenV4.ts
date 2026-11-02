@@ -423,7 +423,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
                 {
                   extension: clankerConfig.related.vault,
                   msgValue: 0n,
-                  extensionBps: cfg.vault.percentage * 100,
+                  extensionBps: Math.round(cfg.vault.percentage * 100),
                   extensionData: encodeAbiParameters(ClankerVault_Instantiation_v4_abi, [
                     cfg.vault.recipient ?? cfg.tokenAdmin,
                     BigInt(cfg.vault.lockupDuration),
@@ -453,11 +453,11 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
             ? [
                 {
                   extension: clankerConfig.related.devbuy,
-                  msgValue: BigInt(cfg.devBuy.ethAmount * 1e18),
+                  msgValue: BigInt(Math.round(cfg.devBuy.ethAmount * 1e18)),
                   extensionBps: 0,
                   extensionData: encodeAbiParameters(ClankerUniV4EthDevBuy_Instantiation_v4_abi, [
                     cfg.devBuy.poolKey,
-                    BigInt(cfg.devBuy.amountOutMin * 1e18),
+                    BigInt(Math.round(cfg.devBuy.amountOutMin * 1e18)),
                     cfg.devBuy.recipient ?? cfg.tokenAdmin,
                   ]),
                 },
@@ -478,7 +478,7 @@ export const clankerTokenV4Converter: ClankerTokenConverter<
         ],
       },
     ],
-    value: cfg.devBuy ? BigInt(cfg.devBuy?.ethAmount * 1e18) : 0n,
+    value: cfg.devBuy ? BigInt(Math.round(cfg.devBuy?.ethAmount * 1e18)) : 0n,
     expectedAddress,
     chainId: cfg.chainId,
   };

@@ -52,7 +52,7 @@ export function createAllowlistMerkleTree(entries: AllowlistEntry[]): {
   // Each entry is [address, allowedAmountInWei]
   const values = entries.map((entry) => [
     entry.address.toLowerCase(),
-    BigInt(entry.allowedAmount * 1e18).toString(), // Convert ETH to wei
+    BigInt(Math.round(entry.allowedAmount * 1e18)).toString(), // Convert ETH to wei
   ]) as [string, string][];
 
   // Create the Merkle tree using the same encoding as the contract:
@@ -86,7 +86,7 @@ export function getAllowlistMerkleProof(
   address: `0x${string}`,
   allowedAmount: number
 ): `0x${string}`[] {
-  const allowedAmountInWei = BigInt(allowedAmount * 1e18);
+  const allowedAmountInWei = BigInt(Math.round(allowedAmount * 1e18));
   const leaf = [address.toLowerCase(), allowedAmountInWei.toString()] as [string, string];
   const index = entries.findIndex(([addr, amt]) => addr === leaf[0] && amt === leaf[1]);
 
@@ -133,7 +133,7 @@ export function encodeAllowlistProofData(
   allowedAmount: number,
   proof: `0x${string}`[]
 ): `0x${string}` {
-  const allowedAmountInWei = BigInt(allowedAmount * 1e18);
+  const allowedAmountInWei = BigInt(Math.round(allowedAmount * 1e18));
   return encodeAbiParameters(
     [
       {

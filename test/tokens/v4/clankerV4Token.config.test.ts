@@ -299,3 +299,22 @@ test('robinhood vanity', async () => {
   expect(tx.args?.[0]?.tokenConfig.salt).toMatch(/^0x[a-fA-F0-9]{64}$/);
   expect(tx.chainId).toEqual(robinhood.id);
 });
+
+test('devBuy and vault amounts that are not exact in floating point', async () => {
+  // 0.0011 * 1e18 is 1100000000000000.1 in floating point, and BigInt() rejects a fraction.
+  const tx = await clankerTokenV4Converter({
+    name: 'TheName',
+    symbol: 'SYM',
+    tokenAdmin: '0x746d5412345883b0a4310181DCca3002110967B3',
+    chainId: base.id,
+    devBuy: { ethAmount: 0.0011 },
+    vault: { percentage: 1.1, lockupDuration: 604_800 },
+  });
+
+  const extensions = tx.args?.[0]?.extensionConfigs ?? [];
+  const devBuy = extensions.find((e) => e.extension === CLANKERS.clanker_v4.related.devbuy);
+  const vault = extensions.find((e) => e.extension === CLANKERS.clanker_v4.related.vault);
+  expect(devBuy?.msgValue).toEqual(1_100_000_000_000_000n);
+  expect(tx.value).toEqual(devBuy?.msgValue);
+  expect(vault?.extensionBps).toEqual(110);
+});
