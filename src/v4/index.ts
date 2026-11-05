@@ -13,6 +13,7 @@ import {
   type RelatedV4,
 } from '../utils/clankers.js';
 import type { ClankerError } from '../utils/errors.js';
+import { rejectOlderLaunch } from '../utils/olderLaunches.js';
 import {
   type ClankerTransactionConfig,
   simulateClankerContract,
@@ -173,6 +174,7 @@ export class Clanker {
    * @returns Abi transaction
    */
   async getDeployTransaction(token: ClankerTokenV4) {
+    rejectOlderLaunch();
     return clankerTokenV4Converter(token);
   }
 

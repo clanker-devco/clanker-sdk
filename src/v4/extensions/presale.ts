@@ -8,6 +8,7 @@ import {
   clankerConfigFor,
   type RelatedV4,
 } from '../../utils/clankers.js';
+import { rejectOlderLaunch } from '../../utils/olderLaunches.js';
 import {
   type ClankerTransactionConfig,
   writeClankerContract,
@@ -64,6 +65,7 @@ export async function getStartPresaleTransaction({
   tokenConfig: ClankerTokenV4;
   presaleConfig: PresaleConfig;
 }): Promise<ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'startPresale'>> {
+  rejectOlderLaunch();
   const tokenDeploymentConfig = await clankerTokenV4Converter(tokenConfig);
 
   const chainId = tokenDeploymentConfig.chainId as ClankerChain;

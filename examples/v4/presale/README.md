@@ -1,6 +1,7 @@
 # Presale Examples
 
-This directory contains examples for using the Clanker Presale functionality.
+V3 and V4 launches and new presales are closed on every chain.
+These examples manage an existing presale. An existing presale keeps its behavior.
 
 ## Overview
 
@@ -15,21 +16,18 @@ Presales allow token creators to raise ETH before deploying their token. Key fea
 
 ### Basic Presale Flow
 
-1. **`start.ts`** - Start a new presale
-2. **`buy.ts`** - Buy into an active presale
-3. **`withdraw.ts`** - Withdraw ETH from an active presale (reduce/remove contribution)
-4. **`status.ts`** - Check presale status and user contributions
-5. **`end.ts`** - End a presale (deploys token if successful)
-6. **`end-early.ts`** - ⭐ End a presale early once minimum goal is met (owner only)
-7. **`claim.ts`** - Claim tokens after successful presale
-8. **`claimEth.ts`** - Presale owner claims raised ETH from successful presale
-9. **`complete.ts`** - Complete lifecycle example (all steps in one file)
+1. **`buy.ts`** - Buy into an active presale
+2. **`withdraw.ts`** - Withdraw ETH from an active presale (reduce/remove contribution)
+3. **`status.ts`** - Check presale status and user contributions
+4. **`end.ts`** - End a presale (deploys token if successful)
+5. **`end-early.ts`** - ⭐ End a presale early once minimum goal is met (owner only)
+6. **`claim.ts`** - Claim tokens after successful presale
+7. **`claimEth.ts`** - Presale owner claims raised ETH from successful presale
 
 ### Allowlist (Whitelist) Presales
 
-9. **`start-with-allowlist.ts`** - Start a presale with a Merkle tree allowlist
-10. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale with proof
-11. **`manage-allowlist.ts`** - Manage allowlist (update merkle root, set overrides, enable/disable)
+1. **`buy-with-allowlist.ts`** - Buy into an allowlisted presale with proof
+2. **`manage-allowlist.ts`** - Manage allowlist (update merkle root, set overrides, enable/disable)
 
 ## Allowlist Addresses
 
@@ -39,66 +37,6 @@ The Clanker Presale Allowlist contracts are deployed at:
 - **Ethereum Mainnet**: `0xF6C7Ff92F71e2eDd19c421E4962949Df4cD6b6F3`
 
 ## Usage
-
-### Starting a Basic Presale
-
-```typescript
-import { Clanker } from 'clanker-sdk/v4';
-import { startPresale } from 'clanker-sdk/v4/extensions';
-
-const presaleConfig = {
-  minEthGoal: 1,         // 1 ETH minimum
-  maxEthGoal: 10,        // 10 ETH maximum
-  presaleDuration: 3600,  // 1 hour
-  recipient: '0x...',     // Where ETH goes if successful
-  lockupDuration: 604800, // 7 days lockup (minimum required)
-  vestingDuration: 86400, // 1 day vesting
-  presaleSupplyBps: 5000  // 50% of supply to presale (default)
-};
-
-const { txHash } = await startPresale({
-  clanker,
-  deploymentConfig,
-  presaleConfig
-});
-```
-
-### Starting an Allowlisted Presale
-
-Allowlists use Merkle trees for efficient on-chain verification. You provide a merkle root during presale creation, and buyers provide proofs when purchasing.
-
-```typescript
-import { 
-  getAllowlistAddress, 
-  createAllowlistMerkleTree, 
-  encodeAllowlistInitializationData 
-} from 'clanker-sdk';
-
-// Define who can participate and how much ETH they can contribute
-const allowlistEntries = [
-  { address: '0x123...', allowedAmount: 1.0 }, // 1 ETH max
-  { address: '0x456...', allowedAmount: 0.5 }, // 0.5 ETH max
-  { address: '0x789...', allowedAmount: 2.0 }, // 2 ETH max
-];
-
-// Create Merkle tree and get root
-const { root, tree } = createAllowlistMerkleTree(allowlistEntries);
-
-// Encode initialization data
-const allowlistInitData = encodeAllowlistInitializationData(root);
-
-// Get allowlist contract address for your chain
-const allowlistAddress = getAllowlistAddress(chainId);
-
-const presaleConfig = {
-  // ... basic config ...
-  allowlist: allowlistAddress,
-  allowlistInitializationData: allowlistInitData
-};
-
-// Save the tree for buyers to generate proofs
-// fs.writeFileSync('merkle-tree.json', tree.dump());
-```
 
 ### Buying Into an Allowlisted Presale
 
@@ -321,9 +259,6 @@ PRIVATE_KEY=0x...
 ## Running Examples
 
 ```bash
-# Start a presale
-bun run examples/v4/presale/start.ts
-
 # Buy into a presale
 bun run examples/v4/presale/buy.ts
 
@@ -345,9 +280,6 @@ bun run examples/v4/presale/claim.ts
 # Presale owner claims ETH
 bun run examples/v4/presale/claimEth.ts
 
-# Start presale with allowlist
-bun run examples/v4/presale/start-with-allowlist.ts
-
 # Buy with allowlist proof
 bun run examples/v4/presale/buy-with-allowlist.ts
 
@@ -357,28 +289,24 @@ bun run examples/v4/presale/manage-allowlist.ts
 
 ## Important Notes
 
-1. **Token Supply Distribution**: Use `presaleSupplyBps` to control what percentage of the token supply goes to presale buyers vs liquidity pool
-   - Specified in basis points (10000 = 100%)
-   - Default: 5000 (50% to presale, 50% to LP)
-   - Example: 7000 = 70% to presale buyers, 30% to initial LP
-2. **Presale as Extension**: The presale contract automatically registers itself as an extension when you call `startPresale()`. The SDK handles this automatically - you don't need to add it manually to `extensionConfigs`
-3. **Extract Presale ID**: After starting a presale, you need to extract the `presaleId` from the transaction logs to use in subsequent operations
-4. **Salt Consistency**: Use the same `salt` when ending the presale as you used when starting it
-5. **Early Completion**: ⭐ **NEW** - Presale owners can end the presale early once the minimum goal is reached, even if the duration hasn't expired. This allows for faster token deployment when the presale is going well.
-6. **Timing**: Presales can be ended in three ways:
+New presales are closed. These notes apply to existing presales.
+
+1. **Presale ID**: Each call needs the `presaleId` of the presale. The logs of the transaction that started the presale contain it.
+2. **Salt Consistency**: Use the same `salt` when you end the presale as the salt that started it
+3. **Early Completion**: ⭐ **NEW** - Presale owners can end the presale early once the minimum goal is reached, even if the duration hasn't expired. This allows for faster token deployment when the presale is going well.
+4. **Timing**: Presales can be ended in three ways:
    - Maximum goal reached (anyone can end)
    - Duration expired + minimum goal met (anyone can end)
    - Presale owner ends early after minimum goal met (owner only)
-7. **Early Withdrawal**: Users can withdraw their ETH contributions at any time while the presale is still ACTIVE (before it ends)
-8. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
-9. **Vesting**: Tokens vest linearly over the vesting duration after lockup
-10. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate. Allowlists use Merkle trees for efficient verification:
+5. **Early Withdrawal**: Users can withdraw their ETH contributions at any time while the presale is still ACTIVE (before it ends)
+6. **Lockup Period**: Tokens can only be claimed after the lockup period has passed (minimum 7 days required)
+7. **Vesting**: Tokens vest linearly over the vesting duration after lockup
+8. **Allowlists**: If a presale uses an allowlist, only addresses on that allowlist can participate. Allowlists use Merkle trees for efficient verification:
     - Each address has a maximum contribution limit
     - Buyers must provide a Merkle proof when purchasing
     - Presale owners can update the allowlist at any time
     - Address overrides take precedence over the Merkle tree
     - Allowlists can be disabled/re-enabled by the presale owner
-11. **Other Extensions**: If you need to use other extensions along with presale, add them to `extensionConfigs` - the presale will automatically be added as the last extension
 
 ## Additional Resources
 

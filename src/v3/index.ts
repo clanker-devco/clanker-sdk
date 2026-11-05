@@ -11,6 +11,7 @@ import {
   type RelatedV3_1,
 } from '../utils/clankers.js';
 import type { ClankerError } from '../utils/errors.js';
+import { rejectOlderLaunch } from '../utils/olderLaunches.js';
 import {
   type ClankerTransactionConfig,
   simulateClankerContract,
@@ -238,6 +239,7 @@ export class Clanker {
    * @returns Abi transaction
    */
   async getDeployTransaction(token: ClankerTokenV3, requestorAddress: `0x${string}`) {
+    rejectOlderLaunch();
     return clankerTokenV3Converter(token, { requestorAddress });
   }
 

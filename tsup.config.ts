@@ -7,10 +7,10 @@ export default defineConfig({
     'src/index.ts',
     'src/v3/index.ts',
     'src/v4/index.ts',
+    'src/v5/index.ts',
     'src/v4/extensions/index.ts',
     'src/legacyFeeClaims/index.ts',
     'src/cli/cli.ts',
-    'src/cli/create-clanker.ts',
     'src/cli/commands/deploy.ts',
     'src/cli/commands/rewards.ts',
     'src/cli/commands/vault.ts',
@@ -32,9 +32,6 @@ export default defineConfig({
   splitting: false,
   dts: true,
   async onSuccess() {
-    // Copy ascii.txt to dist/cli directory
-    await copyFile(join(__dirname, 'src/cli/ascii.txt'), join(__dirname, 'dist/cli/ascii.txt'));
-
     // Copy legacy fee claims CSV data to dist directory
     // This keeps the CSV out of the main bundle but available for users who need it
     await mkdir(join(__dirname, 'dist/legacyFeeClaims/data'), { recursive: true });
