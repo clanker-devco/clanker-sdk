@@ -1,13 +1,17 @@
 ---
 name: use-clanker-sdk
-description: Deploy ERC-20 tokens with Uniswap V4 liquidity using the Clanker SDK. Use when the user asks to deploy a token, create a coin, launch a token, configure liquidity pools, claim rewards, set up airdrops, presales, vaults, or interact with Clanker contracts.
+description: Launch V5 tokens with the Clanker SDK, and manage existing V3, V4, and V5 tokens. Use when the user asks to deploy a token, create a coin, launch a token, add a creator buy, set taxes, burn, dividends, or integrator shares, claim rewards, update reward recipients or admins, update token metadata, claim vaulted tokens or airdrops, or manage an existing presale.
 ---
 
 # Using the Clanker SDK
 
 ## Overview
 
-Clanker SDK (`clanker-sdk`) deploys ERC-20 tokens with automatic Uniswap V4 liquidity pools on multiple EVM chains. It handles token creation, pool setup, fee hooks, vesting vaults, airdrops, presales, and reward distribution in a single transaction.
+`clanker-sdk/v5` launches V5 tokens. A V5 token has a buy tax and a sell tax. The tax pays the reward slots, and it can also pay a burn, dividends to holders, and an integrator.
+
+From version 5, the SDK launches V5 tokens only. `deploy`, `deploySimulate`, and `getDeployTransaction` of `clanker-sdk/v3` and `clanker-sdk/v4` throw, and so does `startPresale`. Use the V3 and V4 clients only to manage existing tokens.
+
+The full V5 reference is `docs/v5.md`.
 
 ## Installation
 
@@ -15,25 +19,28 @@ Clanker SDK (`clanker-sdk`) deploys ERC-20 tokens with automatic Uniswap V4 liqu
 npm install clanker-sdk viem
 ```
 
+Version 5 requires viem 2.49.3 or newer.
+
 ## Supported Chains
 
-| Chain | ID | Import | Notes |
-|-------|-----|--------|-------|
-| Base | 8453 | `base` | Primary chain |
-| Base Sepolia | 84532 | `baseSepolia` | Testnet |
-| Arbitrum | 42161 | `arbitrum` | |
-| Ethereum Mainnet | 1 | `mainnet` | |
-| BSC | 56 | `bsc` | Uses WBNB, not WETH |
-| Unichain | 130 | `unichain` | |
-| Monad | custom | `monad` from `clanker-sdk` | Static fees only |
-| Abstract | 11124 | `abstract` | |
+| Chain | ID | Import | Creator buy |
+|-------|-----|--------|-------------|
+| Base | 8453 | `base` from `viem/chains` | Native coin and USDC |
+| Ethereum | 1 | `mainnet` from `viem/chains` | None: no launch-buy adapter |
+| Arbitrum | 42161 | `arbitrum` from `viem/chains` | None: no launch-buy adapter |
+| Unichain | 130 | `unichain` from `viem/chains` | None: no launch-buy adapter |
+| BNB Chain | 56 | `bsc` from `viem/chains` | Native coin and USDC |
+| Monad | 143 | `monad` from `viem/chains` | Native coin and USDC |
+| X Layer | 196 | `xLayer` from `viem/chains` | Native coin and USDC |
+| Robinhood Chain | 4663 | `robinhood` from `clanker-sdk` | Native coin and USDG |
+| Arc | 5042 | `arc` from `viem/chains` | USDC, the native coin of Arc |
 
-Import chains from `viem/chains` except Monad (import from `clanker-sdk`).
+A launch works only when the factory of that chain is open. A closed factory gives `Launches are not open on chain <id>.`
 
 ## Quick Start
 
 ```typescript
-import { Clanker } from 'clanker-sdk/v4';
+import { Clanker } from 'clanker-sdk/v5';
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
@@ -48,262 +55,99 @@ const { txHash, waitForTransaction, error } = await clanker.deploy({
   name: 'My Token',
   symbol: 'TKN',
   image: 'ipfs://...',
-  tokenAdmin: account.address,
-  chainId: base.id,
-  vanity: true,
+  devBuy: { ethAmount: '0.01' },
 });
 if (error) throw error;
 
-const { address } = await waitForTransaction();
+const result = await waitForTransaction();
+if (result.error) throw result.error;
+console.log(txHash, result.address, result.poolId);
 ```
+
+`wallet` and `publicClient` must use the same chain.
 
 ## Imports
 
 ```typescript
-// V4 SDK (primary)
-import { Clanker } from 'clanker-sdk/v4';
+// V5: launches and V5 token management
+import { BASE_USDC, Clanker, TAX_ADDRESSES, type ClankerTokenV5 } from 'clanker-sdk/v5';
 
-// Constants and helpers
-import { FEE_CONFIGS, POOL_POSITIONS, WETH_ADDRESSES } from 'clanker-sdk';
+// V4 and V3: management of existing tokens only
+import { Clanker as ClankerV4 } from 'clanker-sdk/v4';
+import { Clanker as ClankerV3 } from 'clanker-sdk/v3';
 
-// Extensions
-import { createAirdrop, fetchAirdropProofs, registerAirdrop, getClaimAirdropTransaction } from 'clanker-sdk/v4/extensions';
-import { startPresale, buyIntoPresale, endPresale, claimTokens } from 'clanker-sdk/v4/extensions';
-
-// Types
-import type { ClankerTokenV4 } from 'clanker-sdk';
+// V4 extensions for existing tokens and presales
+import { fetchAirdropProofs, claimAirdrop, buyIntoPresale, endPresale, claimTokens } from 'clanker-sdk/v4/extensions';
 ```
 
-## Token Configuration Reference
-
-### Required Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | `string` | Token name |
-| `symbol` | `string` | Token symbol |
-| `tokenAdmin` | `0x${string}` | Admin address (cannot be zero address) |
-
-### Optional Fields with Defaults
+## V5 Token Configuration
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| `chainId` | `8453` (Base) | Target chain ID |
-| `image` | `''` | Token image URL (IPFS or HTTP) |
-| `vanity` | `false` | Generate `0x...b07` suffix address |
-| `salt` | auto | Custom CREATE2 salt (overrides vanity) |
+| `name`, `symbol` | required | Token name and symbol |
+| `image`, `metadata`, `context` | empty | The same fields as V4 |
+| `tokenAdmin` | the caller | The creator of the token |
+| `buyFee`, `sellFee` | `1` | Total tax percentage. Each includes the protocol fee. The factory sets the bounds |
+| `pool.pairedToken` | the native coin | `'WETH'` also means the native coin. On Arc both mean USDC. Another quote must be admitted by the factory |
+| `burn` | `0` | Percentage of the tax to burn |
+| `dividends` | none | `{ share, minimumHolding }`. `minimumHolding` uses token base units with 18 decimals |
+| `integrator` | none | `{ address, share }` |
+| `rewards.recipients` | one creator slot | One to seven slots with bps that total 10000. `token` is `'Paired'` or omitted |
+| `devBuy` | none | `{ ethAmount, recipient?, minAmountOut?, poolKey?, routeData? }` |
 
-### Pool Configuration
+`burn`, `dividends.share`, and `integrator.share` divide the tax after the protocol share, and their total must not be more than 100%. The creator gets the rest.
 
-Defaults to WETH pair with Standard positions if omitted.
+V5 rejects these V4 fields: `fee`, `fees`, `salt`, `vault`, `airdrop`, `presale`, `sniperFees`, pool positions and presets, custom ticks, lockers, pool extensions, and the `Both` and `Clanker` reward tokens. `vanity` is accepted and has no effect.
+
+### Creator Buy
 
 ```typescript
-pool: {
-  pairedToken: 'WETH',           // or a specific token address
-  tickIfToken0IsClanker: -230400, // starting tick
-  tickSpacing: 200,
-  positions: POOL_POSITIONS.Standard,
-}
+devBuy: { ethAmount: '0.01' }                    // native coin
+pool: { pairedToken: BASE_USDC }, devBuy: { ethAmount: '0.01' }  // stable quote on Base
 ```
 
-**Pool position presets** (`POOL_POSITIONS`):
-- `Standard` — single full-range position (simplest)
-- `Project` — 5 positions for better liquidity distribution
-- `TwentyETH` — starts at ~20 ETH market cap
+- The SDK selects the route for the native quote and for the stable quote of each chain. Another quote needs `routeData` or `buildBuyRoute`.
+- The SDK simulates the launch and sets `minAmountOut` 5% below the quote. Set `devBuySlippagePercent` in the second argument of `deploy` to change it.
+- The contract sends the bought tokens to the caller. If `devBuy.recipient` or `tokenAdmin` is another address, `deploy` sends them in a second transaction and returns `transferTxHash`.
 
-For custom paired tokens (not WETH), pass the token address directly:
+A top-level `error` from `deploy` means that nothing was sent, unless its `data.rawName` is `SEND_UNCERTAIN` (the send itself failed, so the launch can exist). After the launch is sent, `deploy` returns no top-level `error`: check `waitForTransaction`, and check `transferError` for a failed recipient transfer.
 
-```typescript
-import { WBNB_ADDRESS, BSC_USDT_ADDRESS } from 'clanker-sdk';
+Warning: do not repeat a `deploy` call after a result that has a `txHash`. The launch can exist, and a second call launches a second token.
 
-pool: { pairedToken: BSC_USDT_ADDRESS }
-```
+## Managing Tokens
 
-### Fee Configuration
-
-Use presets from `FEE_CONFIGS`:
+The V5 client uses the V4 method names. Each write returns `{ txHash, error }`.
 
 ```typescript
-fees: FEE_CONFIGS.StaticBasic   // 1% flat fee on both tokens
-fees: FEE_CONFIGS.DynamicBasic  // 1-5% volatility-based
-fees: FEE_CONFIGS.Dynamic3      // 1-3% volatility-based
-```
-
-Or define custom fees:
-
-```typescript
-// Static
-fees: { type: 'static', clankerFee: 100, pairedFee: 100 }
-
-// Dynamic
-fees: {
-  type: 'dynamic',
-  baseFee: 100,
-  maxFee: 500,
-  referenceTickFilterPeriod: 30,
-  resetPeriod: 120,
-  resetTickFilter: 200,
-  feeControlNumerator: 500000000,
-  decayFilterBps: 7500,
-}
-```
-
-Monad only supports static fees.
-
-### Sniper Fees (MEV Protection)
-
-Default enabled on v4.1+ chains. Units are "uniBps" (bps * 100).
-
-```typescript
-sniperFees: {
-  startingFee: 666_777,  // 66.6777%
-  endingFee: 41_673,     // 4.1673%
-  secondsToDecay: 15,
-}
-```
-
-### Vault (Token Vesting)
-
-Lock a percentage of supply with optional linear vesting.
-
-```typescript
-vault: {
-  percentage: 10,              // 0-90% of supply
-  lockupDuration: 2592000,     // minimum 7 days (in seconds)
-  vestingDuration: 2592000,    // linear vesting after lockup
-  recipient: account.address,  // defaults to tokenAdmin
-}
-```
-
-### Dev Buy
-
-Buy tokens in the same deployment transaction.
-
-```typescript
-devBuy: {
-  ethAmount: 0.01,              // ETH to spend
-  recipient: account.address,   // defaults to tokenAdmin
-}
-```
-
-### Rewards
-
-Split LP fee rewards among recipients. Must sum to 10000 bps (100%).
-
-```typescript
-rewards: {
-  recipients: [
-    { admin: addr1, recipient: addr1, bps: 5000, token: 'Both' },
-    { admin: addr2, recipient: addr2, bps: 5000, token: 'Paired' },
-  ],
-}
-```
-
-`token` options: `'Both'`, `'Paired'`, `'Clanker'`.
-If `rewards` is omitted, 100% goes to `tokenAdmin`.
-
-### Airdrop
-
-Distribute tokens via Merkle tree with lockup.
-
-```typescript
-import { createAirdrop } from 'clanker-sdk/v4/extensions';
-
-const { tree, airdrop } = createAirdrop([
-  { account: '0x...', amount: 200_000_000 },
-  { account: '0x...', amount: 50_000_000 },
-]);
-
-// In deploy config:
-airdrop: {
-  ...airdrop,
-  lockupDuration: 86_400,   // minimum 1 day (in seconds)
-  vestingDuration: 86_400,
-}
-```
-
-After deploy, register with `registerAirdrop(tokenAddress, tree)` so users can claim via the Clanker service.
-
-### Presale
-
-```typescript
-presale: { bps: 2000 }  // 20% of supply allocated to presale
-```
-
-Deploy via presale extension functions: `startPresale`, `buyIntoPresale`, `endPresale`, `claimTokens`.
-
-### Context (Social Provenance)
-
-```typescript
-context: {
-  interface: 'My App',
-  platform: 'farcaster',
-  messageId: '0x...',
-  id: '12345',
-}
-```
-
-## Post-Deployment Operations
-
-### Claim Rewards
-
-```typescript
-const { txHash, error } = await clanker.claimRewards({
-  token: '0x...',
-  rewardRecipient: '0x...',
-});
-```
-
-### Check Available Rewards
-
-```typescript
-const rewards = await clanker.availableRewards({
-  token: '0x...',
-  rewardRecipient: '0x...',
-});
-```
-
-### Claim Vaulted Tokens
-
-```typescript
-const { txHash, error } = await clanker.claimVaultedTokens({ token: '0x...' });
-```
-
-### Update Token Image
-
-```typescript
+await clanker.claimRewards({ token: '0x...', rewardRecipient: '0x...' });
+await clanker.availableRewards({ token: '0x...', rewardRecipient: '0x...' });
+await clanker.getTokenRewards({ token: '0x...' });
+await clanker.updateRewardRecipient({ token: '0x...', rewardIndex: 0n, newRecipient: '0x...' });
+await clanker.updateRewardAdmin({ token: '0x...', rewardIndex: 1n, newAdmin: '0x...' });
 await clanker.updateImage({ token: '0x...', newImage: 'ipfs://...' });
+await clanker.updateMetadata({ token: '0x...', metadata: JSON.stringify({ description: 'New' }) });
 ```
 
-### Update Token Metadata
+- V5 rewards: a claim pays the whole balance of the recipient for one currency, across all pools.
+- The creator slot admin follows creator rights. Use `proposeCreatorRightsTransfer` to change it.
+- Dividends: `withdrawableDividends({ token, holder })`, and `claimDividends({ tokens })` for up to 64 tokens in one transaction. `withdrawDividends({ dividend })` claims from one dividend contract.
+- Reads: `taxPolicy()`, `getPoolConfig({ token })`, and `getTaxRates({ token, isBuy })` for the live tax, including the anti-snipe surcharge.
+- Integrators claim with `claimRewards({ token, rewardRecipient: integrator })`.
+- Each V5 write has matching `get…Transaction` and `…Simulate` methods.
+- The protocol takes 10% of the tax, at least 0.5% and at most 1% of the trade. At the default 1% tax it takes half the tax.
 
-```typescript
-await clanker.updateMetadata({
-  token: '0x...',
-  metadata: { description: 'Updated description' },
-});
-```
-
-### Update Reward Recipient / Admin
-
-```typescript
-await clanker.updateRewardRecipient({ token: '0x...', rewardIndex: 0, newRecipient: '0x...' });
-await clanker.updateRewardAdmin({ token: '0x...', rewardIndex: 0, newAdmin: '0x...' });
-```
+For an existing V4 token, use `clanker-sdk/v4` with the same method names, plus `claimVaultedTokens`. For an existing presale, use the presale functions in `clanker-sdk/v4/extensions`. New presales are closed.
 
 ## Error Handling Pattern
 
-All SDK methods return `{ txHash?, error?, waitForTransaction? }`. Always check `error`:
-
 ```typescript
 const { txHash, waitForTransaction, error } = await clanker.deploy(config);
-if (error) {
-  console.error(error.message);
-  throw error;
-}
-const { address, error: txError } = await waitForTransaction();
-if (txError) throw txError;
+if (error) throw error;
+const result = await waitForTransaction();
+if (result.error) throw result.error;
 ```
+
+A failure before submission returns `{ error }` and sends nothing. After the launch is sent, `deploy` returns no top-level `error`; check `waitForTransaction` and `transferError`. A missing client or an invalid token configuration throws.
 
 ## Environment Variables
 
@@ -314,6 +158,7 @@ if (txError) throw txError;
 
 ## Additional Resources
 
-- For full examples, see the [examples/v4/](examples/v4/) directory in the repo
-- For presale lifecycle, see [examples/v4/presale/](examples/v4/presale/)
-- For V3 (legacy), import from `clanker-sdk/v3`
+- V5 reference: `docs/v5.md`
+- V5 examples: [examples/v5/](examples/v5/)
+- Management of existing V4 tokens: [examples/v4/](examples/v4/)
+- Existing presales: [examples/v4/presale/](examples/v4/presale/)

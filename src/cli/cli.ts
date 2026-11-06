@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { registerAirdropCommand } from './commands/airdrop.js';
 import { registerDeployCommand } from './commands/deploy.js';
+import { registerDividendsCommand } from './commands/dividends.js';
 
 import { registerRewardsCommand } from './commands/rewards.js';
 import { registerSetupCommand } from './commands/setup.js';
@@ -47,6 +48,7 @@ program.hook('preAction', (thisCommand) => {
 registerSetupCommand(program);
 registerDeployCommand(program);
 registerRewardsCommand(program);
+registerDividendsCommand(program);
 registerVaultCommand(program);
 
 registerAirdropCommand(program);

@@ -1,6 +1,6 @@
 {
   "name": "clanker-sdk",
-  "version": "4.2.20",
+  "version": "5.0.0",
   "description": "SDK for deploying tokens using Clanker",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,13 +9,14 @@
     "./cli": "./dist/cli/cli.js",
     "./v3": "./dist/v3/index.js",
     "./v4": "./dist/v4/index.js",
+    "./v5": "./dist/v5/index.js",
     "./v4/extensions": "./dist/v4/extensions/index.js",
     "./legacyFeeClaims": "./dist/legacyFeeClaims/index.js"
   },
   "bin": {
     "clanker-sdk": "./dist/cli/cli.js"
   },
-  "files": ["dist", ".env.example", "README.md"],
+  "files": ["dist", ".env.example", "README.md", "docs/v5.md"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/clanker-devco/clanker-sdk.git"
@@ -33,7 +34,6 @@
     "lint:fix": "biome check --formatter-enabled=false --write",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "create-clanker": "bun src/cli/create-clanker",
     "generate-docs": "typedoc",
     "prepare": "node -e \"try{require('child_process').execSync('git config core.hooksPath .githooks',{stdio:'ignore'})}catch{}\""
   },
@@ -46,7 +46,6 @@
     "abitype": "^1.0.8",
     "commander": "^14.0.3",
     "inquirer": "^8.2.6",
-    "viem": "^2.38.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -61,9 +60,10 @@
     "tsup": "^8.4.0",
     "typedoc": "^0.28.17",
     "typedoc-plugin-markdown": "^4.10.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "viem": "^2.49.3"
   },
   "peerDependencies": {
-    "viem": "^2.38.3"
+    "viem": "^2.49.3"
   }
 }

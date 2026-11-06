@@ -11,6 +11,7 @@ import {
   type RelatedV3_1,
 } from '../utils/clankers.js';
 import type { ClankerError } from '../utils/errors.js';
+import { rejectOlderLaunch } from '../utils/olderLaunches.js';
 import {
   type ClankerTransactionConfig,
   simulateClankerContract,
@@ -233,16 +234,23 @@ export class Clanker {
   /**
    * Get an abi-typed transaction for deploying a clanker.
    *
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V3 tokens.
+   *
    * @param token The token to deploy
    * @param requestorAddress Requestor for the deployment. Various admins will fall back to this.
    * @returns Abi transaction
    */
   async getDeployTransaction(token: ClankerTokenV3, requestorAddress: `0x${string}`) {
+    rejectOlderLaunch();
     return clankerTokenV3Converter(token, { requestorAddress });
   }
 
   /**
    * Simulate a token deployment
+   *
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V3 tokens.
    *
    * @param token The token to deploy
    * @param requestorAddress Requestor for the deployment. Various admins will fall back to this.
@@ -260,6 +268,9 @@ export class Clanker {
 
   /**
    * Deploy a token
+   *
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V3 tokens.
    *
    * @param token The token to deploy
    * @returns Transaction hash and awaitable function for full deployment

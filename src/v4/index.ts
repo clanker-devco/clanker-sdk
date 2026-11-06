@@ -13,6 +13,7 @@ import {
   type RelatedV4,
 } from '../utils/clankers.js';
 import type { ClankerError } from '../utils/errors.js';
+import { rejectOlderLaunch } from '../utils/olderLaunches.js';
 import {
   type ClankerTransactionConfig,
   simulateClankerContract,
@@ -169,15 +170,22 @@ export class Clanker {
   /**
    * Get an abi-typed transaction for deploying a clanker.
    *
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V4 tokens.
+   *
    * @param token The token to deploy
    * @returns Abi transaction
    */
   async getDeployTransaction(token: ClankerTokenV4) {
+    rejectOlderLaunch();
     return clankerTokenV4Converter(token);
   }
 
   /**
    * Simulate a token deployment
+   *
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V4 tokens.
    *
    * @param token The token to deploy
    * @param account Optional account for the deployer
@@ -195,6 +203,9 @@ export class Clanker {
 
   /**
    * Deploy a token
+   *
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V4 tokens.
    *
    * @param token The token to deploy
    * @param options Optional deployment options

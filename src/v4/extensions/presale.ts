@@ -8,6 +8,7 @@ import {
   clankerConfigFor,
   type RelatedV4,
 } from '../../utils/clankers.js';
+import { rejectOlderLaunch } from '../../utils/olderLaunches.js';
 import {
   type ClankerTransactionConfig,
   writeClankerContract,
@@ -52,6 +53,8 @@ export type PresaleConfig = z.input<typeof PresaleConfigSchema>;
 /**
  * Get a transaction to start a presale
  *
+ * @deprecated clanker-sdk 5 does not start new presales, so this function throws. Existing
+ * presales keep working with the other presale functions.
  * @param deploymentConfig The deployment configuration for the token
  * @param presaleConfig The presale configuration
  * @param chainId The chain ID
@@ -64,6 +67,7 @@ export async function getStartPresaleTransaction({
   tokenConfig: ClankerTokenV4;
   presaleConfig: PresaleConfig;
 }): Promise<ClankerTransactionConfig<typeof Clanker_PresaleEthToCreator_v4_1_abi, 'startPresale'>> {
+  rejectOlderLaunch();
   const tokenDeploymentConfig = await clankerTokenV4Converter(tokenConfig);
 
   const chainId = tokenDeploymentConfig.chainId as ClankerChain;
@@ -96,6 +100,7 @@ export async function getStartPresaleTransaction({
 /**
  * Start a presale
  *
+ * @deprecated clanker-sdk 5 does not start new presales, so this function throws.
  * @param clanker Clanker object used for starting presale
  * @param deploymentConfig The deployment configuration for the token
  * @param presaleConfig The presale configuration

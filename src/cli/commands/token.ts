@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { Clanker } from '../../v4/index.js';
+import { clankerForToken, formatClankerError, printSimulation } from '../utils/clanker.js';
 import { blockExplorerUrl, printError, printSuccess } from '../utils/output.js';
 import type { GlobalOpts } from '../utils/wallet.js';
 import { resolveClients } from '../utils/wallet.js';
@@ -19,17 +19,19 @@ export function registerTokenCommand(program: Command) {
 
       try {
         const { walletClient, publicClient, chain } = resolveClients(globalOpts);
-        const clanker = new Clanker({ wallet: walletClient, publicClient });
         const tokenAddr = localOpts.token as `0x${string}`;
+        const clanker = await clankerForToken({
+          token: tokenAddr,
+          wallet: walletClient,
+          publicClient,
+        });
 
         if (globalOpts.dryRun) {
-          const result = await clanker.updateImageSimulate({
-            token: tokenAddr,
-            newImage: localOpts.image,
-          });
-          printSuccess('Image update simulation successful', jsonMode, {
-            result: String(result),
-          });
+          printSimulation(
+            'Image update simulation successful',
+            jsonMode,
+            await clanker.updateImageSimulate({ token: tokenAddr, newImage: localOpts.image })
+          );
           return;
         }
 
@@ -37,7 +39,7 @@ export function registerTokenCommand(program: Command) {
           token: tokenAddr,
           newImage: localOpts.image,
         });
-        if (error) throw new Error(`Image update failed: ${JSON.stringify(error)}`);
+        if (error) throw new Error(`Image update failed: ${formatClankerError(error)}`);
 
         printSuccess('Token image updated', jsonMode, {
           txHash,
@@ -72,8 +74,12 @@ export function registerTokenCommand(program: Command) {
 
       try {
         const { walletClient, publicClient, chain } = resolveClients(globalOpts);
-        const clanker = new Clanker({ wallet: walletClient, publicClient });
         const tokenAddr = localOpts.token as `0x${string}`;
+        const clanker = await clankerForToken({
+          token: tokenAddr,
+          wallet: walletClient,
+          publicClient,
+        });
 
         const socialMediaUrls: { platform: string; url: string }[] = [];
         if (localOpts.website)
@@ -92,15 +98,16 @@ export function registerTokenCommand(program: Command) {
         });
 
         if (globalOpts.dryRun) {
-          const result = await clanker.updateMetadataSimulate({ token: tokenAddr, metadata });
-          printSuccess('Metadata update simulation successful', jsonMode, {
-            result: String(result),
-          });
+          printSimulation(
+            'Metadata update simulation successful',
+            jsonMode,
+            await clanker.updateMetadataSimulate({ token: tokenAddr, metadata })
+          );
           return;
         }
 
         const { txHash, error } = await clanker.updateMetadata({ token: tokenAddr, metadata });
-        if (error) throw new Error(`Metadata update failed: ${JSON.stringify(error)}`);
+        if (error) throw new Error(`Metadata update failed: ${formatClankerError(error)}`);
 
         printSuccess('Token metadata updated', jsonMode, {
           txHash,
