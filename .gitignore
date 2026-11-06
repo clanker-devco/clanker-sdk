@@ -43,3 +43,6 @@ llm.txt
 
 #package lock
 package-lock.json
+
+# agent worktrees
+.worktrees/
