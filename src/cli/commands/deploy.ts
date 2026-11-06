@@ -3,7 +3,7 @@ import inquirer from 'inquirer';
 import type { Address, Chain } from 'viem';
 import { ARC_CHAIN_ID, ARC_USDC, TAX_ADDRESSES } from '../../v5/addresses.js';
 import { type ClankerTokenV5, clankerTokenV5 } from '../../v5/config.js';
-import { Clanker as ClankerV5 } from '../../v5/index.js';
+import { Clanker as ClankerV5, SEND_UNCERTAIN } from '../../v5/index.js';
 import { STABLE_ROUTES } from '../../v5/routes.js';
 import { CHAIN_NAMES, resolveChain } from '../utils/chains.js';
 import {
@@ -330,7 +330,13 @@ async function interactiveDeployV5(flags: DeployFlags): Promise<DeployFlags> {
       message: 'Dev buy slippage percentage:',
       default: flags.devBuySlippage ?? '5',
       when: selected('devBuy'),
-      validate: validNumber,
+      validate: (value: string) => {
+        const percent = Number(value);
+        return (
+          (value.trim() !== '' && Number.isFinite(percent) && percent > 0 && percent < 50) ||
+          'Must be above 0 and below 50'
+        );
+      },
     },
     {
       type: 'input',
@@ -530,9 +536,24 @@ async function deployV5(flags: DeployFlags, jsonMode: boolean) {
   }
 
   printStep('Deploy the token...', jsonMode);
-  const { txHash, expectedAddress, waitForTransaction, transferTxHash, error, failedStep } =
+  const { txHash, expectedAddress, waitForTransaction, transferTxHash, error, transferError } =
     await clanker.deploy(tokenConfig, options);
-  if (!txHash || !waitForTransaction) {
+  if (error?.data.rawName === SEND_UNCERTAIN) {
+    // The send failed after the checks passed, so the launch can exist.
+    printResult(
+      {
+        success: false,
+        launchState: 'unknown',
+        message:
+          'The send failed, but the transaction can be on the network. Do not run this command again, because that can launch a second token. Check the wallet transactions first.',
+        error: error.message,
+      },
+      jsonMode
+    );
+    process.exitCode = 2;
+    return;
+  }
+  if (error || !txHash || !waitForTransaction) {
     throw new Error(`Deployment failed: ${error?.message}`);
   }
   printStep(`Transaction sent: ${txHash}`, jsonMode);
@@ -546,10 +567,16 @@ async function deployV5(flags: DeployFlags, jsonMode: boolean) {
         success: false,
         launchState: 'unknown',
         message:
-          'The launch receipt could not be read. Do not run this command again, because that can launch a second token. Check the transaction first.',
+          'The launch could not be confirmed. Do not run this command again, because that can launch a second token. Check the transaction first.',
         txHash,
         predictedToken: expectedAddress,
         error: result.error.message,
+        ...(transferError
+          ? {
+              transferError:
+                'No recipient transfer was sent. The bought tokens stay in the launching wallet.',
+            }
+          : {}),
         explorer: blockExplorerUrl(chain, txHash, 'tx'),
       },
       jsonMode
@@ -558,16 +585,13 @@ async function deployV5(flags: DeployFlags, jsonMode: boolean) {
     return;
   }
   const tokenAddress = result.address;
-  const noTransfer = failedStep === 'launchReceipt';
   const data = {
     tokenAddress,
     txHash,
     ...(transferTxHash ? { transferTxHash } : {}),
-    ...(error
+    ...(transferError
       ? {
-          transferError: noTransfer
-            ? `The launch receipt read failed, so no transfer was sent. The bought tokens are in the launching wallet. ${error.message}`
-            : error.message,
+          transferError: transferError.message,
           warning:
             'Do not run this command again, because that launches a second token. Send the bought tokens from the launching wallet.',
         }
@@ -575,14 +599,18 @@ async function deployV5(flags: DeployFlags, jsonMode: boolean) {
     explorer: blockExplorerUrl(chain, tokenAddress, 'token'),
     clankerWorld: `https://clanker.world/clanker/${tokenAddress}`,
   };
-  if (error) {
+  if (transferError) {
     // The launch landed, so a retry of this command launches a second token.
-    printSuccess(
-      noTransfer
-        ? 'Token deployed, but the recipient transfer did not start'
-        : 'Token deployed, but the recipient transfer failed',
-      jsonMode,
-      data
+    printResult(
+      {
+        success: false,
+        launchState: 'launched',
+        message: transferTxHash
+          ? 'Token deployed, but the recipient transfer failed'
+          : 'Token deployed, but the recipient transfer did not start',
+        ...data,
+      },
+      jsonMode
     );
     process.exitCode = 2;
     return;

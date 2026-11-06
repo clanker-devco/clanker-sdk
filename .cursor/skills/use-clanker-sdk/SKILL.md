@@ -9,7 +9,7 @@ description: Launch V5 tokens with the Clanker SDK, and manage existing V3, V4, 
 
 `clanker-sdk/v5` launches V5 tokens. A V5 token has a buy tax and a sell tax. The tax pays the reward slots, and it can also pay a burn, dividends to holders, and an integrator.
 
-V3 and V4 launches are closed on every chain. `deploy`, `deploySimulate`, and `getDeployTransaction` of `clanker-sdk/v3` and `clanker-sdk/v4` throw, and so does `startPresale`. Use the V3 and V4 clients only to manage existing tokens.
+From version 5, the SDK launches V5 tokens only. `deploy`, `deploySimulate`, and `getDeployTransaction` of `clanker-sdk/v3` and `clanker-sdk/v4` throw, and so does `startPresale`. Use the V3 and V4 clients only to manage existing tokens.
 
 The full V5 reference is `docs/v5.md`.
 
@@ -110,7 +110,9 @@ pool: { pairedToken: BASE_USDC }, devBuy: { ethAmount: '0.01' }  // stable quote
 - The SDK simulates the launch and sets `minAmountOut` 5% below the quote. Set `devBuySlippagePercent` in the second argument of `deploy` to change it.
 - The contract sends the bought tokens to the caller. If `devBuy.recipient` or `tokenAdmin` is another address, `deploy` sends them in a second transaction and returns `transferTxHash`.
 
-Warning: do not repeat a `deploy` call after a result that has a `txHash` and an `error`. The launch can exist, and a second call launches a second token.
+A top-level `error` from `deploy` means that nothing was sent, unless its `data.rawName` is `SEND_UNCERTAIN` (the send itself failed, so the launch can exist). After the launch is sent, `deploy` returns no top-level `error`: check `waitForTransaction`, and check `transferError` for a failed recipient transfer.
+
+Warning: do not repeat a `deploy` call after a result that has a `txHash`. The launch can exist, and a second call launches a second token.
 
 ## Managing Tokens
 
@@ -128,7 +130,11 @@ await clanker.updateMetadata({ token: '0x...', metadata: JSON.stringify({ descri
 
 - V5 rewards: a claim pays the whole balance of the recipient for one currency, across all pools.
 - The creator slot admin follows creator rights. Use `proposeCreatorRightsTransfer` to change it.
-- Dividends: `dividendOf(token)`, `withdrawableDividends({ dividend, holder })`, and `withdrawDividends({ dividend })`.
+- Dividends: `withdrawableDividends({ token, holder })`, and `claimDividends({ tokens })` for up to 64 tokens in one transaction. `withdrawDividends({ dividend })` claims from one dividend contract.
+- Reads: `taxPolicy()`, `getPoolConfig({ token })`, and `getTaxRates({ token, isBuy })` for the live tax, including the anti-snipe surcharge.
+- Integrators claim with `claimRewards({ token, rewardRecipient: integrator })`.
+- Each V5 write has matching `get…Transaction` and `…Simulate` methods.
+- The protocol takes 10% of the tax, at least 0.5% and at most 1% of the trade. At the default 1% tax it takes half the tax.
 
 For an existing V4 token, use `clanker-sdk/v4` with the same method names, plus `claimVaultedTokens`. For an existing presale, use the presale functions in `clanker-sdk/v4/extensions`. New presales are closed.
 
@@ -141,7 +147,7 @@ const result = await waitForTransaction();
 if (result.error) throw result.error;
 ```
 
-A failure before submission returns `{ error }`. A missing client or an invalid token configuration throws.
+A failure before submission returns `{ error }` and sends nothing. After the launch is sent, `deploy` returns no top-level `error`; check `waitForTransaction` and `transferError`. A missing client or an invalid token configuration throws.
 
 ## Environment Variables
 

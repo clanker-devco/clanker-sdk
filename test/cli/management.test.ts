@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { Command } from 'commander';
 import { baseSepolia } from 'viem/chains';
+import { registerDividendsCommand } from '../../src/cli/commands/dividends.js';
 import { registerRewardsCommand } from '../../src/cli/commands/rewards.js';
 import { registerTokenCommand } from '../../src/cli/commands/token.js';
 import * as output from '../../src/cli/utils/output.js';
@@ -280,6 +281,7 @@ describe('CLI token management', () => {
           '0x4444444444444444444444444444444444444444',
           '0x4444444444444444444444444444444444444444',
         ],
+        rewardIsCreator: [true, false],
       },
       true,
       'Rewards info for 0x2222222222222222222222222222222222222222'
@@ -399,6 +401,103 @@ describe('CLI token management', () => {
     await expect(run(['rewards', 'claim', '--token', token])).rejects.toThrow('CLI exit');
     expect(String((output.printError as ReturnType<typeof mock>).mock.calls[0]?.[0])).toContain(
       'Factory read failed'
+    );
+  });
+});
+
+describe('CLI dividends', () => {
+  const tokenB = '0x3333333333333333333333333333333333333333';
+  let clients: ReturnType<typeof mockClients>;
+
+  function dividendsProgram() {
+    const command = new Command().option('--json').option('--dry-run').exitOverride();
+    command.configureOutput({ writeErr: () => {} });
+    registerDividendsCommand(command);
+    return command;
+  }
+  const runDividends = (args: string[]) => dividendsProgram().parseAsync(args, { from: 'user' });
+
+  beforeEach(() => {
+    clients = mockClients({
+      dividendOf: recipient,
+      withdrawableDividendOf: 9n,
+      excludedFromDividends: false,
+    });
+    spyOn(walletUtils, 'resolveClients').mockImplementation(() => ({
+      publicClient: clients.publicClient,
+      walletClient: clients.wallet!,
+      account: clients.wallet!.account as ReturnType<typeof walletUtils.resolveClients>['account'],
+      chain: clients.publicClient.chain!,
+    }));
+    spyOn(walletUtils, 'resolvePublicClient').mockImplementation(() => ({
+      publicClient: clients.publicClient,
+      chain: clients.publicClient.chain!,
+    }));
+    spyOn(output, 'printSuccess').mockImplementation(() => {});
+    spyOn(output, 'printError').mockImplementation(() => {});
+    spyOn(output, 'printResult').mockImplementation(() => {});
+    spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('CLI exit');
+    });
+  });
+
+  afterEach(() => mock.restore());
+
+  test('available reads each token by its dividend contract', async () => {
+    await runDividends([
+      'dividends',
+      'available',
+      '--token',
+      `${token},${tokenB}`,
+      '--holder',
+      recipient,
+      '--json',
+    ]);
+    expect((output.printResult as ReturnType<typeof mock>).mock.calls[0]?.[0]).toEqual({
+      holder: recipient,
+      dividends: [
+        { token, withdrawableDividends: '9' },
+        { token: tokenB, withdrawableDividends: '9' },
+      ],
+    });
+  });
+
+  test('claim batches the tokens, and --dry-run only simulates', async () => {
+    const claim = spyOn(ClankerV5.prototype, 'claimDividends').mockResolvedValue({
+      txHash: '0x1234',
+      error: undefined,
+    });
+    const simulate = spyOn(ClankerV5.prototype, 'claimDividendsSimulate').mockResolvedValue({
+      result: [1n, [true]],
+    } as never);
+    await runDividends(['dividends', 'claim', '--token', token, '--token', tokenB, '--wrapped']);
+    expect(claim.mock.calls[0]?.[0]).toEqual({
+      tokens: [token, tokenB],
+      unwrapWrappedNative: false,
+    });
+    expect((output.printSuccess as ReturnType<typeof mock>).mock.calls[0]?.[2]).toEqual({
+      txHash: '0x1234',
+      explorer: 'https://basescan.org/tx/0x1234',
+    });
+    await runDividends(['dividends', 'claim', '--token', token, '--dry-run']);
+    expect(simulate.mock.calls[0]?.[0]).toEqual({ tokens: [token], unwrapWrappedNative: true });
+    expect(claim.mock.calls.length).toBe(1);
+  });
+
+  test('a claim that pays nothing exits with code 1', async () => {
+    spyOn(ClankerV5.prototype, 'claimDividends').mockResolvedValue({
+      txHash: undefined,
+      error: new ClankerError(new Error('paid nothing'), {
+        type: 'unknown',
+        label: 'The dividend simulation paid nothing',
+        rawName: 'Error',
+      }),
+    });
+    await expect(runDividends(['dividends', 'claim', '--token', token])).rejects.toThrow(
+      'CLI exit'
+    );
+    expect(String((output.printError as ReturnType<typeof mock>).mock.calls[0]?.[0])).toContain(
+      'Claim failed: The dividend simulation paid nothing'
     );
   });
 });

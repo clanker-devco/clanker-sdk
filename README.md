@@ -44,8 +44,9 @@ npx clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
 | Command | Description |
 |---------|-------------|
 | `setup` | Save default wallet & chain config |
-| `deploy` | Deploy a V5 token on Base, Ethereum, Arbitrum, Unichain, BNB Chain, Monad, X Layer, Robinhood, and Arc |
+| `deploy` | Deploy a V5 token on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc |
 | `rewards` | Claim rewards and update recipients or admins for V4 and V5 tokens. Use `--v5` for V5 currency claims or balances. |
+| `dividends` | Check and claim holder dividends of V5 tokens |
 | `vault` | Claim vaulted V4 tokens |
 | `airdrop` | Generate Merkle trees, register and claim V4 airdrops |
 | `token` | Update the image and metadata for V4 and V5 tokens |
@@ -64,8 +65,8 @@ Run `clanker-sdk <command> --help` for details on any command.
 
 ## TypeScript SDK
 
-Use `clanker-sdk/v5` for launches on Base, Ethereum, Arbitrum, Unichain, BNB Chain, Monad, X Layer, Robinhood, and Arc when launches are open. See [the V5 guide](./docs/v5.md) and [the dev-buy example](./examples/v5/deploy.ts).
-V3 and V4 launches, including `startPresale`, throw on every chain.
+Use `clanker-sdk/v5` for launches on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc. Ethereum, Arbitrum, and Unichain have V5 contracts, but their launches are not open yet. See [the V5 guide](./docs/v5.md), including how the tax is split, and [the dev-buy example](./examples/v5/deploy.ts).
+From version 5, the V3 and V4 launch methods, including `startPresale`, throw.
 Claims, reward changes, metadata updates, vault claims, and running presales of existing tokens do not change.
 
 Set `PRIVATE_KEY` in the environment, then run this script:

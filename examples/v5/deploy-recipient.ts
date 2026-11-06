@@ -14,7 +14,7 @@ const publicClient = createPublicClient({
 }) as PublicClient;
 const wallet = createWalletClient({ account, chain: base, transport: http(process.env.RPC_URL) });
 const clanker = new Clanker({ wallet, publicClient });
-const { waitForTransaction, transferTxHash, error } = await clanker.deploy({
+const { waitForTransaction, transferTxHash, transferError, error } = await clanker.deploy({
   name: 'Example',
   symbol: 'EXAMPLE',
   devBuy: { ethAmount: 0.001, recipient },
@@ -23,4 +23,6 @@ if (error) throw error;
 const result = await waitForTransaction();
 if (result.error) throw result.error;
 console.log(`Token address: ${result.address}`);
+// The launch exists here. Do not run this script again; resend the tokens instead.
+if (transferError) throw transferError;
 console.log(`Transfer transaction hash: ${transferTxHash}`);

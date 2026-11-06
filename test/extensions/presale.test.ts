@@ -49,7 +49,7 @@ describe('presale', () => {
           },
           presaleConfig: validPresaleConfig,
         })
-      ).rejects.toThrow('Clanker V3 and V4 launches are closed.');
+      ).rejects.toThrow('clanker-sdk 5 launches Clanker V5 tokens only.');
     });
 
     test('getBuyIntoPresaleTransaction should create correct transaction', () => {

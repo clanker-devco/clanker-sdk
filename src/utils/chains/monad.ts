@@ -17,8 +17,8 @@ export const monad = /*#__PURE__*/ defineChain({
   },
   blockExplorers: {
     default: {
-      name: 'Monad explorer',
-      url: 'TODO',
+      name: 'Monadscan',
+      url: 'https://monadscan.com',
     },
   },
   contracts: {},

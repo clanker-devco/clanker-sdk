@@ -11,7 +11,7 @@ import { Clanker as ClankerV4 } from '../../src/v4/index.js';
 import { caller, mockClients } from './fixtures.js';
 
 const closed =
-  'Clanker V3 and V4 launches are closed. Use clanker-sdk/v5 for new launches. See docs/v5.md.';
+  'clanker-sdk 5 launches Clanker V5 tokens only. Use clanker-sdk/v5 for new launches: https://github.com/clanker-devco/clanker-sdk/blob/main/docs/v5.md. The V3 and V4 clients still manage existing tokens.';
 const token = { name: 'Example', symbol: 'EX', tokenAdmin: caller, vanity: false };
 const presaleConfig = { minEthGoal: 1, maxEthGoal: 2, presaleDuration: 60, recipient: caller };
 

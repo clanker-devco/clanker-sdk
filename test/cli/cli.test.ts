@@ -21,7 +21,11 @@ import {
   getTickFromMarketCapUSDC,
 } from '../../src/utils/market-cap.js';
 import { createMerkleTree, getMerkleProof } from '../../src/utils/merkleTree.js';
-import { Clanker as ClankerV5, TaxRWAERC20LaunchpadFactory_abi } from '../../src/v5/index.js';
+import {
+  Clanker as ClankerV5,
+  SEND_UNCERTAIN,
+  TaxRWAERC20LaunchpadFactory_abi,
+} from '../../src/v5/index.js';
 import {
   baseDeployer,
   baseDeployerSalt,
@@ -1111,13 +1115,17 @@ describe('CLI V5 action', () => {
       deploy.mockResolvedValue({
         ...launch,
         transferTxHash: '0x5678',
-        error,
+        transferError: error,
         failedStep: 'transfer',
       });
+      const result = spyOn(output, 'printResult').mockImplementation(() => {});
       await run(flags);
       expect(errors).not.toHaveBeenCalled();
-      expect(success.mock.calls[0]?.[0]).toBe('Token deployed, but the recipient transfer failed');
-      expect(success.mock.calls[0]?.[2]).toEqual({
+      expect(success).not.toHaveBeenCalled();
+      expect(result.mock.calls[0]?.[0]).toEqual({
+        success: false,
+        launchState: 'launched',
+        message: 'Token deployed, but the recipient transfer failed',
         tokenAddress: '0x2222222222222222222222222222222222222222',
         txHash: '0x1234',
         transferTxHash: '0x5678',
@@ -1184,15 +1192,16 @@ describe('CLI V5 action', () => {
           .mockResolvedValue(launchReceipt);
         await run(args);
         expect(errors).not.toHaveBeenCalled();
+        expect(success).not.toHaveBeenCalled();
         expect(mocks.writeContract).toHaveBeenCalledTimes(1);
-        expect(success.mock.calls[0]?.[0]).toBe(
-          'Token deployed, but the recipient transfer did not start'
-        );
-        expect(success.mock.calls[0]?.[2]).toEqual({
+        expect(result.mock.calls[0]?.[0]).toEqual({
+          success: false,
+          launchState: 'launched',
+          message: 'Token deployed, but the recipient transfer did not start',
           tokenAddress: token,
           txHash: salt,
           transferError:
-            'The launch receipt read failed, so no transfer was sent. The bought tokens are in the launching wallet. RPC down',
+            'No recipient transfer was sent, because the SDK could not confirm the launch. The bought tokens stay in the launching wallet. Check the launch with waitForTransaction before a retry. RPC down',
           warning:
             'Do not run this command again, because that launches a second token. Send the bought tokens from the launching wallet.',
           explorer: `https://basescan.org/token/${token}`,
@@ -1212,10 +1221,12 @@ describe('CLI V5 action', () => {
             success: false,
             launchState: 'unknown',
             message:
-              'The launch receipt could not be read. Do not run this command again, because that can launch a second token. Check the transaction first.',
+              'The launch could not be confirmed. Do not run this command again, because that can launch a second token. Check the transaction first.',
             txHash: salt,
             predictedToken: token,
             error: 'RPC down',
+            transferError:
+              'No recipient transfer was sent. The bought tokens stay in the launching wallet.',
             explorer: `https://basescan.org/tx/${salt}`,
           },
           true,
@@ -1250,7 +1261,7 @@ describe('CLI V5 action', () => {
       deploy.mockResolvedValue({
         ...launch,
         waitForTransaction: async () => ({ error }) as never,
-        error,
+        transferError: error,
         failedStep: 'launchReceipt',
       });
       await expect(run(flags)).rejects.toThrow('CLI exit');
@@ -1259,6 +1270,22 @@ describe('CLI V5 action', () => {
       );
       expect(success).not.toHaveBeenCalled();
     });
+  });
+
+  test('a send that can have reached the network exits with code 2 and does not ask for a retry', async () => {
+    const result = spyOn(output, 'printResult').mockImplementation(() => {});
+    deploy.mockResolvedValue({
+      error: new ClankerError(new Error('socket hang up'), {
+        type: 'unknown',
+        label: 'The send failed after the checks passed. socket hang up',
+        rawName: SEND_UNCERTAIN,
+      }),
+    });
+    await run(flags);
+    expect(errors).not.toHaveBeenCalled();
+    expect(result.mock.calls[0]?.[0]).toMatchObject({ success: false, launchState: 'unknown' });
+    expect(process.exitCode).toBe(2);
+    process.exitCode = 0;
   });
 
   test.each(['deploy', 'simulate'])('prints the SDK error from %s', async (method) => {

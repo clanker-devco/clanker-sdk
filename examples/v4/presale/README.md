@@ -1,6 +1,6 @@
 # Presale Examples
 
-V3 and V4 launches and new presales are closed on every chain.
+From version 5, the SDK starts no new presales.
 These examples manage an existing presale. An existing presale keeps its behavior.
 
 ## Overview

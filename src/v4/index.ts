@@ -170,7 +170,9 @@ export class Clanker {
   /**
    * Get an abi-typed transaction for deploying a clanker.
    *
-   * @deprecated V4 launches are closed, and this method throws. Use clanker-sdk/v5 to launch a token.
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V4 tokens.
+   *
    * @param token The token to deploy
    * @returns Abi transaction
    */
@@ -182,7 +184,9 @@ export class Clanker {
   /**
    * Simulate a token deployment
    *
-   * @deprecated V4 launches are closed, and this method throws. Use clanker-sdk/v5 to launch a token.
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V4 tokens.
+   *
    * @param token The token to deploy
    * @param account Optional account for the deployer
    * @returns Abi transaction
@@ -200,7 +204,9 @@ export class Clanker {
   /**
    * Deploy a token
    *
-   * @deprecated V4 launches are closed, and this method throws. Use clanker-sdk/v5 to launch a token.
+   * @deprecated clanker-sdk 5 launches V5 tokens only, so this method throws. Use `Clanker` from
+   * `clanker-sdk/v5` for new launches. This client still manages existing V4 tokens.
+   *
    * @param token The token to deploy
    * @param options Optional deployment options
    * @param options.dataSuffix Data to append to transaction calldata (e.g., Base builder codes)

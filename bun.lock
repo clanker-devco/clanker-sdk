@@ -9,7 +9,6 @@
         "abitype": "^1.0.8",
         "commander": "^14.0.3",
         "inquirer": "^8.2.6",
-        "viem": "^2.49.3",
         "zod": "^4.1.12",
       },
       "devDependencies": {
@@ -25,6 +24,7 @@
         "typedoc": "^0.28.17",
         "typedoc-plugin-markdown": "^4.10.0",
         "typescript": "^5.3.3",
+        "viem": "^2.49.3",
       },
       "peerDependencies": {
         "viem": "^2.49.3",

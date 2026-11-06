@@ -12,6 +12,7 @@ import {
   getAddress,
   type Hex,
   type PublicClient,
+  UserRejectedRequestError,
   zeroAddress,
 } from 'viem';
 import { base, mainnet } from 'viem/chains';
@@ -21,6 +22,7 @@ import { taxLaunchParams } from '../../src/v5/config.js';
 import {
   Clanker,
   predictTaxTokenAddress,
+  SEND_UNCERTAIN,
   TAX_ADDRESSES,
   type TaxAddresses,
   TaxRWAERC20LaunchpadFactory_abi,
@@ -191,6 +193,26 @@ const cases: ManagementCase[] = [
     get: (c) => c.getUpdateTokenSymbolTransaction({ token: other, newSymbol: 'NEW' }),
     send: (c) => c.updateTokenSymbol({ token: other, newSymbol: 'NEW' }),
   },
+  {
+    target: 'dividendClaimHelper',
+    functionName: 'claimDividends',
+    args: [
+      [
+        { token: other, unwrapWrappedNative: true },
+        { token: recipient, unwrapWrappedNative: true },
+      ],
+    ],
+    get: (c) => c.getClaimDividendsTransaction({ tokens: [other, recipient] }),
+    send: (c) => c.claimDividends({ tokens: [other, recipient] }),
+    result: [1n, [true, false]],
+  },
+  {
+    target: 'factory',
+    functionName: 'safeTransferCreatorRights',
+    args: [other, recipient, '0x'],
+    get: (c) => c.getSafeTransferCreatorRightsTransaction({ token: other, receiver: recipient }),
+    send: (c) => c.safeTransferCreatorRights({ token: other, receiver: recipient }),
+  },
 ];
 
 describe('v5 client', () => {
@@ -286,7 +308,10 @@ describe('v5 client', () => {
       status: 'success',
       logs: [{ address: other, topics, data }],
     });
-    expect((await wrongLog.waitForTransaction?.())?.error?.message).toContain('no v5 launch event');
+    const unconfirmed = (await wrongLog.waitForTransaction?.())?.error;
+    expect(unconfirmed?.message).toContain('no v5 launch event');
+    // The transaction succeeded, so the launch can exist: this is not a failed launch.
+    expect(unconfirmed?.data.type).toBe('unknown');
     const reverted = await client.deploy(baseToken);
     mocks.waitForTransactionReceipt.mockResolvedValue({ status: 'reverted', logs: [] });
     expect((await reverted.waitForTransaction?.())?.error?.message).toContain('reverted');
@@ -391,6 +416,144 @@ describe('v5 client', () => {
       expect(call.address).toBe(other);
       expect(call.args).toEqual([recipient]);
     }
+  });
+
+  test('a batch dividend claim that pays nothing sends no transaction', async () => {
+    const mocks = mockClients();
+    mocks.simulateContract.mockImplementation(async (request) => ({
+      request,
+      result: [0n, [false]],
+    }));
+    const client = new Clanker({ ...mocks, addresses });
+    const { error } = await client.claimDividends({ tokens: [other] });
+    expect(error?.message).toContain('paid nothing');
+    expect(mocks.writeContract).not.toHaveBeenCalled();
+    expect(
+      client.getClaimDividendsTransaction({ tokens: [other], unwrapWrappedNative: false }).args
+    ).toEqual([[{ token: other, unwrapWrappedNative: false }]]);
+    expect(() => client.getClaimDividendsTransaction({ tokens: [] })).toThrow(
+      'Pass at least one token.'
+    );
+  });
+
+  test('resolves the dividend contract from the token', async () => {
+    const mocks = mockClients({
+      dividendOf: recipient,
+      withdrawableDividendOf: 7n,
+      excludedFromDividends: false,
+    });
+    const client = new Clanker({ ...mocks, addresses });
+    await expect(client.withdrawableDividends({ token: other, holder: caller })).resolves.toBe(7n);
+    const reads = mocks.readContract.mock.calls.map(([call]) => call);
+    expect(reads[0]).toMatchObject({ functionName: 'dividendOf', args: [other] });
+    expect(reads.slice(1).every((call) => call.address === recipient)).toBe(true);
+    const none = new Clanker({ ...mockClients({ dividendOf: zeroAddress }), addresses });
+    await expect(none.withdrawableDividends({ token: other, holder: caller })).rejects.toThrow(
+      'has no dividend contract'
+    );
+  });
+
+  test('reads the tax policy, the pool config, the live tax rates, and the creator slot', async () => {
+    const rates = {
+      // 1e24 scale, as on chain: a 1% tax with a 0.5% protocol share.
+      quoteRate: 10n ** 22n,
+      burnRate: 0n,
+      protocolRate: 5n * 10n ** 21n,
+      creatorRate: 5n * 10n ** 21n,
+      dividendRate: 0n,
+      integratorRate: 0n,
+      surchargeRate: 0n,
+    };
+    const mocks = mockClients({ effectiveFeeRates: [rates, false] });
+    const client = new Clanker({ ...mocks, addresses });
+    expect(await client.taxPolicy()).toMatchObject({
+      taxFeeBounds: { minimumBuyTaxRate: 1_000_000 },
+    });
+    expect(await client.launchCreationEnabled()).toBe(true);
+    expect(await client.getPoolConfig({ token: other })).toMatchObject({
+      poolId: salt,
+      initialized: true,
+      token: other,
+      quoteToken: zeroAddress,
+      currentCreator: creator,
+    });
+    expect(await client.getTaxRates({ token: other, isBuy: true })).toEqual({
+      ...rates,
+      exactOutputRestricted: false,
+    });
+    const rateRead = mocks.readContract.mock.calls
+      .map(([call]) => call)
+      .find((call) => call.functionName === 'effectiveFeeRates');
+    expect(rateRead).toMatchObject({ address: addresses.hook, args: [salt, true] });
+    expect((await client.getTokenRewards({ token: other })).rewardIsCreator).toEqual([true, false]);
+  });
+
+  test('each newer write has a simulation that sends nothing', async () => {
+    const mocks = mockClients();
+    const results: Record<string, unknown> = {
+      withdrawDividends: true,
+      claimDividends: [1n, [true]],
+    };
+    mocks.simulateContract.mockImplementation(async (request) => ({
+      request,
+      result: results[request.functionName as string],
+    }));
+    const client = new Clanker({ ...mocks, addresses });
+    const simulations = [
+      client.claimToSimulate({ currency: other, destination: recipient }),
+      client.setCreatorFeeRecipientSimulate({ token: other, newCreatorFeeRecipient: recipient }),
+      client.proposeCreatorRightsTransferSimulate({ token: other, newCreator: creator }),
+      client.acceptCreatorRightsTransferSimulate({ token: other }),
+      client.cancelCreatorRightsTransferSimulate({ token: other }),
+      client.safeTransferCreatorRightsSimulate({ token: other, receiver: recipient }),
+      client.updateTokenContractURISimulate({ token: other, newContractURI: 'ipfs://c' }),
+      client.updateTokenExtraMetadataSimulate({
+        token: other,
+        metadataKey: 'image',
+        metadataValue: 'ipfs://i',
+      }),
+      client.updateTokenNameSimulate({ token: other, newName: 'Name' }),
+      client.updateTokenSymbolSimulate({ token: other, newSymbol: 'SYM' }),
+      client.withdrawDividendsSimulate({ dividend: other }),
+      client.claimDividendsSimulate({ tokens: [other] }),
+    ];
+    for (const result of await Promise.all(simulations)) expect(result.error).toBeUndefined();
+    // The mocked receipt has no launch buy, so this simulation reports that instead of sending.
+    expect(
+      (await client.transferLaunchBuySimulate({ txHash: salt, recipient })).error?.message
+    ).toContain('no v5 launch-buy event');
+    expect(mocks.writeContract).not.toHaveBeenCalled();
+  });
+
+  test('a dividend simulation that pays nothing returns an error, like the claim', async () => {
+    const mocks = mockClients();
+    mocks.simulateContract.mockImplementation(async (request) => ({
+      request,
+      result: request.functionName === 'claimDividends' ? [0n, [false]] : false,
+    }));
+    const client = new Clanker({ ...mocks, addresses });
+    expect((await client.claimDividendsSimulate({ tokens: [other] })).error?.message).toContain(
+      'paid nothing'
+    );
+    expect((await client.withdrawDividendsSimulate({ dividend: other })).error?.message).toContain(
+      'paid = false'
+    );
+  });
+
+  test('a failed send after the checks is marked as uncertain, but a rejected signature is not', async () => {
+    const mocks = mockClients();
+    mocks.writeContract.mockRejectedValueOnce(new BaseError('socket hang up'));
+    const client = new Clanker({ ...mocks, addresses });
+    const sent = await client.deploy(baseToken);
+    expect(sent.txHash).toBeUndefined();
+    expect(sent.error?.data.rawName).toBe(SEND_UNCERTAIN);
+    expect(sent.error?.message).toContain('can be on the network');
+    mocks.writeContract.mockRejectedValueOnce(
+      new UserRejectedRequestError(new Error('User rejected the request.'))
+    );
+    const rejected = await client.deploy(baseToken);
+    expect(rejected.error).toBeDefined();
+    expect(rejected.error?.data.rawName).not.toBe(SEND_UNCERTAIN);
   });
 
   test('does not send a dividend claim when the simulation returns paid = false', async () => {
@@ -737,7 +900,9 @@ describe('dev-buy recipient', () => {
       devBuy: { ethAmount: 0.01, minAmountOut: 1n, routeData: '0x12', recipient },
     });
     expect(result.failedStep).toBe('launchReceipt');
-    expect(result.error?.message).toBe('RPC down');
+    expect(result.error).toBeUndefined();
+    expect(result.transferError?.message).toContain('could not confirm the launch');
+    expect(result.transferError?.message).toContain('RPC down');
     expect(result.txHash).toBe(salt);
     expect(result.transferTxHash).toBeUndefined();
     expect(mocks.writeContract).toHaveBeenCalledTimes(1);
@@ -757,12 +922,12 @@ describe('dev-buy recipient', () => {
       '0x0000000000000000000000000000000000000000000000000000000000000001'
     );
     expect(result.failedStep).toBe('transfer');
-    expect(result.error?.message).toContain('launch succeeded');
-    expect(result.error?.message).toContain('launching wallet');
-    expect(result.error?.message).toContain(
+    expect(result.transferError?.message).toContain('launch succeeded');
+    expect(result.transferError?.message).toContain('launching wallet');
+    expect(result.transferError?.message).toContain(
       "transferLaunchBuy({ txHash: '0x0000000000000000000000000000000000000000000000000000000000000001', token: '0x63dAc20DBfCd8aaA0434dEd17E4b727f683ccCCc', recipient: '0x4444444444444444444444444444444444444444' })"
     );
-    expect(result.error?.message).toContain('Transfer refused');
+    expect(result.transferError?.message).toContain('Transfer refused');
     expect(result.waitForTransaction).toBeFunction();
     await new Clanker({ ...mocks, addresses }).transferLaunchBuy({
       txHash: salt,
@@ -790,17 +955,17 @@ describe('dev-buy recipient', () => {
         ...baseToken,
         devBuy: { ethAmount: 0.01, minAmountOut: 1n, routeData: '0x12', recipient },
       });
-      expect(result.error?.message).toContain('launch succeeded');
+      expect(result.transferError?.message).toContain('launch succeeded');
       expect(result.txHash).toBe(
         '0x0000000000000000000000000000000000000000000000000000000000000001'
       );
       expect(result.transferTxHash).toBe('0x1234');
-      expect(result.error?.message).toContain(
+      expect(result.transferError?.message).toContain(
         "transferLaunchBuy({ txHash: '0x0000000000000000000000000000000000000000000000000000000000000001', token: '0x63dAc20DBfCd8aaA0434dEd17E4b727f683ccCCc', recipient: '0x4444444444444444444444444444444444444444' })"
       );
       if (failure === 'reverted')
-        expect(result.error?.message).toContain('transfer reverted: 0x1234');
-      else expect(result.error?.message).toContain('Receipt unavailable');
+        expect(result.transferError?.message).toContain('transfer reverted: 0x1234');
+      else expect(result.transferError?.message).toContain('Receipt unavailable');
       expect(mocks.waitForTransactionReceipt.mock.calls[2]).toEqual([{ hash: '0x1234' }]);
       expect(result.waitForTransaction).toBeFunction();
     }
@@ -832,7 +997,10 @@ describe('dev-buy recipient', () => {
     expect(result.txHash).toBe(
       '0x0000000000000000000000000000000000000000000000000000000000000001'
     );
-    expect(result.error?.message).toContain('reverted');
+    expect(result.error).toBeUndefined();
+    expect(result.failedStep).toBe('launchReceipt');
+    expect(result.transferError?.message).toContain('reverted');
+    expect((await result.waitForTransaction?.())?.error?.data.type).toBe('state');
     expect(mocks.writeContract).toHaveBeenCalledTimes(1);
   });
   test.each([undefined, zeroAddress, caller])(

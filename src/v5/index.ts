@@ -14,11 +14,13 @@ import {
   parseAbi,
   parseEventLogs,
   type Transport,
+  UserRejectedRequestError,
   type WalletClient,
   zeroAddress,
 } from 'viem';
 import { FeeEscrow_abi } from '../abi/v5/FeeEscrow.js';
 import { TaxDividend_abi } from '../abi/v5/TaxDividend.js';
+import { TaxDividendClaimHelper_abi } from '../abi/v5/TaxDividendClaimHelper.js';
 import { TaxLaunchHook_abi } from '../abi/v5/TaxLaunchHook.js';
 import { TaxLaunchToken_abi } from '../abi/v5/TaxLaunchToken.js';
 import { TaxLaunchValidation_abi } from '../abi/v5/TaxLaunchValidation.js';
@@ -34,13 +36,20 @@ import type { TaxLaunchParams } from './types.js';
 import { predictTaxTokenAddress } from './vanity.js';
 
 export * from '../abi/v5/index.js';
-export { TAX_ADDRESSES, type TaxAddressConfig, type TaxAddresses } from './addresses.js';
+export {
+  ARC_CHAIN_ID,
+  ARC_USDC,
+  TAX_ADDRESSES,
+  type TaxAddressConfig,
+  type TaxAddresses,
+} from './addresses.js';
 export { type ClankerTokenV5, clankerTokenV5, type ParsedClankerTokenV5 } from './config.js';
 export type { TaxLaunchOptions, TaxLaunchTransaction } from './launch.js';
 export {
   BASE_USDC,
   directArcUsdcSwapXRoute,
   directNativeSwapXRoute,
+  STABLE_ROUTES,
   stableSwapXRoute,
   type TaxBuyRouteBuilder,
   type TaxBuyRouteContext,
@@ -77,6 +86,7 @@ export const TAX_ERROR_ABI: Abi = [
   TaxLaunchValidation_abi,
   FeeEscrow_abi,
   TaxDividend_abi,
+  TaxDividendClaimHelper_abi,
   TaxLaunchToken_abi,
   LAUNCH_BUY_ADAPTER_ERRORS,
 ]
@@ -123,6 +133,15 @@ const shortErrorText = (error: Error) =>
 /** The chain gave this result. An error of type `unknown` can mean that the launch exists. */
 const launchFailure = (label: string) =>
   new ClankerError(new Error(label), { type: 'state', label, rawName: 'LaunchFailed' });
+/** The transaction succeeded, but the SDK cannot confirm the launch. The launch can exist. */
+const launchUnconfirmed = (label: string) =>
+  new ClankerError(new Error(label), { type: 'unknown', label, rawName: 'LaunchUnconfirmed' });
+
+/**
+ * `rawName` of an error from the send step itself. The wallet or RPC failed after the checks passed,
+ * so the transaction can be on the network. Check the wallet's pending transactions before a retry.
+ */
+export const SEND_UNCERTAIN = 'SendUncertain';
 
 function taxError(error: unknown): ClankerError {
   if (error instanceof ClankerError) return error;
@@ -149,6 +168,30 @@ function taxError(error: unknown): ClankerError {
   });
 }
 
+function sendError(error: unknown): ClankerError {
+  const cause = error instanceof Error ? error : new Error(String(error));
+  // A rejected signature never reaches the network.
+  if (cause instanceof BaseError && cause.walk((item) => item instanceof UserRejectedRequestError))
+    return taxError(cause);
+  const label = `The send failed after the checks passed, so the transaction can be on the network. Check the wallet's pending transactions before a retry. ${shortErrorText(cause)}`;
+  return new ClankerError(cause, { type: 'unknown', label, rawName: SEND_UNCERTAIN });
+}
+
+function requireDividendPaid(paid: unknown) {
+  if (paid !== true)
+    throw new Error(
+      'The dividend simulation returned paid = false: the holder has no dividend to withdraw. No transaction was sent.'
+    );
+}
+
+function requireBatchDividendPaid(result: unknown) {
+  const [paidCount] = result as readonly [bigint, readonly boolean[]];
+  if (paidCount === 0n)
+    throw new Error(
+      'The dividend simulation paid nothing: the holder has no dividend in these tokens. No transaction was sent.'
+    );
+}
+
 type RewardInput = { token: Address; rewardRecipient: Address };
 type RecipientInput = { token: Address; rewardIndex: bigint; newRecipient: Address };
 type AdminInput = { token: Address; rewardIndex: bigint; newAdmin: Address };
@@ -158,11 +201,33 @@ type DeploySubmission = {
   transferTxHash?: Hex;
   waitForTransaction: () => ClankerResult<{ address: Address; poolId: Hex }>;
 };
-/** `launchReceipt`: the receipt read failed or the launch failed, and no transfer was sent. */
-type DeployStep = 'launchReceipt' | 'transfer';
-type DeployResult =
-  | (DeploySubmission & { error?: undefined; failedStep?: undefined })
-  | (Partial<DeploySubmission> & { error: ClankerError; failedStep?: DeployStep });
+/**
+ * The step after the launch that did not finish. `launchReceipt`: the launch receipt read failed or
+ * the launch failed, so no transfer was sent. `transfer`: the launch succeeded and the transfer failed.
+ */
+export type DeployStep = 'launchReceipt' | 'transfer';
+/**
+ * The result of `deploy`. A top-level `error` means that nothing was sent, so a retry is safe,
+ * except an error with `data.rawName` of `SEND_UNCERTAIN`: the send itself failed, and the launch
+ * can exist.
+ * After the launch is sent, `deploy` never returns a top-level `error`: `waitForTransaction`
+ * reports the launch, and `transferError` reports a failed recipient transfer.
+ */
+export type DeployResult =
+  | (DeploySubmission & {
+      error?: undefined;
+      failedStep?: DeployStep;
+      transferError?: ClankerError;
+    })
+  | {
+      error: ClankerError;
+      txHash?: undefined;
+      expectedAddress?: undefined;
+      transferTxHash?: undefined;
+      waitForTransaction?: undefined;
+      failedStep?: undefined;
+      transferError?: undefined;
+    };
 
 /**
  * Clanker v5. It deploys and manages Tax tokens on the Tax suite contracts.
@@ -226,28 +291,40 @@ export class Clanker {
       const { request, result } = await client.simulateContract(simulation);
       checkResult?.(result);
       const gas = await client.estimateContractGas(simulation);
-      const txHash = await wallet.writeContract({
-        ...request,
-        gas: withGasMargin(gas),
-        chain: wallet.chain,
-        account: wallet.account,
-      });
-      return { txHash, error: undefined };
+      try {
+        const txHash = await wallet.writeContract({
+          ...request,
+          gas: withGasMargin(gas),
+          chain: wallet.chain,
+          account: wallet.account,
+        });
+        return { txHash, error: undefined };
+      } catch (error) {
+        return { txHash: undefined, error: sendError(error) };
+      }
     } catch (error) {
       return { txHash: undefined, error: taxError(error) };
     }
   }
 
-  private async simulate(input: () => Promise<TaxWriteCall> | TaxWriteCall, account?: Account) {
+  /** `checkResult` receives the simulation result, as in `write`, and can throw to report a failure. */
+  private async simulate(
+    input: () => Promise<TaxWriteCall> | TaxWriteCall,
+    account?: Account,
+    checkResult?: (result: unknown) => void
+  ) {
     const acc = account ?? this.wallet?.account;
     if (!acc) throw new Error('Account or wallet client required for simulation.');
     const client = this.reader();
     try {
       const call = await input();
-      return {
-        ...(await client.simulateContract({ ...call, abi: withTaxErrors(call.abi), account: acc })),
-        error: undefined,
-      };
+      const simulation = await client.simulateContract({
+        ...call,
+        abi: withTaxErrors(call.abi),
+        account: acc,
+      });
+      checkResult?.(simulation.result);
+      return { ...simulation, error: undefined };
     } catch (error) {
       return { error: taxError(error) };
     }
@@ -335,7 +412,9 @@ export class Clanker {
             });
             const launch = logs.find((log) => isAddressEqual(log.args.token, expectedAddress));
             if (!launch)
-              throw launchFailure('The receipt has no v5 launch event for the predicted token.');
+              throw launchUnconfirmed(
+                `The transaction succeeded, but its receipt has no v5 launch event for the predicted token ${expectedAddress}. Check the transaction before a retry: ${txHash}`
+              );
             launched = { address: launch.args.token, poolId: launch.args.poolId };
             return launched;
           } catch (error) {
@@ -351,7 +430,19 @@ export class Clanker {
       if (!config.devBuy || isAddressEqual(recipient, wallet.account.address)) return deployment;
       const receipt = await deployment.waitForTransaction();
       if (receipt.error) {
-        return { ...deployment, error: receipt.error, failedStep: 'launchReceipt' };
+        // The launch was sent, so this is not a top-level error: a retry can launch a second token.
+        const reverted = receipt.error.data.type === 'state';
+        return {
+          ...deployment,
+          failedStep: 'launchReceipt',
+          transferError: taxError(
+            new Error(
+              reverted
+                ? `No recipient transfer was sent, because the launch failed on chain. ${receipt.error.message}`
+                : `No recipient transfer was sent, because the SDK could not confirm the launch. The bought tokens stay in the launching wallet. Check the launch with waitForTransaction before a retry. ${receipt.error.message}`
+            )
+          ),
+        };
       }
       let transferTxHash: Hex | undefined;
       try {
@@ -371,7 +462,7 @@ export class Clanker {
           ...deployment,
           transferTxHash,
           failedStep: 'transfer',
-          error: taxError(
+          transferError: taxError(
             new Error(
               `The launch succeeded. Check the recipient balance before a retry. Use transferLaunchBuy({ txHash: '${txHash}', token: '${expectedAddress}', recipient: '${recipient}' }) from the launching wallet. ${taxError(error).message}`
             )
@@ -429,6 +520,88 @@ export class Clanker {
     });
   }
 
+  /**
+   * The factory tax policy for new launches: tax bounds, the protocol fee rule and recipient,
+   * anti-snipe settings, and the minimum dividend holding. Each pool keeps the policy of its launch;
+   * use `getPoolConfig` for an existing token.
+   */
+  taxPolicy() {
+    return this.reader().readContract({
+      address: this.address('factory'),
+      abi: TaxRWAERC20LaunchpadFactory_abi,
+      functionName: 'taxPolicy',
+    });
+  }
+
+  /** Whether the factory accepts new launches on this chain. */
+  launchCreationEnabled() {
+    return this.reader().readContract({
+      address: this.address('factory'),
+      abi: TaxRWAERC20LaunchpadFactory_abi,
+      functionName: 'launchCreationEnabled',
+    });
+  }
+
+  /**
+   * The stored configuration of a launch: quote, creator, fee recipients, dividend contract,
+   * taxes and shares, and the protocol fee rule frozen at launch.
+   */
+  async getPoolConfig({ token }: { token: Address }) {
+    const { poolId } = await this.creatorRights(token);
+    const [
+      initialized,
+      tokenIsCurrency0,
+      launchToken,
+      quoteToken,
+      currentCreator,
+      creatorFeeRecipient,
+      protocolFeeConfiguration,
+      antiSnipeConfiguration,
+      launchTime,
+      antiSnipeEnabled,
+      integratorFeeRecipient,
+      dividend,
+      taxConfiguration,
+    ] = await this.reader().readContract({
+      address: this.address('hook'),
+      abi: TaxLaunchHook_abi,
+      functionName: 'poolConfig',
+      args: [poolId],
+    });
+    return {
+      poolId,
+      initialized,
+      tokenIsCurrency0,
+      token: launchToken,
+      quoteToken,
+      currentCreator,
+      creatorFeeRecipient,
+      protocolFeeConfiguration,
+      antiSnipeConfiguration,
+      launchTime,
+      antiSnipeEnabled,
+      integratorFeeRecipient,
+      dividend,
+      taxConfiguration,
+    };
+  }
+
+  /**
+   * The tax that a trade pays now, as shares of the trade on a 1e24 scale: 100% is `10n ** 24n`,
+   * so 1% is `10n ** 22n`. The launch settings in `getPoolConfig` use a different scale: 1% is `1_000_000`.
+   * During the anti-snipe window, `surchargeRate` is the extra fee that goes to the protocol.
+   */
+  async getTaxRates({ token, isBuy }: { token: Address; isBuy: boolean }) {
+    const { poolId } = await this.creatorRights(token);
+    const [rates, exactOutputRestricted] = await this.reader().readContract({
+      address: this.address('hook'),
+      abi: TaxLaunchHook_abi,
+      functionName: 'effectiveFeeRates',
+      args: [poolId, isBuy],
+    });
+    return { ...rates, exactOutputRestricted };
+  }
+
   async getTokenRewardsTransaction({ token }: { token: Address }, options?: { chain?: Chain }) {
     const { poolId } = await this.creatorRights(token, options);
     return {
@@ -453,6 +626,8 @@ export class Clanker {
       rewardBps: slots.map((slot) => slot.weightBps),
       rewardAdmins: slots.map((slot) => slot.admin),
       rewardRecipients: slots.map((slot) => slot.recipient),
+      /** The creator slot pays `creatorFeeRecipient` and follows creator rights. */
+      rewardIsCreator: slots.map((slot) => slot.isCreator),
     };
   }
 
@@ -506,13 +681,27 @@ export class Clanker {
   }
 
   /** The contract read includes the blocked amount of an excluded holder, whose claim pays nothing. */
-  async withdrawableDividends({ dividend, holder }: { dividend: Address; holder: Address }) {
-    const read = { address: dividend, abi: TaxDividend_abi, args: [holder] } as const;
+  async withdrawableDividends(
+    input: ({ dividend: Address; token?: undefined } | { token: Address; dividend?: undefined }) & {
+      holder: Address;
+    }
+  ) {
+    const dividend = await this.dividendAddress(input);
+    const read = { address: dividend, abi: TaxDividend_abi, args: [input.holder] } as const;
     const [amount, excluded] = await Promise.all([
       this.reader().readContract({ ...read, functionName: 'withdrawableDividendOf' }),
       this.reader().readContract({ ...read, functionName: 'excludedFromDividends' }),
     ]);
     return excluded ? 0n : amount;
+  }
+
+  private async dividendAddress(input: { dividend?: Address; token?: Address }) {
+    if (input.dividend) return input.dividend;
+    if (!input.token) throw new Error('Pass dividend or token.');
+    const dividend = await this.dividendOf(input.token);
+    if (isAddressEqual(dividend, zeroAddress))
+      throw new Error(`Token ${input.token} has no dividend contract.`);
+    return dividend;
   }
 
   private async rewardSlot(token: Address, index: bigint, options?: { chain?: Chain }) {
@@ -616,12 +805,7 @@ export class Clanker {
    * The client returns an error before submission, so the holder pays no gas for an empty claim.
    */
   withdrawDividends(input: { dividend: Address }) {
-    return this.write(this.getWithdrawDividendsTransaction(input), (paid) => {
-      if (paid !== true)
-        throw new Error(
-          'The dividend simulation returned paid = false: the holder has no dividend to withdraw. No transaction was sent.'
-        );
-    });
+    return this.write(this.getWithdrawDividendsTransaction(input), requireDividendPaid);
   }
 
   getClaimToTransaction({ currency, destination }: { currency: Address; destination: Address }) {
@@ -631,6 +815,64 @@ export class Clanker {
       functionName: 'claimTo',
       args: [currency, destination],
     } as const satisfies ContractFunctionParameters<typeof FeeEscrow_abi, 'nonpayable', 'claimTo'>;
+  }
+
+  /** Returns `{ error }` when the simulation pays nothing, like `withdrawDividends`. */
+  withdrawDividendsSimulate(input: { dividend: Address }, account?: Account) {
+    return this.simulate(
+      () => this.getWithdrawDividendsTransaction(input),
+      account,
+      requireDividendPaid
+    );
+  }
+
+  /**
+   * Claims the caller's dividends from up to 64 launch tokens in one transaction, through the
+   * dividend claim helper. `unwrapWrappedNative` defaults to true, which pays native currency.
+   * Set it to false to receive the wrapped token, for example in a contract without `receive`.
+   */
+  getClaimDividendsTransaction({
+    tokens,
+    unwrapWrappedNative = true,
+  }: {
+    tokens: Address[];
+    unwrapWrappedNative?: boolean;
+  }) {
+    if (tokens.length === 0) throw new Error('Pass at least one token.');
+    return {
+      address: this.address('dividendClaimHelper'),
+      abi: TaxDividendClaimHelper_abi,
+      functionName: 'claimDividends',
+      args: [tokens.map((token) => ({ token, unwrapWrappedNative }))],
+    } as const satisfies ContractFunctionParameters<
+      typeof TaxDividendClaimHelper_abi,
+      'nonpayable',
+      'claimDividends'
+    >;
+  }
+
+  /** Returns `{ error }` when no token in the batch pays anything, like `claimDividends`. */
+  claimDividendsSimulate(
+    input: { tokens: Address[]; unwrapWrappedNative?: boolean },
+    account?: Account
+  ) {
+    return this.simulate(
+      () => this.getClaimDividendsTransaction(input),
+      account,
+      requireBatchDividendPaid
+    );
+  }
+
+  /** The client returns an error before submission when no token in the batch pays anything. */
+  claimDividends(input: { tokens: Address[]; unwrapWrappedNative?: boolean }) {
+    return this.write(
+      async () => this.getClaimDividendsTransaction(input),
+      requireBatchDividendPaid
+    );
+  }
+
+  claimToSimulate(input: { currency: Address; destination: Address }, account?: Account) {
+    return this.simulate(() => this.getClaimToTransaction(input), account);
   }
 
   claimTo(input: { currency: Address; destination: Address }) {
@@ -659,6 +901,13 @@ export class Clanker {
     >;
   }
 
+  setCreatorFeeRecipientSimulate(
+    input: { token: Address; newCreatorFeeRecipient: Address },
+    account?: Account
+  ) {
+    return this.simulate(() => this.getSetCreatorFeeRecipientTransaction(input), account);
+  }
+
   setCreatorFeeRecipient(input: { token: Address; newCreatorFeeRecipient: Address }) {
     return this.write(this.getSetCreatorFeeRecipientTransaction(input));
   }
@@ -682,6 +931,13 @@ export class Clanker {
     >;
   }
 
+  proposeCreatorRightsTransferSimulate(
+    input: { token: Address; newCreator: Address },
+    account?: Account
+  ) {
+    return this.simulate(() => this.getProposeCreatorRightsTransferTransaction(input), account);
+  }
+
   proposeCreatorRightsTransfer(input: { token: Address; newCreator: Address }) {
     return this.write(this.getProposeCreatorRightsTransferTransaction(input));
   }
@@ -697,6 +953,10 @@ export class Clanker {
       'nonpayable',
       'acceptCreatorRightsTransfer'
     >;
+  }
+
+  acceptCreatorRightsTransferSimulate(input: { token: Address }, account?: Account) {
+    return this.simulate(() => this.getAcceptCreatorRightsTransferTransaction(input), account);
   }
 
   acceptCreatorRightsTransfer(input: { token: Address }) {
@@ -716,8 +976,53 @@ export class Clanker {
     >;
   }
 
+  cancelCreatorRightsTransferSimulate(input: { token: Address }, account?: Account) {
+    return this.simulate(() => this.getCancelCreatorRightsTransferTransaction(input), account);
+  }
+
   cancelCreatorRightsTransfer(input: { token: Address }) {
     return this.write(this.getCancelCreatorRightsTransferTransaction(input));
+  }
+
+  /**
+   * Moves creator rights to a contract in one step. The receiver must implement the creator-rights
+   * receiver callback, which receives `callbackData` and any `value`. Use
+   * `proposeCreatorRightsTransfer` for an ordinary wallet.
+   */
+  getSafeTransferCreatorRightsTransaction({
+    token,
+    receiver,
+    callbackData = '0x',
+    value = 0n,
+  }: {
+    token: Address;
+    receiver: Address;
+    callbackData?: Hex;
+    value?: bigint;
+  }) {
+    return {
+      address: this.address('factory'),
+      abi: TaxRWAERC20LaunchpadFactory_abi,
+      functionName: 'safeTransferCreatorRights',
+      args: [token, receiver, callbackData],
+      value,
+    } as const;
+  }
+
+  safeTransferCreatorRightsSimulate(
+    input: { token: Address; receiver: Address; callbackData?: Hex; value?: bigint },
+    account?: Account
+  ) {
+    return this.simulate(() => this.getSafeTransferCreatorRightsTransaction(input), account);
+  }
+
+  safeTransferCreatorRights(input: {
+    token: Address;
+    receiver: Address;
+    callbackData?: Hex;
+    value?: bigint;
+  }) {
+    return this.write(this.getSafeTransferCreatorRightsTransaction(input));
   }
 
   getUpdateTokenContractURITransaction({
@@ -737,6 +1042,13 @@ export class Clanker {
       'nonpayable',
       'updateTokenContractURI'
     >;
+  }
+
+  updateTokenContractURISimulate(
+    input: { token: Address; newContractURI: string },
+    account?: Account
+  ) {
+    return this.simulate(() => this.getUpdateTokenContractURITransaction(input), account);
   }
 
   updateTokenContractURI(input: { token: Address; newContractURI: string }) {
@@ -765,6 +1077,13 @@ export class Clanker {
       'nonpayable',
       'updateTokenExtraMetadata'
     >;
+  }
+
+  updateTokenExtraMetadataSimulate(
+    input: { token: Address; metadataKey: string; metadataValue: string },
+    account?: Account
+  ) {
+    return this.simulate(() => this.getUpdateTokenExtraMetadataTransaction(input), account);
   }
 
   updateTokenExtraMetadata(input: { token: Address; metadataKey: string; metadataValue: string }) {
@@ -828,6 +1147,10 @@ export class Clanker {
     >;
   }
 
+  updateTokenNameSimulate(input: { token: Address; newName: string }, account?: Account) {
+    return this.simulate(() => this.getUpdateTokenNameTransaction(input), account);
+  }
+
   updateTokenName(input: { token: Address; newName: string }) {
     return this.write(this.getUpdateTokenNameTransaction(input));
   }
@@ -843,6 +1166,10 @@ export class Clanker {
       'nonpayable',
       'updateTokenSymbol'
     >;
+  }
+
+  updateTokenSymbolSimulate(input: { token: Address; newSymbol: string }, account?: Account) {
+    return this.simulate(() => this.getUpdateTokenSymbolTransaction(input), account);
   }
 
   updateTokenSymbol(input: { token: Address; newSymbol: string }) {
@@ -895,6 +1222,13 @@ export class Clanker {
       functionName: 'transfer',
       args: [recipient ?? originalCreator, amountOut],
     } as const satisfies ContractFunctionParameters<typeof erc20Abi, 'nonpayable', 'transfer'>;
+  }
+
+  transferLaunchBuySimulate(
+    input: { txHash: Hex; recipient?: Address; token?: Address },
+    account?: Account
+  ) {
+    return this.simulate(() => this.getTransferLaunchBuyTransaction(input), account);
   }
 
   async transferLaunchBuy(input: { txHash: Hex; recipient?: Address; token?: Address }) {
