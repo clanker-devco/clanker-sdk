@@ -234,6 +234,7 @@ export class Clanker {
   /**
    * Get an abi-typed transaction for deploying a clanker.
    *
+   * @deprecated V3 launches are closed, and this method throws. Use clanker-sdk/v5 to launch a token.
    * @param token The token to deploy
    * @param requestorAddress Requestor for the deployment. Various admins will fall back to this.
    * @returns Abi transaction
@@ -246,6 +247,7 @@ export class Clanker {
   /**
    * Simulate a token deployment
    *
+   * @deprecated V3 launches are closed, and this method throws. Use clanker-sdk/v5 to launch a token.
    * @param token The token to deploy
    * @param requestorAddress Requestor for the deployment. Various admins will fall back to this.
    * @returns Abi transaction
@@ -263,6 +265,7 @@ export class Clanker {
   /**
    * Deploy a token
    *
+   * @deprecated V3 launches are closed, and this method throws. Use clanker-sdk/v5 to launch a token.
    * @param token The token to deploy
    * @returns Transaction hash and awaitable function for full deployment
    */

@@ -53,6 +53,7 @@ export type PresaleConfig = z.input<typeof PresaleConfigSchema>;
 /**
  * Get a transaction to start a presale
  *
+ * @deprecated New presales are closed, and this function throws.
  * @param deploymentConfig The deployment configuration for the token
  * @param presaleConfig The presale configuration
  * @param chainId The chain ID
@@ -98,6 +99,7 @@ export async function getStartPresaleTransaction({
 /**
  * Start a presale
  *
+ * @deprecated New presales are closed, and this function throws.
  * @param clanker Clanker object used for starting presale
  * @param deploymentConfig The deployment configuration for the token
  * @param presaleConfig The presale configuration
