@@ -1,175 +1,246 @@
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
-import type { ClankerTokenV3 } from '../../config/clankerTokenV3.js';
-import type { ClankerTokenV4, FeeIn } from '../../config/clankerTokenV4.js';
-import { BSC_USDT_ADDRESS, FEE_CONFIGS, POOL_POSITIONS } from '../../constants.js';
-import { ClankerError } from '../../utils/errors.js';
-import {
-  getTickFromMarketCap,
-  getTickFromMarketCapStable,
-  getTickFromMarketCapUSDC,
-} from '../../utils/market-cap.js';
-import { Clanker as ClankerV3 } from '../../v3/index.js';
-import { createAirdrop } from '../../v4/extensions/airdrop.js';
-import { Clanker as ClankerV4 } from '../../v4/index.js';
+import type { Address, Chain } from 'viem';
+import { ARC_CHAIN_ID, ARC_USDC, TAX_ADDRESSES } from '../../v5/addresses.js';
+import { type ClankerTokenV5, clankerTokenV5 } from '../../v5/config.js';
+import { Clanker as ClankerV5, SEND_UNCERTAIN } from '../../v5/index.js';
+import { STABLE_ROUTES } from '../../v5/routes.js';
 import { CHAIN_NAMES, resolveChain } from '../utils/chains.js';
 import {
   blockExplorerUrl,
   printError,
   printKeyValue,
+  printResult,
   printStep,
   printSuccess,
 } from '../utils/output.js';
 import type { GlobalOpts } from '../utils/wallet.js';
 import { resolveClients } from '../utils/wallet.js';
-import { parseCsv } from './airdrop.js';
-
-const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as const;
-const WMON_ADDRESS = '0x3bd359c1119da7da1d913d1c4d2b7c461115433a' as const;
-
-type PairedTokenChoice = { name: string; value: string };
-
-const PAIRED_TOKEN_CHOICES: Record<string, PairedTokenChoice[]> = {
-  base: [
-    { name: 'WETH', value: 'WETH' },
-    { name: 'USDC', value: BASE_USDC },
-  ],
-  bsc: [{ name: 'USDT', value: BSC_USDT_ADDRESS }],
-  monad: [{ name: 'WMON', value: WMON_ADDRESS }],
-};
-
-const DEFAULT_PAIRED_CHOICES: PairedTokenChoice[] = [{ name: 'WETH', value: 'WETH' }];
-
-type PairedTokenMcapConfig = {
-  unit: string;
-  defaultStarting: string;
-  endingMcap: number;
-};
-
-const PAIRED_TOKEN_MCAP: Record<string, PairedTokenMcapConfig> = {
-  WETH: { unit: 'ETH', defaultStarting: '10', endingMcap: 615_000 },
-  [BASE_USDC]: { unit: 'USDC', defaultStarting: '10000', endingMcap: 1_000_000_000 },
-  [BSC_USDT_ADDRESS]: { unit: 'USDT', defaultStarting: '10000', endingMcap: 1_000_000_000 },
-  [WMON_ADDRESS]: { unit: 'MON', defaultStarting: '100000', endingMcap: 100_000_000 },
-};
-
-const DEFAULT_MCAP_CONFIG: PairedTokenMcapConfig = {
-  unit: 'ETH',
-  defaultStarting: '10',
-  endingMcap: 615_000,
-};
-
-function mcapConfigFor(pairedToken: string): PairedTokenMcapConfig {
-  return PAIRED_TOKEN_MCAP[pairedToken] || DEFAULT_MCAP_CONFIG;
-}
-
-const STATIC_FEE_ONLY_CHAINS = new Set(['monad']);
-
-function getMonadTick(marketCap: number): number {
-  const desiredPrice = marketCap * 0.00000000001;
-  const logBase = 1.0001;
-  const tickSpacing = 200;
-  const rawTick = Math.log(desiredPrice) / Math.log(logBase);
-  return Math.floor(rawTick / tickSpacing) * tickSpacing;
-}
-
-export function computeTicksFromMarketCap(
-  startingMcap: number,
-  pairedTokenValue: string
-): { tickLower: number; tickUpper: number } {
-  const { endingMcap } = mcapConfigFor(pairedTokenValue);
-
-  if (pairedTokenValue === WMON_ADDRESS) {
-    return {
-      tickLower: getMonadTick(startingMcap),
-      tickUpper: getMonadTick(endingMcap),
-    };
-  }
-  if (pairedTokenValue === BASE_USDC) {
-    return {
-      tickLower: getTickFromMarketCapUSDC(startingMcap),
-      tickUpper: getTickFromMarketCapUSDC(endingMcap),
-    };
-  }
-  if (pairedTokenValue === BSC_USDT_ADDRESS) {
-    return {
-      tickLower: getTickFromMarketCapStable(startingMcap, 18),
-      tickUpper: getTickFromMarketCapStable(endingMcap, 18),
-    };
-  }
-  return {
-    tickLower: getTickFromMarketCap(startingMcap).tickIfToken0IsClanker,
-    tickUpper: getTickFromMarketCap(endingMcap).tickIfToken0IsClanker,
-  };
-}
 
 interface DeployFlags extends GlobalOpts {
-  v3?: boolean;
   name?: string;
   symbol?: string;
   image?: string;
   tokenAdmin?: string;
   pairedToken?: string;
-  startingMarketCap?: string;
-  feeConfig?: string;
-  poolPositions?: string;
-  vaultPercentage?: string;
-  vaultLockupDays?: string;
   devBuyEth?: string;
-  feePreference?: string;
+  buyFee?: string;
+  sellFee?: string;
+  burn?: string;
+  dividendShare?: string;
+  dividendMinHolding?: string;
+  integrator?: string;
+  integratorShare?: string;
+  devBuySlippage?: string;
   description?: string;
   website?: string;
   twitter?: string;
   telegram?: string;
   farcaster?: string;
-  salt?: string;
-  airdropCsv?: string;
-  airdropLockupDays?: string;
-  airdropVestingDays?: string;
   rewardRecipients?: string;
-  staticFeePercent?: string;
-  sniperStartingFee?: string;
-  sniperEndingFee?: string;
-  sniperDecaySeconds?: string;
 }
 
-function hasAllRequiredFlags(flags: DeployFlags, isV3: boolean): boolean {
-  if (isV3) {
-    return !!(flags.name && flags.symbol);
-  }
+function hasAllRequiredFlags(flags: DeployFlags): boolean {
   return !!(flags.name && flags.symbol);
 }
 
-async function interactiveDeployV4(flags: DeployFlags): Promise<ClankerTokenV4> {
-  // Phase 1: Core token info
+const V5_CHAINS = CHAIN_NAMES.filter((name) => TAX_ADDRESSES[resolveChain(name).id]);
+
+const flagName = (key: string) => `--${key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`;
+
+function devBuySlippage(value = '5') {
+  if (!/^\d+(\.\d+)?$/.test(value)) {
+    throw new Error('--dev-buy-slippage must be above 0 and below 50.');
+  }
+  const percent = Number(value);
+  if (!Number.isFinite(percent) || percent <= 0 || percent >= 50) {
+    throw new Error('--dev-buy-slippage must be above 0 and below 50.');
+  }
+  return percent;
+}
+
+function percentFlag(value: string, flag: string): number {
+  const percent = Number(value);
+  if (!value.trim() || !Number.isFinite(percent)) {
+    throw new Error(`${flag} must be a number.`);
+  }
+  return percent;
+}
+
+function rewardRecipientsFlag(value: string): NonNullable<ClankerTokenV5['rewards']> {
+  const invalid = new Error('--reward-recipients must be a JSON array.');
+  let recipients: unknown;
+  try {
+    recipients = JSON.parse(value);
+  } catch {
+    throw invalid;
+  }
+  if (!Array.isArray(recipients)) throw invalid;
+  return { recipients };
+}
+
+const V5_FLAG_BY_PATH: Record<string, string> = {
+  name: '--name',
+  symbol: '--symbol',
+  image: '--image',
+  tokenAdmin: '--token-admin',
+  buyFee: '--buy-fee',
+  sellFee: '--sell-fee',
+  burn: '--burn',
+  'dividends.share': '--dividend-share',
+  'dividends.minimumHolding': '--dividend-min-holding',
+  'integrator.address': '--integrator',
+  'integrator.share': '--integrator-share',
+  'pool.pairedToken': '--paired-token',
+  'devBuy.ethAmount': '--dev-buy-eth',
+  rewards: '--reward-recipients',
+};
+
+function assertValidV5Config(token: ClankerTokenV5) {
+  const parsed = clankerTokenV5.safeParse(token);
+  if (parsed.success) return;
+  const lines = parsed.error.issues.map(({ path, message }) => {
+    const dotted = path.join('.');
+    const flag = V5_FLAG_BY_PATH[dotted] ?? V5_FLAG_BY_PATH[String(path[0])];
+    return flag ? `${flag}: ${message}` : message;
+  });
+  throw new Error(lines.join(' '));
+}
+
+export function buildV5Config(f: DeployFlags): ClankerTokenV5 {
+  for (const key of ['name', 'symbol'] as const) {
+    if (!f[key]?.trim()) throw new Error(`${flagName(key)} is required for V5.`);
+  }
+  devBuySlippage(f.devBuySlippage);
+  if (f.dividendMinHolding !== undefined && f.dividendShare === undefined) {
+    throw new Error('--dividend-share is required with --dividend-min-holding.');
+  }
+  if (f.integrator !== undefined && f.integratorShare === undefined) {
+    throw new Error('--integrator-share is required with --integrator.');
+  }
+  if (f.integratorShare !== undefined && f.integrator === undefined) {
+    throw new Error('--integrator is required with --integrator-share.');
+  }
+  const minimumHolding = f.dividendMinHolding ?? '10000';
+  if (!/^\d+$/.test(minimumHolding)) {
+    throw new Error('--dividend-min-holding must be a non-negative whole number of tokens.');
+  }
+  const socialMediaUrls = ['website', 'twitter', 'telegram', 'farcaster']
+    .filter((key) => f[key as keyof DeployFlags])
+    .map((key) => ({ platform: key, url: f[key as keyof DeployFlags] as string }));
+  return {
+    name: f.name as string,
+    symbol: f.symbol as string,
+    buyFee: f.buyFee === undefined ? undefined : percentFlag(f.buyFee, '--buy-fee'),
+    sellFee: f.sellFee === undefined ? undefined : percentFlag(f.sellFee, '--sell-fee'),
+    ...(f.burn !== undefined ? { burn: percentFlag(f.burn, '--burn') } : {}),
+    ...(f.dividendShare !== undefined
+      ? {
+          dividends: {
+            share: percentFlag(f.dividendShare, '--dividend-share'),
+            minimumHolding: BigInt(minimumHolding) * 10n ** 18n,
+          },
+        }
+      : {}),
+    ...(f.integrator !== undefined && f.integratorShare !== undefined
+      ? {
+          integrator: {
+            address: f.integrator as `0x${string}`,
+            share: percentFlag(f.integratorShare, '--integrator-share'),
+          },
+        }
+      : {}),
+    chainId: resolveChain(f.chain || 'base').id,
+    image: f.image || '',
+    tokenAdmin: (f.tokenAdmin || undefined) as `0x${string}` | undefined,
+    context: { interface: 'Clanker CLI', platform: 'Clanker' },
+    ...(f.pairedToken ? { pool: { pairedToken: f.pairedToken as 'WETH' | `0x${string}` } } : {}),
+    ...(f.description || socialMediaUrls.length
+      ? { metadata: { description: f.description || '', socialMediaUrls, auditUrls: [] } }
+      : {}),
+    ...(f.devBuyEth !== undefined ? { devBuy: { ethAmount: f.devBuyEth } } : {}),
+    ...(f.rewardRecipients !== undefined
+      ? { rewards: rewardRecipientsFlag(f.rewardRecipients) }
+      : {}),
+  };
+}
+
+const ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+// These chains have no launch-buy adapter, so they have no creator buy and no stable route.
+// Remove a chain here when its factory gets an adapter.
+const USDC_WITHOUT_ROUTE: Record<number, Address> = {
+  1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  42161: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+  130: '0x078D782b760474a361dDA0AF3839290b0EF57AD6',
+};
+const OTHER_PAIRED_TOKEN = 'other';
+const V5_PAIR_NAMES: Record<number, { native?: string; stable?: string }> = {
+  8453: { native: 'ETH', stable: 'USDC' },
+  1: { native: 'ETH', stable: 'USDC' },
+  42161: { native: 'ETH', stable: 'USDC' },
+  130: { native: 'ETH', stable: 'USDC' },
+  56: { native: 'BNB', stable: 'USDC' },
+  143: { native: 'MON', stable: 'USDC' },
+  196: { native: 'OKB', stable: 'USDC' },
+  4663: { native: 'ETH', stable: 'USDG' },
+  [ARC_CHAIN_ID]: { stable: 'USDC' },
+};
+
+function v5PairChoices(chainName: string): { name: string; value: string }[] {
+  const { id } = resolveChain(chainName);
+  const { native, stable } = V5_PAIR_NAMES[id] ?? {};
+  const stableAddress =
+    id === ARC_CHAIN_ID ? ARC_USDC : (STABLE_ROUTES[id]?.stable ?? USDC_WITHOUT_ROUTE[id]);
+  return [
+    ...(native ? [{ name: `${native} (native coin)`, value: 'WETH' }] : []),
+    ...(stable && stableAddress ? [{ name: stable, value: stableAddress }] : []),
+    { name: 'Another token address', value: OTHER_PAIRED_TOKEN },
+  ];
+}
+
+const METADATA_PROMPTS = [
+  ['description', 'Token description:'],
+  ['website', 'Website URL:'],
+  ['twitter', 'Twitter/X URL:'],
+  ['telegram', 'Telegram URL:'],
+  ['farcaster', 'Farcaster URL:'],
+] as const;
+
+const validNumber = (value: string) =>
+  (value.trim() !== '' && Number.isFinite(Number(value))) || 'Must be a number';
+const validOptionalAddress = (value: string) =>
+  value === '' || ADDRESS_PATTERN.test(value) || 'Invalid address';
+const validAddress = (value: string) => ADDRESS_PATTERN.test(value) || 'Invalid address';
+
+async function interactiveDeployV5(flags: DeployFlags): Promise<DeployFlags> {
   const core = await inquirer.prompt([
     {
       type: 'list',
       name: 'chain',
       message: 'Network:',
-      choices: CHAIN_NAMES,
-      default: flags.chain || 'base',
+      choices: V5_CHAINS,
+      default: flags.chain,
     },
     {
       type: 'input',
       name: 'name',
       message: 'Token name:',
       default: flags.name,
-      validate: (v: string) => v.length > 0 || 'Required',
+      validate: (value: string) => value.trim().length > 0 || 'Required',
     },
     {
       type: 'input',
       name: 'symbol',
       message: 'Token symbol:',
       default: flags.symbol,
-      validate: (v: string) => /^[a-zA-Z0-9]+$/.test(v) || 'Alphanumeric only',
+      validate: (value: string) => /^[a-zA-Z0-9]+$/.test(value) || 'Alphanumeric only',
     },
     {
       type: 'input',
       name: 'tokenAdmin',
       message: 'Token admin address (blank = your wallet):',
       default: flags.tokenAdmin || '',
-      validate: (v: string) => v === '' || /^0x[a-fA-F0-9]{40}$/.test(v) || 'Invalid address',
+      validate: validOptionalAddress,
     },
     {
       type: 'input',
@@ -179,356 +250,238 @@ async function interactiveDeployV4(flags: DeployFlags): Promise<ClankerTokenV4> 
     },
   ]);
 
-  // Phase 2: Pool configuration
+  const pairChoices = v5PairChoices(core.chain);
+  const pairFlag = flags.pairedToken;
   const pool = await inquirer.prompt([
     {
       type: 'list',
       name: 'pairedToken',
       message: 'Paired token:',
-      choices: PAIRED_TOKEN_CHOICES[core.chain] || DEFAULT_PAIRED_CHOICES,
-      default: 'WETH',
+      choices: pairChoices,
+      default:
+        pairFlag && !pairChoices.some(({ value }) => value === pairFlag)
+          ? OTHER_PAIRED_TOKEN
+          : pairFlag,
     },
     {
       type: 'input',
-      name: 'startingMarketCap',
-      message: (a: { pairedToken: string }) => {
-        const { unit, defaultStarting } = mcapConfigFor(a.pairedToken);
-        return `Starting market cap in ${unit} (e.g. ${defaultStarting}):`;
-      },
-      default: (a: { pairedToken: string }) => mcapConfigFor(a.pairedToken).defaultStarting,
-      validate: (v: string) => {
-        const n = Number(v);
-        return (!Number.isNaN(n) && n >= 0) || 'Must be a non-negative number';
-      },
-    },
-    {
-      type: 'list',
-      name: 'poolPositions',
-      message: 'Pool positions:',
-      choices: ['Standard', 'Project', 'TwentyETH'],
-      default: 'Standard',
-      when: (a: { startingMarketCap: string }) => Number(a.startingMarketCap) === 0,
-    },
-    {
-      type: 'list',
-      name: 'feeConfig',
-      message: 'Fee configuration:',
-      choices: STATIC_FEE_ONLY_CHAINS.has(core.chain)
-        ? [{ name: 'Static (flat fee)', value: 'Static' }]
-        : [
-            { name: 'Static (flat fee)', value: 'Static' },
-            { name: 'Dynamic (up to 3%)', value: 'Dynamic3' },
-          ],
-      default: 'Static',
+      name: 'otherPairedToken',
+      message: 'Paired token address (the factory must admit it):',
+      default: pairFlag,
+      when: (answers: { pairedToken: string }) => answers.pairedToken === OTHER_PAIRED_TOKEN,
+      validate: validAddress,
     },
     {
       type: 'input',
-      name: 'staticFeePercent',
-      message: 'Static fee percentage (0-10):',
-      default: '1',
-      when: (a: { feeConfig: string }) => a.feeConfig === 'Static',
-      validate: (v: string) => {
-        const n = Number(v);
-        return (!Number.isNaN(n) && n >= 0 && n <= 10) || 'Must be 0-10';
-      },
+      name: 'buyFee',
+      message: 'Buy tax percentage:',
+      default: flags.buyFee ?? '1',
+      validate: validNumber,
     },
     {
-      type: 'list',
-      name: 'feePreference',
-      message: 'Fee preference (which token to receive fees in):',
-      choices: [
-        { name: 'Both tokens', value: 'Both' },
-        { name: 'Paired token only', value: 'Paired' },
-        { name: 'New token only', value: 'Clanker' },
-      ],
-      default: 'Both',
+      type: 'input',
+      name: 'sellFee',
+      message: 'Sell tax percentage:',
+      default: flags.sellFee ?? '1',
+      validate: validNumber,
     },
   ]);
 
-  // Phase 3: Extensions (multi-select checklist)
+  const selected =
+    (name: string) =>
+    ({ extensions }: { extensions: string[] }) =>
+      extensions.includes(name);
+  // An explicit dev buy flag keeps the choice, so the SDK can give its reason for that chain.
+  const offerDevBuy =
+    !USDC_WITHOUT_ROUTE[resolveChain(core.chain).id] || flags.devBuyEth !== undefined;
   const ext = await inquirer.prompt([
     {
       type: 'checkbox',
       name: 'extensions',
       message: 'Optional extensions (space to toggle):',
       choices: [
-        { name: 'Dev buy', value: 'devBuy' },
-        { name: 'Vault', value: 'vault' },
+        ...(offerDevBuy
+          ? [{ name: 'Dev buy', value: 'devBuy', checked: flags.devBuyEth !== undefined }]
+          : []),
+        { name: 'Burn share of the tax', value: 'burn', checked: flags.burn !== undefined },
+        {
+          name: 'Dividend share of the tax',
+          value: 'dividends',
+          checked: flags.dividendShare !== undefined,
+        },
+        {
+          name: 'Integrator share of the tax',
+          value: 'integrator',
+          checked: flags.integrator !== undefined || flags.integratorShare !== undefined,
+        },
       ],
     },
     {
       type: 'input',
       name: 'devBuyEth',
-      message: 'Dev buy ETH amount:',
-      when: (a: { extensions: string[] }) => a.extensions.includes('devBuy'),
-      validate: (v: string) => {
-        const n = Number(v);
-        return (!Number.isNaN(n) && n > 0) || 'Must be a positive number';
+      message: 'Dev buy amount in the native coin:',
+      default: flags.devBuyEth,
+      when: selected('devBuy'),
+      validate: (value: string) => Number(value) > 0 || 'Must be a positive number',
+    },
+    {
+      type: 'input',
+      name: 'devBuySlippage',
+      message: 'Dev buy slippage percentage:',
+      default: flags.devBuySlippage ?? '5',
+      when: selected('devBuy'),
+      validate: (value: string) => {
+        const percent = Number(value);
+        return (
+          (value.trim() !== '' && Number.isFinite(percent) && percent > 0 && percent < 50) ||
+          'Must be above 0 and below 50'
+        );
       },
     },
     {
       type: 'input',
-      name: 'vaultPercentage',
-      message: 'Vault percentage (1-90):',
-      when: (a: { extensions: string[] }) => a.extensions.includes('vault'),
-      validate: (v: string) => {
-        const n = Number(v);
-        return (!Number.isNaN(n) && n >= 1 && n <= 90) || '1-90';
-      },
+      name: 'burn',
+      message: 'Burn share percentage:',
+      default: flags.burn,
+      when: selected('burn'),
+      validate: validNumber,
     },
     {
       type: 'input',
-      name: 'vaultLockupDays',
-      message: 'Vault lockup (days, min 7):',
-      default: '7',
-      when: (a: { extensions: string[] }) => a.extensions.includes('vault'),
-      validate: (v: string) => Number(v) >= 7 || 'Min 7 days',
+      name: 'dividendShare',
+      message: 'Dividend share percentage:',
+      default: flags.dividendShare,
+      when: selected('dividends'),
+      validate: validNumber,
+    },
+    {
+      type: 'input',
+      name: 'dividendMinHolding',
+      message: 'Minimum whole tokens for dividends:',
+      default: flags.dividendMinHolding ?? '10000',
+      when: selected('dividends'),
+      validate: (value: string) => /^\d+$/.test(value) || 'Must be a whole number',
+    },
+    {
+      type: 'input',
+      name: 'integrator',
+      message: 'Integrator address:',
+      default: flags.integrator,
+      when: selected('integrator'),
+      validate: validAddress,
+    },
+    {
+      type: 'input',
+      name: 'integratorShare',
+      message: 'Integrator share percentage:',
+      default: flags.integratorShare,
+      when: selected('integrator'),
+      validate: validNumber,
     },
   ]);
 
-  // Phase 4: Metadata (y/n)
+  const whenMetadata = ({ addMetadata }: { addMetadata: boolean }) => addMetadata;
   const meta = await inquirer.prompt([
     {
       type: 'confirm',
       name: 'addMetadata',
       message: 'Add metadata (description, links)?',
-      default: false,
+      default: METADATA_PROMPTS.some(([name]) => flags[name]),
     },
-    {
+    ...METADATA_PROMPTS.map(([name, message]) => ({
       type: 'input',
-      name: 'description',
-      message: 'Token description:',
-      when: (a: { addMetadata: boolean }) => a.addMetadata,
-      default: '',
-    },
-    {
-      type: 'input',
-      name: 'website',
-      message: 'Website URL:',
-      when: (a: { addMetadata: boolean }) => a.addMetadata,
-      default: '',
-    },
-    {
-      type: 'input',
-      name: 'twitter',
-      message: 'Twitter/X URL:',
-      when: (a: { addMetadata: boolean }) => a.addMetadata,
-      default: '',
-    },
+      name,
+      message,
+      when: whenMetadata,
+      default: flags[name] ?? '',
+    })),
   ]);
 
-  return buildV4Config({
+  const { otherPairedToken, ...poolAnswers } = pool as {
+    pairedToken: string;
+    otherPairedToken?: string;
+    buyFee: string;
+    sellFee: string;
+  };
+  // A hidden question returns no answer, so a deselected option must clear its flag here.
+  return {
     ...flags,
     ...core,
-    ...pool,
+    ...poolAnswers,
+    ...(otherPairedToken ? { pairedToken: otherPairedToken } : {}),
+    devBuyEth: undefined,
+    devBuySlippage: undefined,
+    burn: undefined,
+    dividendShare: undefined,
+    dividendMinHolding: undefined,
+    integrator: undefined,
+    integratorShare: undefined,
+    description: undefined,
+    website: undefined,
+    twitter: undefined,
+    telegram: undefined,
+    farcaster: undefined,
     ...ext,
     ...meta,
-  } as Record<string, unknown>);
-}
-
-export function buildV4Config(f: Record<string, unknown>): ClankerTokenV4 {
-  const chainId = f.chain ? resolveChainId(f.chain as string) : 8453;
-
-  let fees: ClankerTokenV4['fees'];
-  const feeChoice = (f.feeConfig as string) || 'StaticBasic';
-  if (feeChoice === 'Static' || feeChoice === 'StaticBasic') {
-    const pct = Number(f.staticFeePercent);
-    const bps = !Number.isNaN(pct) && pct > 0 ? Math.round(pct * 100) : 100;
-    fees = { type: 'static', clankerFee: bps, pairedFee: bps };
-  } else {
-    const feeKey = feeChoice as keyof typeof FEE_CONFIGS;
-    fees = FEE_CONFIGS[feeKey] || FEE_CONFIGS.Dynamic3;
-  }
-
-  const rawPaired = f.pairedToken as string | undefined;
-  const pairedToken: 'WETH' | `0x${string}` =
-    rawPaired && rawPaired !== 'WETH' ? (rawPaired as `0x${string}`) : 'WETH';
-
-  const startingMcap = Number(f.startingMarketCap) || 0;
-  let poolConfig: ClankerTokenV4['pool'];
-
-  if (startingMcap > 0) {
-    const { tickLower, tickUpper } = computeTicksFromMarketCap(startingMcap, rawPaired || 'WETH');
-    poolConfig = {
-      pairedToken,
-      tickIfToken0IsClanker: tickLower,
-      tickSpacing: 200,
-      positions: [{ tickLower, tickUpper, positionBps: 10_000 }],
-    };
-  } else {
-    const posKey = ((f.poolPositions as string) || 'Standard') as keyof typeof POOL_POSITIONS;
-    const positions = POOL_POSITIONS[posKey];
-    const startingTick = positions[0].tickLower;
-    poolConfig = {
-      pairedToken,
-      tickIfToken0IsClanker: startingTick,
-      tickSpacing: 200,
-      positions,
-    };
-  }
-
-  const socialMediaUrls: { platform: string; url: string }[] = [];
-  if (f.website) socialMediaUrls.push({ platform: 'website', url: f.website as string });
-  if (f.twitter) socialMediaUrls.push({ platform: 'twitter', url: f.twitter as string });
-  if (f.telegram) socialMediaUrls.push({ platform: 'telegram', url: f.telegram as string });
-  if (f.farcaster) socialMediaUrls.push({ platform: 'farcaster', url: f.farcaster as string });
-
-  let airdropConfig: ClankerTokenV4['airdrop'] | undefined;
-  if (f.airdropCsv && typeof f.airdropCsv === 'string') {
-    const entries = parseCsv(f.airdropCsv);
-    const { airdrop: airdropData } = createAirdrop(
-      entries.map((e) => ({ account: e.account, amount: e.amount }))
-    );
-    airdropConfig = {
-      merkleRoot: airdropData.merkleRoot,
-      amount: airdropData.amount,
-      lockupDuration: Number(f.airdropLockupDays || 1) * 24 * 60 * 60,
-      vestingDuration: Number(f.airdropVestingDays || 0) * 24 * 60 * 60,
-    };
-  }
-
-  const feePreference = (f.feePreference as string) || 'Both';
-  const validFeePreference = (['Both', 'Paired', 'Clanker'] as const).includes(
-    feePreference as (typeof FeeIn)[number]
-  )
-    ? (feePreference as (typeof FeeIn)[number])
-    : 'Both';
-
-  let rewardsConfig: ClankerTokenV4['rewards'] | undefined;
-  if (f.rewardRecipients && typeof f.rewardRecipients === 'string') {
-    const parsed = JSON.parse(f.rewardRecipients) as {
-      admin: string;
-      recipient: string;
-      bps: number;
-      token: string;
-    }[];
-    rewardsConfig = {
-      recipients: parsed.map((r) => ({
-        admin: r.admin as `0x${string}`,
-        recipient: r.recipient as `0x${string}`,
-        bps: r.bps,
-        token: r.token as (typeof FeeIn)[number],
-      })),
-    };
-  } else if (validFeePreference !== 'Both') {
-    rewardsConfig = {
-      recipients: [
-        {
-          admin: (f.tokenAdmin || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-          recipient: (f.tokenAdmin ||
-            '0x0000000000000000000000000000000000000000') as `0x${string}`,
-          bps: 10_000,
-          token: validFeePreference,
-        },
-      ],
-    };
-  }
-
-  let sniperFeesConfig: ClankerTokenV4['sniperFees'] | undefined;
-  if (f.sniperStartingFee || f.sniperEndingFee || f.sniperDecaySeconds) {
-    sniperFeesConfig = {
-      startingFee: Number(f.sniperStartingFee) || 666_777,
-      endingFee: Number(f.sniperEndingFee) || 41_673,
-      secondsToDecay: Number(f.sniperDecaySeconds) || 15,
-    };
-  }
-
-  const hasSalt = f.salt && typeof f.salt === 'string' && f.salt.startsWith('0x');
-
-  const token: ClankerTokenV4 = {
-    name: f.name as string,
-    symbol: f.symbol as string,
-    image: (f.image as string) || '',
-    chainId: chainId as ClankerTokenV4['chainId'],
-    tokenAdmin: (f.tokenAdmin || undefined) as `0x${string}`,
-    ...(hasSalt ? { salt: f.salt as `0x${string}`, vanity: false } : { vanity: true }),
-    fees,
-    pool: poolConfig,
-    context: {
-      interface: 'Clanker CLI',
-      platform: 'Clanker',
-    },
-    ...(f.description
-      ? {
-          metadata: {
-            description: f.description as string,
-            socialMediaUrls,
-            auditUrls: [],
-          },
-        }
-      : undefined),
-    ...(Number(f.vaultPercentage) > 0
-      ? {
-          vault: {
-            percentage: Number(f.vaultPercentage),
-            lockupDuration: Number(f.vaultLockupDays || 7) * 24 * 60 * 60,
-          },
-        }
-      : undefined),
-    ...(Number(f.devBuyEth) > 0 ? { devBuy: { ethAmount: Number(f.devBuyEth) } } : undefined),
-    ...(airdropConfig ? { airdrop: airdropConfig } : undefined),
-    ...(rewardsConfig ? { rewards: rewardsConfig } : undefined),
-    ...(sniperFeesConfig ? { sniperFees: sniperFeesConfig } : undefined),
   };
-
-  return token;
 }
 
-export function resolveChainId(name: string): number {
-  try {
-    return resolveChain(name).id;
-  } catch {
-    return 8453;
-  }
-}
-
-function resolveChainName(chainId: number): string {
-  for (const name of CHAIN_NAMES) {
-    if (resolveChain(name).id === chainId) return name;
-  }
-  return 'base';
+function v5Summary(token: ClankerTokenV5, chain: Chain, wallet: Address): Record<string, unknown> {
+  const { dividends, integrator, devBuy, rewards, pool } = token;
+  const pair = pool?.pairedToken;
+  return {
+    name: token.name,
+    symbol: token.symbol,
+    chain: `${chain.name} (${chain.id})`,
+    tokenAdmin: token.tokenAdmin ?? wallet,
+    pairedToken: pair && pair !== 'WETH' ? pair : `${chain.nativeCurrency.symbol} (native coin)`,
+    buyTax: `${token.buyFee ?? 1}%`,
+    sellTax: `${token.sellFee ?? 1}%`,
+    ...(token.burn ? { burn: `${token.burn}%` } : {}),
+    ...(dividends
+      ? {
+          dividends: `${dividends.share}% (minimum ${dividends.minimumHolding / 10n ** 18n} tokens)`,
+        }
+      : {}),
+    ...(integrator ? { integrator: `${integrator.share}% to ${integrator.address}` } : {}),
+    ...(devBuy ? { devBuy: `${devBuy.ethAmount} ${chain.nativeCurrency.symbol}` } : {}),
+    ...(rewards ? { rewards: `${rewards.recipients.length} recipient(s)` } : {}),
+  };
 }
 
 export function registerDeployCommand(program: Command) {
   const cmd = program
     .command('deploy')
-    .description('Deploy a new token')
-    .option('--v3', 'deploy using Clanker V3 (legacy)')
+    .description('Deploy a new V5 token')
     .option('--name <name>', 'token name')
     .option('--symbol <symbol>', 'token symbol')
     .option('--image <url>', 'token image URL')
     .option('--token-admin <address>', 'token admin address')
-    .option('--paired-token <address>', 'paired token address (default: WETH)')
     .option(
-      '--starting-market-cap <amount>',
-      'starting market cap in paired token units (ETH/USDC/USDT)'
+      '--paired-token <address>',
+      'paired token address (default: the native coin, or USDC on Arc)'
     )
+    .option('--dev-buy-eth <amount>', 'dev buy amount in the native coin')
+    .option('--buy-fee <percent>', 'total buy tax percentage (default: 1)')
+    .option('--sell-fee <percent>', 'total sell tax percentage (default: 1)')
+    .option('--burn <percent>', 'burn share percentage')
+    .option('--dividend-share <percent>', 'dividend share percentage')
     .option(
-      '--fee-config <type>',
-      'fee config: Static, Dynamic3 (or legacy StaticBasic, DynamicBasic)'
+      '--dividend-min-holding <tokens>',
+      'minimum whole tokens for dividends (default: 10000)'
     )
-    .option('--static-fee-percent <n>', 'static fee percentage (0-10, default 1)')
-    .option('--pool-positions <type>', 'pool positions: Standard, Project, TwentyETH')
-    .option('--vault-percentage <n>', 'vault percentage (0-90)')
-    .option('--vault-lockup-days <n>', 'vault lockup in days (min 7)')
-    .option('--dev-buy-eth <amount>', 'dev buy amount in ETH')
-    .option('--fee-preference <type>', 'fee preference: Both, Paired, Clanker (default: Both)')
+    .option('--integrator <address>', 'integrator address')
+    .option('--integrator-share <percent>', 'integrator share percentage')
+    .option('--dev-buy-slippage <percent>', 'dev buy slippage percentage', '5')
     .option('--description <text>', 'token description')
     .option('--website <url>', 'website URL')
     .option('--twitter <url>', 'twitter URL')
     .option('--telegram <url>', 'telegram URL')
     .option('--farcaster <url>', 'farcaster URL')
-    .option('--salt <hex>', 'custom CREATE2 salt (0x-prefixed, skips vanity address)')
-    .option('--airdrop-csv <path>', 'CSV file for airdrop (address,amount)')
-    .option('--airdrop-lockup-days <n>', 'airdrop lockup in days (min 1)', '1')
-    .option('--airdrop-vesting-days <n>', 'airdrop vesting in days', '0')
     .option(
       '--reward-recipients <json>',
-      'JSON array of reward recipients [{admin,recipient,bps,token}]'
+      'JSON array of 1 to 7 reward recipients [{admin,recipient,bps,token}], with token Paired or omitted'
     )
-    .option('--sniper-starting-fee <n>', 'sniper starting fee in unibps (default 666777)')
-    .option('--sniper-ending-fee <n>', 'sniper ending fee in unibps (default 41673)')
-    .option('--sniper-decay-seconds <n>', 'sniper fee decay duration in seconds (default 15)')
     .action(async (_opts, command) => {
       const globalOpts = command.parent?.opts() as GlobalOpts;
       const localOpts = command.opts() as DeployFlags;
@@ -536,11 +489,13 @@ export function registerDeployCommand(program: Command) {
       const jsonMode = opts.json ?? false;
 
       try {
-        if (opts.v3) {
-          await deployV3(opts, jsonMode);
-        } else {
-          await deployV4(opts, jsonMode);
+        const chainName = opts.chain || 'base';
+        if (!TAX_ADDRESSES[resolveChain(chainName).id]) {
+          throw new Error(
+            `Chain ${chainName} has no Clanker V5 contracts. The CLI launches V5 tokens only. Use one of: ${V5_CHAINS.join(', ')}.`
+          );
         }
+        await deployV5(opts, jsonMode);
       } catch (err) {
         printError(err, jsonMode);
         process.exit(1);
@@ -550,196 +505,115 @@ export function registerDeployCommand(program: Command) {
   return cmd;
 }
 
-function formatDeployError(error: ClankerError): string {
-  const underlying = error.error?.message;
-  if (!underlying || underlying === error.message) {
-    return error.message;
-  }
-  const short = underlying.length > 300 ? `${underlying.slice(0, 300)}...` : underlying;
-  return `${error.message}\n\n  Cause: ${short}`;
-}
-
-async function deployV4(opts: DeployFlags, jsonMode: boolean) {
-  let tokenConfig: ClankerTokenV4;
-
-  if (hasAllRequiredFlags(opts, false)) {
-    tokenConfig = buildV4Config(opts as unknown as Record<string, unknown>);
-  } else {
-    if (jsonMode) {
-      throw new Error('--name and --symbol are required in JSON/non-interactive mode');
-    }
-    tokenConfig = await interactiveDeployV4(opts);
-  }
-
-  const chainName = resolveChainName(tokenConfig.chainId ?? 8453);
-  const { walletClient, publicClient, chain } = resolveClients({ ...opts, chain: chainName });
-
-  if (!tokenConfig.tokenAdmin) {
-    tokenConfig.tokenAdmin = walletClient.account.address;
-  }
-
-  if (tokenConfig.rewards?.recipients) {
-    const zero = '0x0000000000000000000000000000000000000000';
-    for (const r of tokenConfig.rewards.recipients) {
-      if (r.admin === zero) r.admin = tokenConfig.tokenAdmin;
-      if (r.recipient === zero) r.recipient = tokenConfig.tokenAdmin;
-    }
-  }
-
-  const pool = tokenConfig.pool;
-  const positions = pool && 'positions' in pool ? pool.positions : undefined;
+async function deployV5(flags: DeployFlags, jsonMode: boolean) {
+  const opts = !jsonMode && !hasAllRequiredFlags(flags) ? await interactiveDeployV5(flags) : flags;
+  const tokenConfig = buildV5Config(opts);
+  assertValidV5Config(tokenConfig);
+  const { walletClient, publicClient, chain } = resolveClients({
+    ...opts,
+    chain: opts.chain || 'base',
+  });
+  const clanker = new ClankerV5({
+    wallet: walletClient,
+    publicClient,
+  });
 
   if (!jsonMode) {
     printKeyValue(
-      {
-        name: tokenConfig.name,
-        symbol: tokenConfig.symbol,
-        chain: `${chain.name} (${chain.id})`,
-        tokenAdmin: tokenConfig.tokenAdmin,
-        pairedToken: pool?.pairedToken ?? 'WETH',
-        ...(positions?.[0]
-          ? {
-              tickLower: positions[0].tickLower,
-              tickUpper: positions[positions.length - 1].tickUpper,
-            }
-          : {}),
-        fees:
-          tokenConfig.fees?.type === 'static'
-            ? `static ${(tokenConfig.fees as { clankerFee?: number }).clankerFee ? ((tokenConfig.fees as { clankerFee: number }).clankerFee / 100).toFixed(1) : '1'}%`
-            : `dynamic (up to ${(tokenConfig.fees as { maxFee?: number }).maxFee ? ((tokenConfig.fees as { maxFee: number }).maxFee / 100).toFixed(0) : '?'}%)`,
-        feePreference: tokenConfig.rewards?.recipients?.[0]?.token ?? 'Both',
-        ...(tokenConfig.vault ? { vault: `${tokenConfig.vault.percentage}%` } : {}),
-        ...(tokenConfig.devBuy ? { devBuy: `${tokenConfig.devBuy.ethAmount} ETH` } : {}),
-        ...(tokenConfig.airdrop ? { airdrop: `${tokenConfig.airdrop.amount} tokens` } : {}),
-        ...(tokenConfig.rewards
-          ? { rewards: `${tokenConfig.rewards.recipients.length} recipient(s)` }
-          : {}),
-        ...(tokenConfig.salt ? { salt: tokenConfig.salt } : {}),
-        ...(tokenConfig.sniperFees
-          ? {
-              sniperFees: `${tokenConfig.sniperFees.startingFee} → ${tokenConfig.sniperFees.endingFee}`,
-            }
-          : {}),
-      },
+      v5Summary(tokenConfig, chain, walletClient.account.address),
       false,
       'Deploy configuration'
     );
   }
 
-  const clanker = new ClankerV4({ wallet: walletClient, publicClient });
-
-  printStep('Simulating deployment...', jsonMode);
-  const simResult = await clanker.deploySimulate(tokenConfig).catch((e: unknown) => {
-    if (e instanceof ClankerError) return { error: e } as { error: ClankerError };
-    throw new Error(`Simulation failed: ${e instanceof Error ? e.message : String(e)}`);
-  });
-
-  if (simResult && 'error' in simResult && simResult.error) {
-    const err = simResult.error;
-    throw new Error(
-      `Simulation failed: ${err instanceof ClankerError ? formatDeployError(err) : String(err)}`
-    );
-  }
-
+  const options = { devBuySlippagePercent: devBuySlippage(opts.devBuySlippage) };
   if (opts.dryRun) {
+    printStep('Simulate the deployment...', jsonMode);
+    const { error } = await clanker.deploySimulate(tokenConfig, options);
+    if (error) throw new Error(`Simulation failed: ${error.message}`);
     printSuccess('Simulation successful (dry run)', jsonMode);
     return;
   }
 
-  printStep('Deploying token...', jsonMode);
-  const { txHash, waitForTransaction, error } = await clanker.deploy(tokenConfig);
-
-  if (error) {
-    throw new Error(`Deployment failed: ${formatDeployError(error)}`);
-  }
-
-  printStep(`Transaction sent: ${txHash}`, jsonMode);
-
-  const { address: tokenAddress } = await waitForTransaction();
-
-  printSuccess('Token deployed successfully!', jsonMode, {
-    tokenAddress,
-    txHash,
-    explorer: blockExplorerUrl(chain, tokenAddress!, 'token'),
-    clankerWorld: `https://clanker.world/clanker/${tokenAddress}`,
-  });
-}
-
-async function deployV3(opts: DeployFlags, jsonMode: boolean) {
-  let name = opts.name;
-  let symbol = opts.symbol;
-
-  if (!hasAllRequiredFlags(opts, true)) {
-    if (jsonMode) {
-      throw new Error('--name and --symbol are required in JSON/non-interactive mode');
-    }
-    const answers = await inquirer.prompt([
+  printStep('Deploy the token...', jsonMode);
+  const { txHash, expectedAddress, waitForTransaction, transferTxHash, error, transferError } =
+    await clanker.deploy(tokenConfig, options);
+  if (error?.data.rawName === SEND_UNCERTAIN) {
+    // The send failed after the checks passed, so the launch can exist.
+    printResult(
       {
-        type: 'input',
-        name: 'name',
-        message: 'Token name:',
-        default: opts.name,
-        validate: (v: string) => v.length > 0 || 'Required',
+        success: false,
+        launchState: 'unknown',
+        message:
+          'The send failed, but the transaction can be on the network. Do not run this command again, because that can launch a second token. Check the wallet transactions first.',
+        error: error.message,
       },
-      {
-        type: 'input',
-        name: 'symbol',
-        message: 'Token symbol:',
-        default: opts.symbol,
-        validate: (v: string) => /^[a-zA-Z0-9]+$/.test(v) || 'Alphanumeric only',
-      },
-    ]);
-    name = answers.name;
-    symbol = answers.symbol;
-  }
-
-  const { walletClient, publicClient, chain } = resolveClients(opts);
-  const chainId = chain.id as ClankerTokenV3['chainId'];
-
-  const tokenConfig: ClankerTokenV3 = {
-    name: name!,
-    symbol: symbol!,
-    image: opts.image || '',
-    chainId,
-    context: {
-      interface: 'Clanker CLI',
-      platform: 'Clanker',
-    },
-    ...(opts.description
-      ? {
-          metadata: {
-            description: opts.description,
-            socialMediaUrls: [],
-            auditUrls: [],
-          },
-        }
-      : undefined),
-    ...(Number(opts.devBuyEth) > 0 ? { devBuy: { ethAmount: Number(opts.devBuyEth) } } : undefined),
-  };
-
-  const clanker = new ClankerV3({ wallet: walletClient, publicClient });
-
-  if (opts.dryRun) {
-    printStep('Simulating V3 deployment...', jsonMode);
-    const result = await clanker.deploySimulate(tokenConfig);
-    printSuccess('V3 simulation successful', jsonMode, { result: String(result) });
+      jsonMode
+    );
+    process.exitCode = 2;
     return;
   }
-
-  printStep('Deploying V3 token...', jsonMode);
-  const { txHash, waitForTransaction, error } = await clanker.deploy(tokenConfig);
-
-  if (error) {
-    throw new Error(`V3 deployment failed: ${error.message}`);
+  if (error || !txHash || !waitForTransaction) {
+    throw new Error(`Deployment failed: ${error?.message}`);
   }
-
   printStep(`Transaction sent: ${txHash}`, jsonMode);
-
-  const { address: tokenAddress } = await waitForTransaction();
-
-  printSuccess('V3 token deployed successfully!', jsonMode, {
+  const result = await waitForTransaction();
+  if (result.error) {
+    if (result.error.data.type === 'state') {
+      throw new Error(`Deployment failed: ${result.error.message}`);
+    }
+    printResult(
+      {
+        success: false,
+        launchState: 'unknown',
+        message:
+          'The launch could not be confirmed. Do not run this command again, because that can launch a second token. Check the transaction first.',
+        txHash,
+        predictedToken: expectedAddress,
+        error: result.error.message,
+        ...(transferError
+          ? {
+              transferError:
+                'No recipient transfer was sent. The bought tokens stay in the launching wallet.',
+            }
+          : {}),
+        explorer: blockExplorerUrl(chain, txHash, 'tx'),
+      },
+      jsonMode
+    );
+    process.exitCode = 2;
+    return;
+  }
+  const tokenAddress = result.address;
+  const data = {
     tokenAddress,
     txHash,
-    explorer: blockExplorerUrl(chain, tokenAddress!, 'token'),
-  });
+    ...(transferTxHash ? { transferTxHash } : {}),
+    ...(transferError
+      ? {
+          transferError: transferError.message,
+          warning:
+            'Do not run this command again, because that launches a second token. Send the bought tokens from the launching wallet.',
+        }
+      : {}),
+    explorer: blockExplorerUrl(chain, tokenAddress, 'token'),
+    clankerWorld: `https://clanker.world/clanker/${tokenAddress}`,
+  };
+  if (transferError) {
+    // The launch landed, so a retry of this command launches a second token.
+    printResult(
+      {
+        success: false,
+        launchState: 'launched',
+        message: transferTxHash
+          ? 'Token deployed, but the recipient transfer failed'
+          : 'Token deployed, but the recipient transfer did not start',
+        ...data,
+      },
+      jsonMode
+    );
+    process.exitCode = 2;
+    return;
+  }
+  printSuccess('Token deployed successfully!', jsonMode, data);
 }

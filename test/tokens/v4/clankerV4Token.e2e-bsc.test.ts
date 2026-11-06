@@ -9,7 +9,7 @@ import {
 } from '../../../src/config/clankerTokenV4.js';
 import { POOL_POSITIONS } from '../../../src/index.js';
 
-describe('v4 - binance smart chain - end to end', () => {
+describe.skipIf(!process.env.TESTS_RPC_URL_BSC)('v4 - binance smart chain - end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: bsc,

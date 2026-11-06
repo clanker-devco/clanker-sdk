@@ -12,6 +12,8 @@ yarn add clanker-sdk viem
 pnpm add clanker-sdk viem
 ```
 
+Version 5 requires viem 2.49.3 or newer. We checked its types by hand with TypeScript 5.9 and 6.0 for this release.
+
 ## CLI
 
 The Clanker SDK ships a CLI for deploying and managing tokens directly from your terminal.
@@ -26,7 +28,8 @@ Then run commands with:
 
 ```bash
 clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
-clanker-sdk rewards claim --token 0x...
+clanker-sdk rewards claim --token <V5_LAUNCH_TOKEN>
+clanker-sdk rewards claim --token 0x0000000000000000000000000000000000000000 --v5
 clanker-sdk vault claim --token 0x...
 ```
 
@@ -41,12 +44,12 @@ npx clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
 | Command | Description |
 |---------|-------------|
 | `setup` | Save default wallet & chain config |
-| `deploy` | Deploy a new token (V3 or V4) |
-| `rewards` | Claim rewards, update recipients/admins |
-| `vault` | Claim vaulted tokens |
-
-| `airdrop` | Generate Merkle trees, register & claim airdrops |
-| `token` | Update token image & metadata |
+| `deploy` | Deploy a V5 token on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc |
+| `rewards` | Claim rewards and update recipients or admins for V4 and V5 tokens. Use `--v5` for V5 currency claims or balances. |
+| `dividends` | Check and claim holder dividends of V5 tokens |
+| `vault` | Claim vaulted V4 tokens |
+| `airdrop` | Generate Merkle trees, register and claim V4 airdrops |
+| `token` | Update the image and metadata for V4 and V5 tokens |
 
 ### Global options
 
@@ -62,146 +65,39 @@ Run `clanker-sdk <command> --help` for details on any command.
 
 ## TypeScript SDK
 
-1. Create a `.env` file with your configuration:
-```env
-PRIVATE_KEY=<your_private_key_here>
-```
+Use `clanker-sdk/v5` for launches on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc. Ethereum, Arbitrum, and Unichain have V5 contracts, but their launches are not open yet. See [the V5 guide](./docs/v5.md), including how the tax is split, and [the dev-buy example](./examples/v5/deploy.ts).
+From version 5, the V3 and V4 launch methods, including `startPresale`, throw.
+Claims, reward changes, metadata updates, vault claims, and running presales of existing tokens do not change.
 
-2. Create a deployment script:
+Set `PRIVATE_KEY` in the environment, then run this script:
+
 ```typescript
-// deploy-script.ts
-
-import { Clanker } from 'clanker-sdk';
-import { createPublicClient, createWalletClient, http, PublicClient } from 'viem';
+import { Clanker } from 'clanker-sdk/v5';
+import { createPublicClient, createWalletClient, http, isHex, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 
-// Validate environment variables
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-
-if (!PRIVATE_KEY) {
-  throw new Error("Missing PRIVATE_KEY environment variable.");
-}
-
-// Initialize wallet with private key
-const account = privateKeyToAccount(PRIVATE_KEY);
-
-const publicClient = createPublicClient({
-  chain: base,
-  transport: http(),
-}) as PublicClient;
-
-const wallet = createWalletClient({
-  account,
-  chain: base,
-  transport: http(),
+const key = process.env.PRIVATE_KEY;
+if (!key || !isHex(key)) throw new Error('PRIVATE_KEY is required.');
+const account = privateKeyToAccount(key);
+const publicClient = createPublicClient({ chain: base, transport: http() }) as PublicClient;
+const wallet = createWalletClient({ account, chain: base, transport: http() });
+const clanker = new Clanker({ wallet, publicClient });
+const { txHash, waitForTransaction, error } = await clanker.deploy({
+  name: 'Example',
+  symbol: 'EXAMPLE',
+  devBuy: { ethAmount: 0.01 },
 });
-
-// Initialize Clanker SDK
-const clanker = new Clanker({
-  wallet,
-  publicClient,
-});
-
-async function deployToken() {
-  console.log("\n🚀 Deploying Token\n");
-
-  // Deploy the token with full configuration
-  const tokenConfig = {
-    name: "My Token",
-    symbol: "TKN",
-    image: "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
-    metadata: {
-      description: "Token with custom configuration including vesting and rewards",
-      socialMediaUrls: [
-        { platform: "x", url: "https://twitter.com/mytoken" },
-        { platform: "telegram", url: "https://t.me/mytoken" },
-      ],
-      auditUrls: ["https://example.com/audit"],
-    },
-    context: {
-      interface: "Clanker SDK",
-      platform: "Clanker",
-      messageId: "Deploy Example",
-      id: "TKN-1",
-    },
-    pool: {
-      quoteToken: "0x4200000000000000000000000000000000000006", // WETH on Base
-      initialMarketCap: "10", // 10 ETH initial market cap
-    },
-    vault: {
-      percentage: 10, // 10% of tokens vested
-      durationInDays: 30, // 30-day vesting period
-    },
-    devBuy: {
-      ethAmount: 0, // No initial buy
-    },
-    rewardsConfig: {
-      creatorReward: 75, // 75% creator reward
-      creatorAdmin: account.address,
-      creatorRewardRecipient: account.address,
-      interfaceAdmin: "0x1eaf444ebDf6495C57aD52A04C61521bBf564ace",
-      interfaceRewardRecipient: "0x1eaf444ebDf6495C57aD52A04C61521bBf564ace",
-    },
-  };
-
-  try {
-    const tokenAddress = await clanker.deployToken(tokenConfig);
-
-    console.log("Token deployed successfully!");
-    console.log("Token address:", tokenAddress);
-    console.log("View on BaseScan:", `https://basescan.org/token/${tokenAddress}`);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Deployment failed:", error.message);
-    } else {
-      console.error("Deployment failed with unknown error");
-    }
-    process.exit(1);
-  }
-}
-
-deployToken().catch(console.error);
+if (error) throw error;
+const result = await waitForTransaction();
+if (result.error) throw result.error;
+console.log(txHash, result.address);
 ```
-
-3. Run the deployment script:
-```bash
-bun deploy-script.ts
-```
-
-## Configuration Options
-
-### Basic Token Configuration
-- `name`: Token name
-- `symbol`: Token symbol
-- `image`: IPFS URI for token image
-- `metadata`: Token metadata (description, social links, etc.)
-- `context`: Deployment context information (interface, platform, etc.)
-
-### Pool Configuration
-- `pool.quoteToken`: Quote token address (defaults to WETH on Base)
-- `pool.initialMarketCap`: Initial market cap in quote token units
-
-### Dev Buy Configuration
-- `devBuy.ethAmount`: Amount of ETH for initial buy
-
-### Vault Configuration
-- `vault.percentage`: Percentage of tokens to be vested (0-30%)
-- `vault.durationInDays`: Duration of the vesting period in days
-
-### Rewards Configuration
-- `rewardsConfig.creatorReward`: Creator reward percentage (0-80)
-- `rewardsConfig.creatorAdmin`: Creator admin address
-- `rewardsConfig.creatorRewardRecipient`: Creator reward recipient address
-- `rewardsConfig.interfaceAdmin`: Interface admin address
-- `rewardsConfig.interfaceRewardRecipient`: Interface reward recipient address
 
 ## Examples
 
-See the [examples](./examples) directory for more deployment scenarios:
-- `deploy-token-simple.ts`: Basic token deployment
-- `deploy-token.ts`: Advanced token deployment with all options
-- `deploy-full-sdk.ts`: Full SDK usage example
+See [examples/v5](./examples/v5) for V5 examples.
+See [examples/v4](./examples/v4) to manage existing V4 tokens.
 
 # SDK Development
 

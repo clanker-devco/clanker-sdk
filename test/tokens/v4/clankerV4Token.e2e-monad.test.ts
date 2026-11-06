@@ -9,7 +9,7 @@ import {
 import { POOL_POSITIONS } from '../../../src/index.js';
 import { monad } from '../../../src/utils/chains/monad.js';
 
-describe('v4 - monad - end to end', () => {
+describe.skipIf(!process.env.TESTS_RPC_URL_MONAD)('v4 - monad - end to end', () => {
   const admin = parseAccount('0x5b32C7635AFe825703dbd446E0b402B8a67a7051');
   const publicClient = createPublicClient({
     chain: monad,

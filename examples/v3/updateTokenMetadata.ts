@@ -5,7 +5,7 @@
  * The metadata can include description, social media URLs, and audit URLs.
  *
  * Prerequisites:
- * - Deploy a v3.1 token first using deployV3.ts
+ * - Use an existing v3.1 token
  * - Set PRIVATE_KEY environment variable
  * - Update TOKEN_ADDRESS with your deployed token address
  */

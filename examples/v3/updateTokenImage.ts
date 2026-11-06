@@ -5,7 +5,7 @@
  * The image can be a regular URL or an IPFS URL.
  *
  * Prerequisites:
- * - Deploy a v3.1 token first using deployV3.ts
+ * - Use an existing v3.1 token
  * - Set PRIVATE_KEY environment variable
  * - Update TOKEN_ADDRESS with your deployed token address
  */
