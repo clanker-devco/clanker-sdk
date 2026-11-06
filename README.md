@@ -65,7 +65,7 @@ Run `clanker-sdk <command> --help` for details on any command.
 
 ## TypeScript SDK
 
-Use `clanker-sdk/v5` for launches on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc. Ethereum, Arbitrum, and Unichain have V5 contracts, but their launches are not open yet. See [the V5 guide](./docs/v5.md), including how the tax is split, and [the dev-buy example](./examples/v5/deploy.ts).
+Use `clanker-sdk/v5` for launches on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc. Clanker no longer supports new launches on Ethereum, Arbitrum, and Unichain. See [the V5 guide](./docs/v5.md), including how the tax is split, and [the dev-buy example](./examples/v5/deploy.ts).
 From version 5, the V3 and V4 launch methods, including `startPresale`, throw.
 Claims, reward changes, metadata updates, vault claims, and running presales of existing tokens do not change.
 

@@ -26,16 +26,13 @@ Version 5 requires viem 2.49.3 or newer.
 | Chain | ID | Import | Creator buy |
 |-------|-----|--------|-------------|
 | Base | 8453 | `base` from `viem/chains` | Native coin and USDC |
-| Ethereum | 1 | `mainnet` from `viem/chains` | None: no launch-buy adapter |
-| Arbitrum | 42161 | `arbitrum` from `viem/chains` | None: no launch-buy adapter |
-| Unichain | 130 | `unichain` from `viem/chains` | None: no launch-buy adapter |
 | BNB Chain | 56 | `bsc` from `viem/chains` | Native coin and USDC |
 | Monad | 143 | `monad` from `viem/chains` | Native coin and USDC |
 | X Layer | 196 | `xLayer` from `viem/chains` | Native coin and USDC |
 | Robinhood Chain | 4663 | `robinhood` from `clanker-sdk` | Native coin and USDG |
 | Arc | 5042 | `arc` from `viem/chains` | USDC, the native coin of Arc |
 
-A launch works only when the factory of that chain is open. A closed factory gives `Launches are not open on chain <id>.`
+A launch works only when the factory of that chain is open. A closed factory gives `Launches are not open on chain <id>.` Clanker no longer supports new launches on Ethereum, Arbitrum, and Unichain, so their factories stay closed.
 
 ## Quick Start
 
