@@ -39,7 +39,6 @@ export * from '../abi/v5/index.js';
 export {
   ARC_CHAIN_ID,
   ARC_USDC,
-  RETIRED_LAUNCH_CHAIN_IDS,
   TAX_ADDRESSES,
   type TaxAddressConfig,
   type TaxAddresses,
