@@ -13,6 +13,15 @@ export type TaxAddressConfig = { [K in keyof TaxAddresses]: Address | '' };
 export const ARC_CHAIN_ID = 5042;
 export const ARC_USDC: Address = '0x3600000000000000000000000000000000000000';
 
+// New launches are closed on these chains. Their addresses stay so existing tokens can still
+// claim fees, rewards and dividends and be managed.
+export const RETIRED_LAUNCH_CHAIN_IDS: readonly number[] = [1, 42161, 130];
+
+export function assertLaunchesOpen(chainId: number): void {
+  if (RETIRED_LAUNCH_CHAIN_IDS.includes(chainId))
+    throw new Error(`Launches are not open on chain ${chainId}.`);
+}
+
 export const TAX_ADDRESSES: Readonly<Record<number, Readonly<TaxAddressConfig>>> = {
   8453: {
     factory: '0x572e88D3cD7f23E4241EB6ceDD96667271bF09A0',

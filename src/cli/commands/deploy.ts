@@ -1,7 +1,12 @@
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
 import type { Address, Chain } from 'viem';
-import { ARC_CHAIN_ID, ARC_USDC, TAX_ADDRESSES } from '../../v5/addresses.js';
+import {
+  ARC_CHAIN_ID,
+  ARC_USDC,
+  RETIRED_LAUNCH_CHAIN_IDS,
+  TAX_ADDRESSES,
+} from '../../v5/addresses.js';
 import { type ClankerTokenV5, clankerTokenV5 } from '../../v5/config.js';
 import { Clanker as ClankerV5, SEND_UNCERTAIN } from '../../v5/index.js';
 import { STABLE_ROUTES } from '../../v5/routes.js';
@@ -44,7 +49,10 @@ function hasAllRequiredFlags(flags: DeployFlags): boolean {
   return !!(flags.name && flags.symbol);
 }
 
-const V5_CHAINS = CHAIN_NAMES.filter((name) => TAX_ADDRESSES[resolveChain(name).id]);
+const V5_CHAINS = CHAIN_NAMES.filter((name) => {
+  const { id } = resolveChain(name);
+  return TAX_ADDRESSES[id] && !RETIRED_LAUNCH_CHAIN_IDS.includes(id);
+});
 
 const flagName = (key: string) => `--${key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`;
 
@@ -490,7 +498,13 @@ export function registerDeployCommand(program: Command) {
 
       try {
         const chainName = opts.chain || 'base';
-        if (!TAX_ADDRESSES[resolveChain(chainName).id]) {
+        const chainId = resolveChain(chainName).id;
+        if (RETIRED_LAUNCH_CHAIN_IDS.includes(chainId)) {
+          throw new Error(
+            `Launches are not open on chain ${chainId}. Use one of: ${V5_CHAINS.join(', ')}.`
+          );
+        }
+        if (!TAX_ADDRESSES[chainId]) {
           throw new Error(
             `Chain ${chainName} has no Clanker V5 contracts. The CLI launches V5 tokens only. Use one of: ${V5_CHAINS.join(', ')}.`
           );

@@ -36,6 +36,19 @@ describe('Tax launch builder', () => {
   afterEach(() => {
     random.mockRestore();
   });
+  for (const chainId of [1, 42161, 130]) {
+    test(`rejects a new launch on retired chain ${chainId} before any read`, async () => {
+      const mocks = mockClients();
+      await expect(
+        buildTaxLaunch(baseToken, {
+          caller,
+          chainId,
+          publicClient: { ...mocks.publicClient, chain: undefined } as typeof mocks.publicClient,
+        })
+      ).rejects.toThrow(`Launches are not open on chain ${chainId}.`);
+      expect(mocks.readContract).not.toHaveBeenCalled();
+    });
+  }
   test('rejects a closed factory before the salt search', async () => {
     const mocks = mockClients({ launchCreationEnabled: false });
     const mineSalt = mock(async () => {
@@ -263,7 +276,7 @@ describe('Tax launch builder', () => {
     expect(mineSalt).not.toHaveBeenCalled();
   });
 
-  test('a stable buy on a chain without an adapter names the adapter, not the route', async () => {
+  test('a stable buy on a retired chain gets the closed-launch reason, not the route', async () => {
     const mocks = mockClients({ launchBuyAdapter: zeroAddress });
     Object.assign(mocks.publicClient, { chain: { id: 1 } });
     const mineSalt = mock(async () => {
@@ -279,7 +292,7 @@ describe('Tax launch builder', () => {
         { caller, chainId: 1, publicClient: mocks.publicClient },
         { mineSalt }
       )
-    ).rejects.toThrow('The Tax factory on chain 1 has no launch-buy adapter');
+    ).rejects.toThrow('Launches are not open on chain 1.');
     expect(mineSalt).not.toHaveBeenCalled();
   });
 
@@ -302,10 +315,10 @@ describe('Tax launch builder', () => {
   });
 
   test.each([
-    [{ launchBuyAdapter: zeroAddress }, 'The Tax factory on chain 1 has no launch-buy adapter'],
+    [{ launchBuyAdapter: zeroAddress }, 'Launches are not open on chain 1.'],
     [{ launchCreationEnabled: false }, 'Launches are not open on chain 1.'],
   ] as const)(
-    'a stable poolKey on a chain without a stable route gets the factory reason %#',
+    'a stable poolKey on a retired chain gets the closed-launch reason %#',
     async (state, message) => {
       const usdc = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const mocks = mockClients(state);
