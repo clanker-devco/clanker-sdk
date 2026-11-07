@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { CHAIN_NAMES } from '../utils/chains.js';
+import { CHAIN_NAMES, resolveChain } from '../utils/chains.js';
 import { getConfigPath, loadConfig, saveConfig } from '../utils/config.js';
 import { printStep, printSuccess } from '../utils/output.js';
 import { bold, cyan, dim, gray, green, red, yellow } from '../utils/style.js';
@@ -14,6 +14,9 @@ const PUBLIC_RPCS: Record<string, string> = {
   bsc: 'https://bsc-dataseed.binance.org',
   unichain: 'https://mainnet.unichain.org',
   robinhood: 'https://rpc.mainnet.chain.robinhood.com',
+  monad: resolveChain('monad').rpcUrls.default.http[0],
+  xlayer: resolveChain('xlayer').rpcUrls.default.http[0],
+  arc: resolveChain('arc').rpcUrls.default.http[0],
 };
 
 export function registerSetupCommand(program: Command) {
