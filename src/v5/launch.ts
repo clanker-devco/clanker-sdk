@@ -1,11 +1,6 @@
 import { type Address, isAddressEqual, type PublicClient, parseEther, zeroAddress } from 'viem';
 import { TaxRWAERC20LaunchpadFactory_abi } from '../abi/v5/TaxRWAERC20LaunchpadFactory.js';
-import {
-  assertLaunchesOpen,
-  TAX_ADDRESSES,
-  type TaxAddresses,
-  taxAddressFor,
-} from './addresses.js';
+import { TAX_ADDRESSES, type TaxAddresses, taxAddressFor } from './addresses.js';
 import {
   type ClankerTokenV5,
   clankerTokenV5,
@@ -49,8 +44,6 @@ export async function buildTaxLaunch(
   if (config.chainId !== undefined && config.chainId !== chainId) {
     throw new Error('Token chainId does not match the v5 client chainId.');
   }
-  // A custom deployment passes its own addresses, so only the default factories are closed here.
-  if (!context.addresses) assertLaunchesOpen(chainId);
   const factory = taxAddressFor(chainId, 'factory', context.addresses);
   const tokenDeployer = taxAddressFor(chainId, 'tokenDeployer', context.addresses);
   // A dev buy runs through the factory's swap adapter, so its launch gets a shorter deadline.

@@ -1,7 +1,6 @@
 # Clanker SDK - Changelog
 
 5.0.1
-- (Fix) V5 `deploy` on Ethereum, Arbitrum and Unichain fails before any read or send with `Launches are not open on chain <id>.`, the same message their factories return. Their addresses stay, so claims and reads on existing tokens work. The CLI no longer offers these chains for deploy.
 - (Fix) `clanker-sdk setup` has default public RPCs for Monad, X Layer and Arc.
 
 5.0.0

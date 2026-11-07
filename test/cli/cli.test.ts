@@ -559,22 +559,6 @@ describe('CLI V5 action', () => {
     });
   });
 
-  test.each([
-    ['ethereum', 1],
-    ['arbitrum', 42161],
-    ['unichain', 130],
-  ] as const)(
-    'rejects a new launch on retired chain %s before client access',
-    async (chain, id) => {
-      await expect(run([...flags, '--chain', chain])).rejects.toThrow('CLI exit');
-      expect((errors.mock.calls[0]?.[0] as Error).message).toBe(
-        `Launches are not open on chain ${id}. Use one of: base, bsc, monad, robinhood, xlayer, arc.`
-      );
-      expect(clients).toHaveBeenCalledTimes(0);
-      expect(deploy).not.toHaveBeenCalled();
-    }
-  );
-
   test.each(['base-sepolia', 'unknown'])(
     'rejects the chain %s without V5 before client access',
     async (chain) => {
@@ -582,7 +566,7 @@ describe('CLI V5 action', () => {
       expect((errors.mock.calls[0]?.[0] as Error).message).toBe(
         chain === 'unknown'
           ? 'Unknown chain "unknown". Supported: base, base-sepolia, arbitrum, ethereum, bsc, unichain, monad, robinhood, xlayer, arc'
-          : 'Chain base-sepolia has no Clanker V5 contracts. The CLI launches V5 tokens only. Use one of: base, bsc, monad, robinhood, xlayer, arc.'
+          : 'Chain base-sepolia has no Clanker V5 contracts. The CLI launches V5 tokens only. Use one of: base, arbitrum, ethereum, bsc, unichain, monad, robinhood, xlayer, arc.'
       );
       expect(clients).toHaveBeenCalledTimes(0);
       expect(prompt).not.toHaveBeenCalled();
@@ -738,7 +722,10 @@ describe('CLI V5 action', () => {
       ]);
       expect(questions(0)[0]?.choices).toEqual([
         'base',
+        'arbitrum',
+        'ethereum',
         'bsc',
+        'unichain',
         'monad',
         'robinhood',
         'xlayer',
@@ -899,22 +886,29 @@ describe('CLI V5 action', () => {
         expect(boxes[0]).toMatchObject({ value: 'devBuy', checked: true });
       });
 
-      test.each(['base', 'bsc', 'monad', 'robinhood', 'xlayer', 'arc'])(
-        '%s offers its stable quote',
-        async (chain) => {
-          answerWith({
-            chain,
-            name: 'Example',
-            pairedToken: 'other',
-            otherPairedToken: '0x4444444444444444444444444444444444444444',
-            extensions: [],
-            addMetadata: false,
-          });
-          await run(['--symbol', 'EX', '--dry-run'], false);
-          const choices = questions(1)[0]?.choices as { name: string; value: string }[];
-          expect(choices.some(({ name }) => name === 'USDC' || name === 'USDG')).toBe(true);
-        }
-      );
+      test.each([
+        'base',
+        'arbitrum',
+        'ethereum',
+        'bsc',
+        'unichain',
+        'monad',
+        'robinhood',
+        'xlayer',
+        'arc',
+      ])('%s offers its stable quote', async (chain) => {
+        answerWith({
+          chain,
+          name: 'Example',
+          pairedToken: 'other',
+          otherPairedToken: '0x4444444444444444444444444444444444444444',
+          extensions: [],
+          addMetadata: false,
+        });
+        await run(['--symbol', 'EX', '--dry-run'], false);
+        const choices = questions(1)[0]?.choices as { name: string; value: string }[];
+        expect(choices.some(({ name }) => name === 'USDC' || name === 'USDG')).toBe(true);
+      });
 
       test('the flags preselect each option and fill each default', async () => {
         answerWith({ name: 'Example', pairedToken: 'WETH', extensions: ['devBuy', 'burn'] });
