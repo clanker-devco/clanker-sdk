@@ -1,5 +1,9 @@
 # Clanker SDK - Changelog
 
+5.0.1
+- (Fix) V5 `deploy` on Ethereum, Arbitrum and Unichain fails before any read or send with `Launches are not open on chain <id>.`, the same message their factories return. Their addresses stay, so claims and reads on existing tokens work. The CLI no longer offers these chains for deploy.
+- (Fix) `clanker-sdk setup` has default public RPCs for Monad, X Layer and Arc.
+
 5.0.0
 - (Breaking) The SDK sends new launches to V5 only. V3 and V4 `deploy`, `deploySimulate`, `getDeployTransaction`, and `startPresale` throw. Claims, reward changes, vault claims, metadata updates, and running presales do not change.
 - (Breaking) The minimum viem version is 2.49.3. viem is now a peer dependency only, so the SDK always uses the project's viem copy.
