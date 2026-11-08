@@ -36,6 +36,17 @@ function resolveRpcUrl(opts: GlobalOpts, chainName: string): string | undefined 
   return config.rpc?.[chainName];
 }
 
+/** A chain without a public RPC, such as Elysium, needs an RPC URL from the caller. */
+function resolveTransport(opts: GlobalOpts, chainName: string, chain: Chain) {
+  const rpcUrl = resolveRpcUrl(opts, chainName);
+  if (!rpcUrl && !chain.rpcUrls.default.http[0]) {
+    throw new Error(
+      `Chain ${chainName} has no public RPC. Pass --rpc <url> or run \`clanker setup\` to save one.`
+    );
+  }
+  return rpcUrl ? http(rpcUrl) : http();
+}
+
 export function resolveClients(opts: GlobalOpts): {
   chain: Chain;
   account: ReturnType<typeof privateKeyToAccount>;
@@ -44,8 +55,7 @@ export function resolveClients(opts: GlobalOpts): {
 } {
   const chainName = opts.chain || loadConfig().defaultChain || 'base';
   const chain = resolveChain(chainName);
-  const rpcUrl = resolveRpcUrl(opts, chainName);
-  const transport = rpcUrl ? http(rpcUrl) : http();
+  const transport = resolveTransport(opts, chainName, chain);
   const account = privateKeyToAccount(resolvePrivateKey(opts));
 
   const walletClient = createWalletClient({ account, chain, transport });
@@ -60,8 +70,7 @@ export function resolvePublicClient(opts: GlobalOpts): {
 } {
   const chainName = opts.chain || loadConfig().defaultChain || 'base';
   const chain = resolveChain(chainName);
-  const rpcUrl = resolveRpcUrl(opts, chainName);
-  const transport = rpcUrl ? http(rpcUrl) : http();
+  const transport = resolveTransport(opts, chainName, chain);
   const publicClient = createPublicClient({ chain, transport }) as PublicClient;
   return { chain, publicClient };
 }

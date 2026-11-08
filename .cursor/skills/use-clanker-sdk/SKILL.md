@@ -31,6 +31,7 @@ Version 5 requires viem 2.49.3 or newer.
 | X Layer | 196 | `xLayer` from `viem/chains` | Native coin and USDC |
 | Robinhood Chain | 4663 | `robinhood` from `clanker-sdk` | Native coin and USDG |
 | Arc | 5042 | `arc` from `viem/chains` | USDC, the native coin of Arc |
+| Elysium | 99901 | `elysium` from `clanker-sdk` (no public RPC: pass your own URL) | HYPE. USDC launches need a custom dev-buy route |
 
 A launch works only when the factory of that chain is open. A closed factory gives `Launches are not open on chain <id>.` Clanker no longer supports new launches on Ethereum, Arbitrum, and Unichain, so their factories stay closed.
 

@@ -1,7 +1,13 @@
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
 import type { Address, Chain } from 'viem';
-import { ARC_CHAIN_ID, ARC_USDC, TAX_ADDRESSES } from '../../v5/addresses.js';
+import {
+  ARC_CHAIN_ID,
+  ARC_USDC,
+  ELYSIUM_CHAIN_ID,
+  ELYSIUM_USDC,
+  TAX_ADDRESSES,
+} from '../../v5/addresses.js';
 import { type ClankerTokenV5, clankerTokenV5 } from '../../v5/config.js';
 import { Clanker as ClankerV5, SEND_UNCERTAIN } from '../../v5/index.js';
 import { STABLE_ROUTES } from '../../v5/routes.js';
@@ -173,6 +179,10 @@ const USDC_WITHOUT_ROUTE: Record<number, Address> = {
   42161: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
   130: '0x078D782b760474a361dDA0AF3839290b0EF57AD6',
 };
+// A stable quote without a native to stable pool: it can launch, and a dev buy needs a custom route.
+const STABLE_WITHOUT_POOL: Record<number, Address> = {
+  [ELYSIUM_CHAIN_ID]: ELYSIUM_USDC,
+};
 const OTHER_PAIRED_TOKEN = 'other';
 const V5_PAIR_NAMES: Record<number, { native?: string; stable?: string }> = {
   8453: { native: 'ETH', stable: 'USDC' },
@@ -184,13 +194,16 @@ const V5_PAIR_NAMES: Record<number, { native?: string; stable?: string }> = {
   196: { native: 'OKB', stable: 'USDC' },
   4663: { native: 'ETH', stable: 'USDG' },
   [ARC_CHAIN_ID]: { stable: 'USDC' },
+  [ELYSIUM_CHAIN_ID]: { native: 'HYPE', stable: 'USDC' },
 };
 
 function v5PairChoices(chainName: string): { name: string; value: string }[] {
   const { id } = resolveChain(chainName);
   const { native, stable } = V5_PAIR_NAMES[id] ?? {};
   const stableAddress =
-    id === ARC_CHAIN_ID ? ARC_USDC : (STABLE_ROUTES[id]?.stable ?? USDC_WITHOUT_ROUTE[id]);
+    id === ARC_CHAIN_ID
+      ? ARC_USDC
+      : (STABLE_ROUTES[id]?.stable ?? USDC_WITHOUT_ROUTE[id] ?? STABLE_WITHOUT_POOL[id]);
   return [
     ...(native ? [{ name: `${native} (native coin)`, value: 'WETH' }] : []),
     ...(stable && stableAddress ? [{ name: stable, value: stableAddress }] : []),
