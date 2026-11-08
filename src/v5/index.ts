@@ -26,6 +26,7 @@ import { TaxLaunchToken_abi } from '../abi/v5/TaxLaunchToken.js';
 import { TaxLaunchValidation_abi } from '../abi/v5/TaxLaunchValidation.js';
 import { TaxRWAERC20LaunchpadFactory_abi } from '../abi/v5/TaxRWAERC20LaunchpadFactory.js';
 import { WETH_ADDRESSES } from '../constants.js';
+import { ELYSIUM_WHYPE_ADDRESS, elysium } from '../utils/chains/elysium.js';
 import { ClankerError } from '../utils/errors.js';
 import type { ClankerResult } from '../utils/write-clanker-contracts.js';
 import { type TaxAddresses, taxAddressFor } from './addresses.js';
@@ -39,6 +40,8 @@ export * from '../abi/v5/index.js';
 export {
   ARC_CHAIN_ID,
   ARC_USDC,
+  ELYSIUM_CHAIN_ID,
+  ELYSIUM_USDC,
   TAX_ADDRESSES,
   type TaxAddressConfig,
   type TaxAddresses,
@@ -122,6 +125,7 @@ const BURN_ADDRESS: Address = '0x000000000000000000000000000000000000dEaD';
 const WRAPPED_NATIVE: Readonly<Record<number, Address | undefined>> = {
   ...WETH_ADDRESSES,
   196: '0xe538905cf8410324e03A5A23C1c177a474D59b2b',
+  [elysium.id]: ELYSIUM_WHYPE_ADDRESS,
 };
 
 // A viem error message can hold the whole call data. `ClankerError.error` keeps the full error.
