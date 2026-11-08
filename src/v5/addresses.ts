@@ -13,6 +13,10 @@ export type TaxAddressConfig = { [K in keyof TaxAddresses]: Address | '' };
 export const ARC_CHAIN_ID = 5042;
 export const ARC_USDC: Address = '0x3600000000000000000000000000000000000000';
 
+export const ELYSIUM_CHAIN_ID = 99901;
+/** USDC on Elysium (6 decimals). A registered quote, but there is no HYPE/USDC pool for a dev buy. */
+export const ELYSIUM_USDC: Address = '0xb47c4C8F73F009CC0C0d3f92B388d13E293F0B65';
+
 export const TAX_ADDRESSES: Readonly<Record<number, Readonly<TaxAddressConfig>>> = {
   8453: {
     factory: '0x572e88D3cD7f23E4241EB6ceDD96667271bF09A0',
@@ -52,6 +56,13 @@ export const TAX_ADDRESSES: Readonly<Record<number, Readonly<TaxAddressConfig>>>
   5042: {
     factory: '0xcA111dcdd2cE924c3378d6514fDCbC46217bcA16',
     hook: '0x565189a6780D1a50FC1792F64db8e4881119AaCC',
+    escrow: '0xFBB6e837A2eA96d6b4beb4788c2749Cf34A997e7',
+    tokenDeployer: '0xE76c413b26c7006CF3ac747b46A8F05E0Ccf3287',
+    dividendClaimHelper: '0xdb525d50c70b9303115bA19503761756136d2B49',
+  },
+  99901: {
+    factory: '0xcA111dcdd2cE924c3378d6514fDCbC46217bcA16',
+    hook: '0x3eA9581a32a396F69b177B65b91149Cf887BEACC',
     escrow: '0xFBB6e837A2eA96d6b4beb4788c2749Cf34A997e7',
     tokenDeployer: '0xE76c413b26c7006CF3ac747b46A8F05E0Ccf3287',
     dividendClaimHelper: '0xdb525d50c70b9303115bA19503761756136d2B49',

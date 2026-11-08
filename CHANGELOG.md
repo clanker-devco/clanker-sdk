@@ -1,5 +1,10 @@
 # Clanker SDK - Changelog
 
+5.1.0
+- (Chain) Add Elysium (chain id 99901) to `clanker-sdk/v5`, with the default Tax addresses, the `elysium` chain and `ELYSIUM_WHYPE_ADDRESS` from `clanker-sdk`, and `ELYSIUM_CHAIN_ID` and `ELYSIUM_USDC` from `clanker-sdk/v5`. Elysium has no public RPC, so pass your own RPC URL.
+- (Feature) `clanker-sdk deploy --chain elysium` launches with HYPE or USDC. A HYPE dev buy uses the SDK route. A USDC dev buy needs a custom route, because there is no HYPE/USDC pool.
+- (Fix) The CLI asks for `--rpc` on a chain without a public RPC instead of failing on its first request.
+
 5.0.1
 - (Fix) `clanker-sdk setup` has default public RPCs for Monad, X Layer and Arc.
 

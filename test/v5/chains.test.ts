@@ -2,7 +2,8 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { buildV5Config } from '../../src/cli/commands/deploy.js';
 import { CHAIN_NAMES, resolveChain } from '../../src/cli/utils/chains.js';
 import { blockExplorerUrl } from '../../src/cli/utils/output.js';
-import { Clanker } from '../../src/v5/index.js';
+import { ELYSIUM_WHYPE_ADDRESS, elysium } from '../../src/index.js';
+import { Clanker, ELYSIUM_CHAIN_ID, ELYSIUM_USDC } from '../../src/v5/index.js';
 import { buildTaxLaunch } from '../../src/v5/launch.js';
 import {
   caller,
@@ -140,6 +141,7 @@ for (const [chainId, name, hook, stable, wrapped, fee] of chains) {
 test.each([
   ['xlayer', 196, 'https://www.oklink.com/xlayer/tx/0xabc'],
   ['arc', 5042, 'https://explorer.arc.io/tx/0xabc'],
+  ['elysium', 99901, 'https://elysium.kinetiq.xyz/tx/0xabc'],
 ] as const)('the CLI resolves %s and its explorer', (name, id, url) => {
   expect(CHAIN_NAMES).toContain(name);
   expect(resolveChain(name).id).toBe(id);
@@ -179,4 +181,72 @@ test('the CLI selects the Arc USDC quote and route with no pair', async () => {
     rewardRecipient: caller,
   });
   expect(reward.args[1]).toBe('0x3600000000000000000000000000000000000000');
+});
+
+const elysiumHook = '0x3eA9581a32a396F69b177B65b91149Cf887BEACC';
+
+test('the elysium chain has no default RPC, the HYPE coin, and multicall3', () => {
+  expect(elysium.id).toBe(ELYSIUM_CHAIN_ID);
+  expect(elysium.id).toBe(99901);
+  expect(elysium.nativeCurrency).toEqual({ name: 'HYPE', symbol: 'HYPE', decimals: 18 });
+  expect(elysium.rpcUrls.default.http).toEqual([]);
+  expect(elysium.contracts?.multicall3?.address).toBe('0xcA11bde05977b3631167028862bE2a173976CA11');
+});
+
+test('elysium selects V5 and the native route', async () => {
+  const mocks = mockClients({ tokenDeployer: releaseDeployer, hook: elysiumHook });
+  Object.assign(mocks.publicClient, { chain: { id: 99901 } });
+  const tx = await buildTaxLaunch(
+    { name: 'Example', symbol: 'EX', devBuy: { ethAmount: '0.001', minAmountOut: 1n } },
+    { caller, chainId: 99901, publicClient: mocks.publicClient }
+  );
+  expect(tx.functionName).toBe('createLaunchAndBuy');
+  expect(tx.address).toBe('0xcA111dcdd2cE924c3378d6514fDCbC46217bcA16');
+  expect(decodeSwapXRoute(tx.args[1]?.routeData ?? '0x')).toEqual([
+    {
+      swapType: 2,
+      tokenIn: '0x0000000000000000000000000000000000000000',
+      tokenOut: predicted,
+      poolAddress: '0x0000000000000000000000000000000000000000',
+      fee: 0,
+      tickSpacing: 200,
+      hooks: elysiumHook,
+      hookData: '0x',
+    },
+  ]);
+});
+
+test('elysium launches with the USDC quote, and a USDC dev buy needs a custom route', async () => {
+  const mocks = mockClients({ tokenDeployer: releaseDeployer, hook: elysiumHook });
+  Object.assign(mocks.publicClient, { chain: { id: 99901 } });
+  const input = buildV5Config({
+    name: 'Example',
+    symbol: 'EX',
+    chain: 'elysium',
+    pairedToken: ELYSIUM_USDC,
+  });
+  const tx = await buildTaxLaunch(input, {
+    caller,
+    chainId: 99901,
+    publicClient: mocks.publicClient,
+  });
+  expect(tx.args[0].quoteToken).toBe(ELYSIUM_USDC);
+  await expect(
+    buildTaxLaunch(
+      { ...input, devBuy: { ethAmount: '0.001', minAmountOut: 1n } },
+      { caller, chainId: 99901, publicClient: mocks.publicClient }
+    )
+  ).rejects.toThrow('The caller must supply buildBuyRoute or devBuy.routeData');
+});
+
+test('elysium keeps the USDC reward currency and maps WHYPE to the native coin', async () => {
+  const mocks = mockClients();
+  Object.assign(mocks.publicClient, { chain: { id: 99901 } });
+  const client = new Clanker({ publicClient: mocks.publicClient });
+  const rewards = (token: `0x${string}`) =>
+    client.getAvailableRewardsTransaction({ token, rewardRecipient: caller });
+  expect((await rewards(ELYSIUM_USDC)).args[1]).toBe(ELYSIUM_USDC);
+  expect((await rewards(ELYSIUM_WHYPE_ADDRESS)).args[1]).toBe(
+    '0x0000000000000000000000000000000000000000'
+  );
 });

@@ -44,7 +44,7 @@ npx clanker-sdk deploy --name "MyToken" --symbol "MTK" --chain base
 | Command | Description |
 |---------|-------------|
 | `setup` | Save default wallet & chain config |
-| `deploy` | Deploy a V5 token on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc |
+| `deploy` | Deploy a V5 token on Base, BNB Chain, Monad, X Layer, Robinhood, Arc, and Elysium |
 | `rewards` | Claim rewards and update recipients or admins for V4 and V5 tokens. Use `--v5` for V5 currency claims or balances. |
 | `dividends` | Check and claim holder dividends of V5 tokens |
 | `vault` | Claim vaulted V4 tokens |
@@ -65,7 +65,7 @@ Run `clanker-sdk <command> --help` for details on any command.
 
 ## TypeScript SDK
 
-Use `clanker-sdk/v5` for launches on Base, BNB Chain, Monad, X Layer, Robinhood, and Arc. Clanker no longer supports new launches on Ethereum, Arbitrum, and Unichain. See [the V5 guide](./docs/v5.md), including how the tax is split, and [the dev-buy example](./examples/v5/deploy.ts).
+Use `clanker-sdk/v5` for launches on Base, BNB Chain, Monad, X Layer, Robinhood, Arc, and Elysium. Elysium has no public RPC: pass your own RPC URL with the exported `elysium` chain, or `--rpc` in the CLI. Clanker no longer supports new launches on Ethereum, Arbitrum, and Unichain. See [the V5 guide](./docs/v5.md), including how the tax is split, and [the dev-buy example](./examples/v5/deploy.ts).
 From version 5, the V3 and V4 launch methods, including `startPresale`, throw.
 Claims, reward changes, metadata updates, vault claims, and running presales of existing tokens do not change.
 

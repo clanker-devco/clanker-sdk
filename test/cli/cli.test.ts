@@ -48,6 +48,7 @@ describe('CLI chain utilities', () => {
     expect(CHAIN_NAMES).toContain('unichain');
     expect(CHAIN_NAMES).toContain('monad');
     expect(CHAIN_NAMES).toContain('robinhood');
+    expect(CHAIN_NAMES).toContain('elysium');
     expect(CHAIN_NAMES).not.toContain('abstract');
   });
 
@@ -62,6 +63,18 @@ describe('CLI chain utilities', () => {
 
   test('resolveChain throws for unknown chain', () => {
     expect(() => resolveChain('solana')).toThrow('Unknown chain');
+  });
+
+  test('elysium has no public RPC, so the CLI asks for one', () => {
+    expect(() => walletUtils.resolvePublicClient({ chain: 'elysium' })).toThrow(
+      'Chain elysium has no public RPC. Pass --rpc <url>'
+    );
+    const { chain, publicClient } = walletUtils.resolvePublicClient({
+      chain: 'elysium',
+      rpc: 'http://127.0.0.1:8545',
+    });
+    expect(chain.id).toBe(99901);
+    expect(publicClient.chain?.id).toBe(99901);
   });
 });
 
@@ -565,8 +578,8 @@ describe('CLI V5 action', () => {
       await expect(run([...flags, '--chain', chain])).rejects.toThrow('CLI exit');
       expect((errors.mock.calls[0]?.[0] as Error).message).toBe(
         chain === 'unknown'
-          ? 'Unknown chain "unknown". Supported: base, base-sepolia, arbitrum, ethereum, bsc, unichain, monad, robinhood, xlayer, arc'
-          : 'Chain base-sepolia has no Clanker V5 contracts. The CLI launches V5 tokens only. Use one of: base, arbitrum, ethereum, bsc, unichain, monad, robinhood, xlayer, arc.'
+          ? 'Unknown chain "unknown". Supported: base, base-sepolia, arbitrum, ethereum, bsc, unichain, monad, robinhood, xlayer, arc, elysium'
+          : 'Chain base-sepolia has no Clanker V5 contracts. The CLI launches V5 tokens only. Use one of: base, arbitrum, ethereum, bsc, unichain, monad, robinhood, xlayer, arc, elysium.'
       );
       expect(clients).toHaveBeenCalledTimes(0);
       expect(prompt).not.toHaveBeenCalled();
@@ -730,6 +743,7 @@ describe('CLI V5 action', () => {
         'robinhood',
         'xlayer',
         'arc',
+        'elysium',
       ]);
       expect(questions(1).map((q) => q.name)).toEqual([
         'pairedToken',
