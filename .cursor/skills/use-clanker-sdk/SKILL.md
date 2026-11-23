@@ -105,6 +105,7 @@ pool: { pairedToken: BASE_USDC }, devBuy: { ethAmount: '0.01' }  // stable quote
 ```
 
 - The SDK selects the route for the native quote and for the stable quote of each chain. Another quote needs `routeData` or `buildBuyRoute`.
+- On Base, the creator-buy adapter accepts Aerodrome Slipstream pools from the older Slipstream factories and from the Aero MetaDEX factory `0x9CB220581b91b0C83223012FE69688b92aD07a76` (read the pool fee from `fee()`). A custom route for a stock-paired token should use the deepest of those pools; the adapter rejects pools from any other factory.
 - The SDK simulates the launch and sets `minAmountOut` 5% below the quote. Set `devBuySlippagePercent` in the second argument of `deploy` to change it.
 - The contract sends the bought tokens to the caller. If `devBuy.recipient` or `tokenAdmin` is another address, `deploy` sends them in a second transaction and returns `transferTxHash`.
 
